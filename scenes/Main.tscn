@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" uid="uid://d2d6jv8hnvxdc" path="res://assets/props/rocas_2.glb" id="13_rocas2"]
 [ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" 
 id="14_rocas3"]
+[ext_resource type="Texture2D" path="res://assets/textures/ring.png" id="15_ring"]
+[ext_resource type="Script" path="res://scripts/ripples.gd" id="16_ripples"]
 [ext_resource type="Texture2D" uid="uid://cffgejs6a3jjn" path="res://assets/props/rocas_1_rock+cluster+3d+model_basecolor.jpg" 
 id="15_rocktex1"]
 [ext_resource type="Texture2D" uid="uid://djwe3j66fguj4" path="res://assets/props/rocas_2_low-poly+rock+cluster+3d+model_basecolor.jpg" 
@@ -103,6 +105,37 @@ roughness = 1.0
 albedo_color = Color(1.12, 1.02, 0.92, 1)
 albedo_texture = ExtResource("17_rocktex3")
 roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="RingMat1"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.97, 0.9, 0.35)
+albedo_texture = ExtResource("15_ring")
+
+[sub_resource type="StandardMaterial3D" id="RingMat2"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.97, 0.9, 0.35)
+albedo_texture = ExtResource("15_ring")
+
+[sub_resource type="StandardMaterial3D" id="RingMat3"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.97, 0.9, 0.35)
+albedo_texture = ExtResource("15_ring")
+
+[sub_resource type="StandardMaterial3D" id="GlintMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.95, 0.8, 0.6)
+albedo_texture = ExtResource("9_glow")
+
+[sub_resource type="PlaneMesh" id="RingMesh"]
+size = Vector2(1, 1)
 
 [sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
 transparency = 1
@@ -199,6 +232,48 @@ surface_material_override/0 = SubResource("RockMat_1")
 [node name="Cat" type="Node3D" parent="." unique_id=712432126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.3)
 script = ExtResource("2_cat")
+
+[node name="Ondas" type="Node3D" parent="." script = ExtResource("16_ripples")]
+
+[node name="Ring1" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.2, 1.6)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("RingMat1")
+
+[node name="Ring2" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.2, 1.6)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("RingMat2")
+
+[node name="Ring3" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.2, 2.1)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("RingMat3")
+
+[node name="Glint1" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, -0.5, 0.2, 0.8)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("GlintMat")
+
+[node name="Glint2" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.1, 0.2, 0.4)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("GlintMat")
+
+[node name="Glint3" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.7, 0.2, 0.9)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("GlintMat")
+
+[node name="Glint4" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, -0.2, 0.2, 2.2)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("GlintMat")
+
+[node name="Glint5" type="MeshInstance3D" parent="Ondas"]
+transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.9, 0.2, 2.6)
+mesh = SubResource("RingMesh")
+surface_material_override/0 = SubResource("GlintMat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.49220592, 0.8017105, -0.45671058)
