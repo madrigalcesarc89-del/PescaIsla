@@ -13,22 +13,12 @@
 [ext_resource type="Script" uid="uid://pi048tqeog0p" path="res://scripts/boat.gd" id="11_boat"]
 [ext_resource type="PackedScene" uid="uid://p03lin13asw2" path="res://assets/props/rocas_1.glb" id="12_rocas1"]
 [ext_resource type="PackedScene" uid="uid://d2d6jv8hnvxdc" path="res://assets/props/rocas_2.glb" id="13_rocas2"]
-[ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" 
-id="14_rocas3"]
-[ext_resource type="Texture2D" path="res://assets/textures/ring.png" id="15_ring"]
-[ext_resource type="Script" path="res://scripts/ripples.gd" id="16_ripples"]
-[ext_resource type="Texture2D" path="res://assets/textures/cloud.png" id="18_cloud"]
-[ext_resource type="Script" path="res://scripts/clouds.gd" id="19_clouds"]
+[ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" id="14_rocas3"]
+[ext_resource type="Texture2D" uid="uid://b5flea4llxgmm" path="res://assets/textures/ring.png" id="15_ring"]
 [ext_resource type="Texture2D" uid="uid://6iein0srt672" path="res://assets/textures/cloud2.png" id="20_cloud2"]
 [ext_resource type="Texture2D" uid="uid://b3igbaeophyc3" path="res://assets/textures/sun.png" id="21_sun"]
 [ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
 [ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
-[ext_resource type="Texture2D" uid="uid://cffgejs6a3jjn" path="res://assets/props/rocas_1_rock+cluster+3d+model_basecolor.jpg" 
-id="15_rocktex1"]
-[ext_resource type="Texture2D" uid="uid://djwe3j66fguj4" path="res://assets/props/rocas_2_low-poly+rock+cluster+3d+model_basecolor.jpg" 
-id="16_rocktex2"]
-[ext_resource type="Texture2D" uid="uid://clmw0repy0s5r" path="res://assets/props/rocas_3_low-poly+rocks+3d+model_basecolor.jpg" 
-id="17_rocktex3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -97,20 +87,14 @@ albedo_color = Color(0.5608, 0.7255, 0.5882, 1)
 [sub_resource type="PlaneMesh" id="ShadowMesh_1"]
 size = Vector2(1.2, 1.2)
 
-[sub_resource type="StandardMaterial3D" id="RockTint1"]
-albedo_color = Color(1.12, 1.02, 0.92, 1)
-albedo_texture = ExtResource("15_rocktex1")
-roughness = 1.0
+[sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.85)
+albedo_texture = ExtResource("5_shadow")
 
-[sub_resource type="StandardMaterial3D" id="RockTint2"]
-albedo_color = Color(1.12, 1.02, 0.92, 1)
-albedo_texture = ExtResource("16_rocktex2")
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="RockTint3"]
-albedo_color = Color(1.12, 1.02, 0.92, 1)
-albedo_texture = ExtResource("17_rocktex3")
-roughness = 1.0
+[sub_resource type="PlaneMesh" id="RingMesh"]
+size = Vector2(1, 1)
 
 [sub_resource type="StandardMaterial3D" id="RingMat1"]
 transparency = 1
@@ -140,79 +124,70 @@ shading_mode = 0
 albedo_color = Color(1, 0.95, 0.8, 0.6)
 albedo_texture = ExtResource("9_glow")
 
-[sub_resource type="PlaneMesh" id="RingMesh"]
-size = Vector2(1, 1)
+[sub_resource type="QuadMesh" id="SunQuad"]
+size = Vector2(10, 10)
 
 [sub_resource type="StandardMaterial3D" id="SunMat"]
 transparency = 1
 blend_mode = 1
 shading_mode = 0
-billboard_mode = 1
 albedo_color = Color(1, 0.9, 0.75, 0.5)
 albedo_texture = ExtResource("21_sun")
-
-[sub_resource type="QuadMesh" id="SunQuad"]
-size = Vector2(10, 10)
-
-[sub_resource type="StandardMaterial3D" id="CloudMat"]
-transparency = 1
-shading_mode = 0
 billboard_mode = 1
-albedo_color = Color(1, 0.93, 0.9, 0.5)
-albedo_texture = ExtResource("20_cloud2")
 
 [sub_resource type="QuadMesh" id="CloudQuad"]
 size = Vector2(20, 10)
 
-[sub_resource type="StandardMaterial3D" id="IsleMat"]
+[sub_resource type="StandardMaterial3D" id="CloudMat"]
 transparency = 1
 shading_mode = 0
+albedo_color = Color(1, 0.93, 0.9, 0.5)
+albedo_texture = ExtResource("20_cloud2")
 billboard_mode = 1
-albedo_color = Color(1, 1, 1, 0.95)
-albedo_texture = ExtResource("22_isle")
-
-[sub_resource type="QuadMesh" id="IsleQuad"]
-size = Vector2(20, 5)
-
-[sub_resource type="StandardMaterial3D" id="GullMat"]
-transparency = 1
-shading_mode = 0
-billboard_mode = 1
-albedo_color = Color(1, 1, 1, 0.9)
-albedo_texture = ExtResource("23_gull")
-
-[sub_resource type="QuadMesh" id="GullQuad"]
-size = Vector2(0.6, 0.3)
-
-[sub_resource type="StandardMaterial3D" id="PartMat"]
-transparency = 1
-blend_mode = 1
-shading_mode = 0
-billboard_mode = 1
-albedo_color = Color(1, 0.85, 0.5, 0.8)
-albedo_texture = ExtResource("9_glow")
-
-[sub_resource type="QuadMesh" id="PartQuad"]
-material = SubResource("PartMat")
-size = Vector2(0.07, 0.07)
 
 [sub_resource type="ParticleProcessMaterial" id="PartProc"]
 emission_shape = 3
 emission_box_extents = Vector3(1.5, 0.75, 1.5)
 direction = Vector3(0, 1, 0)
 spread = 25.0
-gravity = Vector3(0, 0, 0)
 initial_velocity_min = 0.1
 initial_velocity_max = 0.3
+gravity = Vector3(0, 0, 0)
 scale_min = 0.6
 scale_max = 1.2
 color = Color(1, 0.85, 0.55, 1)
 
-[sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
+[sub_resource type="StandardMaterial3D" id="PartMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.5, 0.8)
+albedo_texture = ExtResource("9_glow")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="PartQuad"]
+material = SubResource("PartMat")
+size = Vector2(0.07, 0.07)
+
+[sub_resource type="QuadMesh" id="IsleQuad"]
+size = Vector2(20, 5)
+
+[sub_resource type="StandardMaterial3D" id="IsleMat"]
 transparency = 1
 shading_mode = 0
-albedo_color = Color(1, 1, 1, 0.85)
-albedo_texture = ExtResource("5_shadow")
+albedo_color = Color(1, 1, 1, 0.95)
+albedo_texture = ExtResource("22_isle")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="GullQuad"]
+size = Vector2(0.6, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="GullMat"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.9)
+albedo_texture = ExtResource("23_gull")
+billboard_mode = 1
 
 [node name="Main" type="Node3D" unique_id=897212059]
 script = ExtResource("1_main")
@@ -238,7 +213,7 @@ surface_material_override/0 = SubResource("WaterMat_1")
 [node name="Props" type="Node3D" parent="." unique_id=2029458562]
 
 [node name="Muelle" parent="Props" unique_id=1076853241 instance=ExtResource("6_muelle")]
-transform = Transform3D(-1.0859971e-05, 0, 3, 0, 3, 0, -3, 0, -1.0859971e-05, 0, -0.05, 0.3)
+transform = Transform3D(2.9982362, 0, -0.10285578, 0, 3, 0, 0.10285578, 0, 2.9982362, 0, -0.05, 0.3)
 
 [node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.55, 0.53, 1.25)
@@ -257,36 +232,23 @@ light_color = Color(1, 0.85, 0.66, 1)
 omni_range = 2.5
 
 [node name="Bote" type="Node3D" parent="Props" unique_id=2129198538]
-position = Vector3(0.35, -0.03, 1.7)
-rotation = Vector3(0, -0.4, 0)
-scale = Vector3(1.2, 1.2, 1.2)
+transform = Transform3D(1.1052732, 0, -0.46730202, 0, 1.2, 0, 0.46730202, 0, 1.1052732, 0.35, -0.03, 1.7)
 script = ExtResource("11_boat")
 
 [node name="Modelo" parent="Props/Bote" unique_id=1996846982 instance=ExtResource("10_bote")]
+transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999976, 0, -2.9802322e-08, 0, 1, -0.37029475, -0.00411037, 0.3313011)
 
 [node name="Roca1" parent="Props" unique_id=1539621057 instance=ExtResource("12_rocas1")]
-transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, 1.2, -0.05, 3)
-
-[node name="tripo_node_b7cc7730-93d6-4dac-ba8f-3e3365450246" parent="Props/Roca1"]
-surface_material_override/0 = SubResource("RockTint1")
+transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, 2.0188103, -0.0883773, -0.56164455)
 
 [node name="Roca2b" parent="Props" unique_id=744386726 instance=ExtResource("13_rocas2")]
 transform = Transform3D(0.18117885, 0, 0.46601954, 0, 0.5, 0, -0.46601954, 0, 0.18117885, 1, -0.05, 2.9)
 
-[node name="tripo_node_e244d5c9-6b0b-4e58-8e0b-b99510ac7eab" parent="Props/Roca2b"]
-surface_material_override/0 = SubResource("RockTint2")
-
 [node name="Roca3" parent="Props" unique_id=303038551 instance=ExtResource("14_rocas3")]
-position = Vector3(-1.55, -0.05, 0.4)
-rotation = Vector3(0, 4.0, 0)
-scale = Vector3(0.54, 0.54, 0.54)
-
-[node name="tripo_node_89d03e48-69d8-4421-a7f7-5ac6be8b3d3a" parent="Props/Roca3"]
-surface_material_override/0 = SubResource("RockTint3")
+transform = Transform3D(-0.35296756, 0, -0.40867338, 0, 0.54, 0, 0.40867338, 0, -0.35296756, -1.55, -0.05, 0.4)
 
 [node name="IslandSand" type="MeshInstance3D" parent="Props" unique_id=605355524]
-position = Vector3(3.2, -0.3, 2.8)
-scale = Vector3(0.75, 0.75, 0.75)
+transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 3.2, -0.3, 2.8)
 mesh = SubResource("SandCyl_1")
 surface_material_override/0 = SubResource("SandMat_1")
 
@@ -304,123 +266,123 @@ surface_material_override/0 = SubResource("RockMat_1")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.3)
 script = ExtResource("2_cat")
 
-[node name="Ondas" type="Node3D" parent="." script = ExtResource("16_ripples")]
+[node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.29008776, 0.7305013, -0.6170982)
+cast_shadow = 0
+pixel_size = 0.0013
+billboard = 1
+no_depth_test = true
+alpha_cut = 2
+render_priority = 10
+texture = ExtResource("4_idle")
 
-[node name="Ring1" type="MeshInstance3D" parent="Ondas"]
+[node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh = SubResource("ShadowMesh_1")
+surface_material_override/0 = SubResource("ShadowMat_1")
+
+[node name="Ondas" type="Node3D" parent="." unique_id=1107859515]
+
+[node name="Ring1" type="MeshInstance3D" parent="Ondas" unique_id=2003564549]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.2, 1.6)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat1")
 
-[node name="Ring2" type="MeshInstance3D" parent="Ondas"]
+[node name="Ring2" type="MeshInstance3D" parent="Ondas" unique_id=1699786503]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.2, 1.6)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat2")
 
-[node name="Ring3" type="MeshInstance3D" parent="Ondas"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.2, 2.1)
+[node name="Ring3" type="MeshInstance3D" parent="Ondas" unique_id=724203729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3936769, 0.09429486, 2.1237829)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat3")
 
-[node name="Glint1" type="MeshInstance3D" parent="Ondas"]
+[node name="Glint1" type="MeshInstance3D" parent="Ondas" unique_id=131231464]
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, -0.5, 0.2, 0.8)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
 
-[node name="Glint2" type="MeshInstance3D" parent="Ondas"]
+[node name="Glint2" type="MeshInstance3D" parent="Ondas" unique_id=1642981499]
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.1, 0.2, 0.4)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
 
-[node name="Glint3" type="MeshInstance3D" parent="Ondas"]
+[node name="Glint3" type="MeshInstance3D" parent="Ondas" unique_id=1710767098]
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.7, 0.2, 0.9)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
 
-[node name="Glint4" type="MeshInstance3D" parent="Ondas"]
+[node name="Glint4" type="MeshInstance3D" parent="Ondas" unique_id=1854011112]
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, -0.2, 0.2, 2.2)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
 
-[node name="Glint5" type="MeshInstance3D" parent="Ondas"]
+[node name="Glint5" type="MeshInstance3D" parent="Ondas" unique_id=857464469]
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.9, 0.2, 2.6)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
 
-[node name="Sol" type="MeshInstance3D" parent="."]
+[node name="Sol" type="MeshInstance3D" parent="." unique_id=339174108]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, -85)
 mesh = SubResource("SunQuad")
 surface_material_override/0 = SubResource("SunMat")
 
-[node name="Nubes" type="Node3D" parent="." script = ExtResource("19_clouds")]
+[node name="Nubes" type="Node3D" parent="." unique_id=259280781]
 
-[node name="Nube1" type="MeshInstance3D" parent="Nubes"]
+[node name="Nube1" type="MeshInstance3D" parent="Nubes" unique_id=982055599]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4.5, -80)
 mesh = SubResource("CloudQuad")
 surface_material_override/0 = SubResource("CloudMat")
 
-[node name="Nube2" type="MeshInstance3D" parent="Nubes"]
+[node name="Nube2" type="MeshInstance3D" parent="Nubes" unique_id=256856243]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 6, 4, -70)
 mesh = SubResource("CloudQuad")
 surface_material_override/0 = SubResource("CloudMat")
 
-[node name="Nube3" type="MeshInstance3D" parent="Nubes"]
+[node name="Nube3" type="MeshInstance3D" parent="Nubes" unique_id=485079375]
 transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 0, 5.5, -90)
 mesh = SubResource("CloudQuad")
 surface_material_override/0 = SubResource("CloudMat")
 
-[node name="Luciernagas" type="GPUParticles3D" parent="."]
+[node name="Luciernagas" type="GPUParticles3D" parent="." unique_id=1722048737]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 1)
 amount = 30
 lifetime = 4.5
 process_material = SubResource("PartProc")
 draw_pass_1 = SubResource("PartQuad")
 
-[node name="IslaLejana1" type="MeshInstance3D" parent="."]
+[node name="IslaLejana1" type="MeshInstance3D" parent="." unique_id=1210249731]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -5, 0, -42)
 mesh = SubResource("IsleQuad")
 surface_material_override/0 = SubResource("IsleMat")
 
-[node name="IslaLejana2" type="MeshInstance3D" parent="."]
+[node name="IslaLejana2" type="MeshInstance3D" parent="." unique_id=35577296]
 transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 5, 0, -52)
 mesh = SubResource("IsleQuad")
 surface_material_override/0 = SubResource("IsleMat")
 
-[node name="IslaLejana3" type="MeshInstance3D" parent="."]
+[node name="IslaLejana3" type="MeshInstance3D" parent="." unique_id=1051014023]
 transform = Transform3D(0.35, 0, 0, 0, 0.36, 0, 0, 0, 0.35, 0, 0, -36)
 mesh = SubResource("IsleQuad")
 surface_material_override/0 = SubResource("IsleMat")
 
-[node name="Gaviota1" type="MeshInstance3D" parent="."]
+[node name="Gaviota1" type="MeshInstance3D" parent="." unique_id=710103886]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4.2, -48)
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
 
-[node name="Gaviota2" type="MeshInstance3D" parent="."]
+[node name="Gaviota2" type="MeshInstance3D" parent="." unique_id=30748832]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4.6, -52)
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
 
-[node name="Gaviota3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4.0, -46)
+[node name="Gaviota3" type="MeshInstance3D" parent="." unique_id=2083756262]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4, -46)
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
 
-[node name="Gaviota4" type="MeshInstance3D" parent="."]
+[node name="Gaviota4" type="MeshInstance3D" parent="." unique_id=963337907]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.4, -55)
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
-
-[node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.49220592, 0.8017105, -0.45671058)
-cast_shadow = 0
-pixel_size = 0.0013
-billboard = 1
-alpha_cut = 2
-texture = ExtResource("4_idle")
-no_depth_test = true
-render_priority = 10
-
-[node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
-mesh = SubResource("ShadowMesh_1")
-surface_material_override/0 = SubResource("ShadowMat_1")
