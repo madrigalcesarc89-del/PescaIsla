@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/cat.gd" id="2_cat"]
@@ -48,18 +48,6 @@ shader_parameter/horizon_color = Color(1, 0.73, 0.653, 1)
 size = Vector2(200, 200)
 subdivide_width = 96
 subdivide_depth = 96
-
-[sub_resource type="StandardMaterial3D" id="WoodMat_1"]
-albedo_color = Color(0.6902, 0.4784, 0.3373, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="DockBox_1"]
-size = Vector3(1.8, 0.15, 4.0)
-
-[sub_resource type="CylinderMesh" id="PostCyl_1"]
-top_radius = 0.09
-bottom_radius = 0.09
-height = 1.4
 
 [sub_resource type="StandardMaterial3D" id="SandMat_1"]
 albedo_color = Color(1, 0.9451, 0.8392, 1)
