@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
-sky_top_color = Color(0.9686, 0.7176, 0.6392, 1)
+sky_top_color = Color(1, 0.6235, 0.5137, 1)
 sky_horizon_color = Color(1, 0.9451, 0.8392, 1)
 ground_bottom_color = Color(0.1686, 0.2275, 0.4039, 1)
 ground_horizon_color = Color(0.3608, 0.7843, 0.7608, 1)
@@ -22,10 +22,11 @@ ambient_light_source = 3
 ambient_light_energy = 0.6
 tonemap_mode = 2
 glow_enabled = true
-glow_bloom = 0.1
+glow_intensity = 0.2
+glow_bloom = 0.0
 fog_enabled = true
 fog_light_color = Color(0.9686, 0.7176, 0.6392, 1)
-fog_density = 0.015
+fog_density = 0.002
 
 [sub_resource type="ShaderMaterial" id="WaterMat_1"]
 shader = ExtResource("3_water")
@@ -90,7 +91,7 @@ current = true
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.5236, -0.7854, 0)
 light_color = Color(1, 0.8, 0.62, 1)
-light_energy = 1.15
+light_energy = 0.8
 shadow_enabled = true
 
 [node name="Water" type="MeshInstance3D" parent="."]
@@ -144,8 +145,8 @@ position = Vector3(0, 0.53, -1.2)
 script = ExtResource("2_cat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat"]
-position = Vector3(0, 0.85, 0)
-pixel_size = 0.0022
+position = Vector3(0, 0.4, 0)
+pixel_size = 0.001
 billboard = 1
 shaded = false
 double_sided = true
