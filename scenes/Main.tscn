@@ -17,6 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://b5flea4llxgmm" path="res://assets/textures/ring.png" id="15_ring"]
 [ext_resource type="Texture2D" uid="uid://6iein0srt672" path="res://assets/textures/cloud2.png" id="20_cloud2"]
 [ext_resource type="Texture2D" uid="uid://b3igbaeophyc3" path="res://assets/textures/sun.png" id="21_sun"]
+[ext_resource type="Texture2D" uid="uid://cpnkkepixsi6k" path="res://assets/props/muelle_roca_crema.jpg" id="24_muellecrema"]
 [ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
 [ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
 
@@ -138,6 +139,11 @@ billboard_mode = 1
 [sub_resource type="QuadMesh" id="CloudQuad"]
 size = Vector2(20, 10)
 
+[sub_resource type="StandardMaterial3D" id="MuelleMat"]
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("24_muellecrema")
+roughness = 0.8
+
 [sub_resource type="StandardMaterial3D" id="CloudMat"]
 transparency = 1
 shading_mode = 0
@@ -214,6 +220,9 @@ surface_material_override/0 = SubResource("WaterMat_1")
 
 [node name="Muelle" parent="Props" unique_id=1076853241 instance=ExtResource("6_muelle")]
 transform = Transform3D(2.9982362, 0, -0.10285578, 0, 3, 0, 0.10285578, 0, 2.9982362, 0, -0.05, 0.3)
+
+[node name="tripo_90f3cf9d_b1aa_4bd4_a225_e9855d312b5a" parent="Props/Muelle/RootNode"]
+surface_material_override/0 = SubResource("MuelleMat")
 
 [node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.55, 0.53, 1.25)
