@@ -21,3 +21,6 @@ desktop.ini
 # Python temporal
 __pycache__/
 *.pyc
+
+# Local: ruta del Godot de este PC (no commitear)
+docs/godot-path.txt
