@@ -358,6 +358,8 @@ pixel_size = 0.0013
 billboard = 1
 alpha_cut = 2
 texture = ExtResource("4_idle")
+no_depth_test = true
+render_priority = 10
 
 [node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
