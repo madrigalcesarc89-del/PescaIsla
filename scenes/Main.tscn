@@ -13,7 +13,14 @@
 [ext_resource type="Script" uid="uid://pi048tqeog0p" path="res://scripts/boat.gd" id="11_boat"]
 [ext_resource type="PackedScene" uid="uid://p03lin13asw2" path="res://assets/props/rocas_1.glb" id="12_rocas1"]
 [ext_resource type="PackedScene" uid="uid://d2d6jv8hnvxdc" path="res://assets/props/rocas_2.glb" id="13_rocas2"]
-[ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" id="14_rocas3"]
+[ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" 
+id="14_rocas3"]
+[ext_resource type="Texture2D" uid="uid://cffgejs6a3jjn" path="res://assets/props/rocas_1_rock+cluster+3d+model_basecolor.jpg" 
+id="15_rocktex1"]
+[ext_resource type="Texture2D" uid="uid://djwe3j66fguj4" path="res://assets/props/rocas_2_low-poly+rock+cluster+3d+model_basecolor.jpg" 
+id="16_rocktex2"]
+[ext_resource type="Texture2D" uid="uid://clmw0repy0s5r" path="res://assets/props/rocas_3_low-poly+rocks+3d+model_basecolor.jpg" 
+id="17_rocktex3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -82,6 +89,21 @@ albedo_color = Color(0.5608, 0.7255, 0.5882, 1)
 [sub_resource type="PlaneMesh" id="ShadowMesh_1"]
 size = Vector2(1.2, 1.2)
 
+[sub_resource type="StandardMaterial3D" id="RockTint1"]
+albedo_color = Color(1.12, 1.02, 0.92, 1)
+albedo_texture = ExtResource("15_rocktex1")
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="RockTint2"]
+albedo_color = Color(1.12, 1.02, 0.92, 1)
+albedo_texture = ExtResource("16_rocktex2")
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="RockTint3"]
+albedo_color = Color(1.12, 1.02, 0.92, 1)
+albedo_texture = ExtResource("17_rocktex3")
+roughness = 1.0
+
 [sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
 transparency = 1
 shading_mode = 0
@@ -139,14 +161,22 @@ script = ExtResource("11_boat")
 [node name="Roca1" parent="Props" unique_id=1539621057 instance=ExtResource("12_rocas1")]
 transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, 1.2, -0.05, 3)
 
-[node name="Roca2" parent="Props" unique_id=649656733 instance=ExtResource("13_rocas2")]
-transform = Transform3D(-0.3533922, 0, 0.6042466, 0, 0.7, 0, -0.6042466, 0, -0.3533922, -0.65, -0.05, 2.9)
-
-[node name="Roca3" parent="Props" unique_id=303038551 instance=ExtResource("14_rocas3")]
-transform = Transform3D(-0.58827925, 0, -0.68112224, 0, 0.9, 0, 0.68112224, 0, -0.58827925, -1.25, -0.05, 0.6)
+[node name="tripo_node_b7cc7730-93d6-4dac-ba8f-3e3365450246" parent="Props/Roca1"]
+surface_material_override/0 = SubResource("RockTint1")
 
 [node name="Roca2b" parent="Props" unique_id=744386726 instance=ExtResource("13_rocas2")]
 transform = Transform3D(0.18117885, 0, 0.46601954, 0, 0.5, 0, -0.46601954, 0, 0.18117885, 1, -0.05, 2.9)
+
+[node name="tripo_node_e244d5c9-6b0b-4e58-8e0b-b99510ac7eab" parent="Props/Roca2b"]
+surface_material_override/0 = SubResource("RockTint2")
+
+[node name="Roca3" parent="Props" unique_id=303038551 instance=ExtResource("14_rocas3")]
+position = Vector3(-1.55, -0.05, 0.4)
+rotation = Vector3(0, 4.0, 0)
+scale = Vector3(0.54, 0.54, 0.54)
+
+[node name="tripo_node_89d03e48-69d8-4421-a7f7-5ac6be8b3d3a" parent="Props/Roca3"]
+surface_material_override/0 = SubResource("RockTint3")
 
 [node name="IslandSand" type="MeshInstance3D" parent="Props" unique_id=605355524]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, -0.15, 2.8)
