@@ -21,6 +21,8 @@ id="14_rocas3"]
 [ext_resource type="Script" path="res://scripts/clouds.gd" id="19_clouds"]
 [ext_resource type="Texture2D" uid="uid://6iein0srt672" path="res://assets/textures/cloud2.png" id="20_cloud2"]
 [ext_resource type="Texture2D" uid="uid://b3igbaeophyc3" path="res://assets/textures/sun.png" id="21_sun"]
+[ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
+[ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
 [ext_resource type="Texture2D" uid="uid://cffgejs6a3jjn" path="res://assets/props/rocas_1_rock+cluster+3d+model_basecolor.jpg" 
 id="15_rocktex1"]
 [ext_resource type="Texture2D" uid="uid://djwe3j66fguj4" path="res://assets/props/rocas_2_low-poly+rock+cluster+3d+model_basecolor.jpg" 
@@ -161,6 +163,26 @@ albedo_texture = ExtResource("20_cloud2")
 
 [sub_resource type="QuadMesh" id="CloudQuad"]
 size = Vector2(20, 10)
+
+[sub_resource type="StandardMaterial3D" id="IsleMat"]
+transparency = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(1, 1, 1, 0.95)
+albedo_texture = ExtResource("22_isle")
+
+[sub_resource type="QuadMesh" id="IsleQuad"]
+size = Vector2(20, 5)
+
+[sub_resource type="StandardMaterial3D" id="GullMat"]
+transparency = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(1, 1, 1, 0.9)
+albedo_texture = ExtResource("23_gull")
+
+[sub_resource type="QuadMesh" id="GullQuad"]
+size = Vector2(0.6, 0.3)
 
 [sub_resource type="StandardMaterial3D" id="PartMat"]
 transparency = 1
@@ -352,6 +374,41 @@ amount = 30
 lifetime = 4.5
 process_material = SubResource("PartProc")
 draw_pass_1 = SubResource("PartQuad")
+
+[node name="IslaLejana1" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -5, 0, -42)
+mesh = SubResource("IsleQuad")
+surface_material_override/0 = SubResource("IsleMat")
+
+[node name="IslaLejana2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 5, 0, -52)
+mesh = SubResource("IsleQuad")
+surface_material_override/0 = SubResource("IsleMat")
+
+[node name="IslaLejana3" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.35, 0, 0, 0, 0.36, 0, 0, 0, 0.35, 0, 0, -36)
+mesh = SubResource("IsleQuad")
+surface_material_override/0 = SubResource("IsleMat")
+
+[node name="Gaviota1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4.2, -48)
+mesh = SubResource("GullQuad")
+surface_material_override/0 = SubResource("GullMat")
+
+[node name="Gaviota2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4.6, -52)
+mesh = SubResource("GullQuad")
+surface_material_override/0 = SubResource("GullMat")
+
+[node name="Gaviota3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4.0, -46)
+mesh = SubResource("GullQuad")
+surface_material_override/0 = SubResource("GullMat")
+
+[node name="Gaviota4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.4, -55)
+mesh = SubResource("GullQuad")
+surface_material_override/0 = SubResource("GullMat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.49220592, 0.8017105, -0.45671058)
