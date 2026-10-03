@@ -146,6 +146,7 @@ script = ExtResource("2_cat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat"]
 position = Vector3(0, 0.4, 0)
+cast_shadow = 0
 pixel_size = 0.001
 billboard = 1
 shaded = false

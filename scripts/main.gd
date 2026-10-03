@@ -5,10 +5,10 @@ extends Node3D
 ## Ángulo por defecto ~-28° (ligeramente desde arriba).
 
 @export var cam_target: Vector3 = Vector3(0.0, 0.8, 0.0)
-@export_range(4.0, 25.0, 0.1) var cam_distance: float = 11.0
-@export_range(-60.0, -10.0, 0.5) var cam_angle_deg: float = -28.0
+@export_range(4.0, 25.0, 0.1) var cam_distance: float = 8.0
+@export_range(-60.0, -10.0, 0.5) var cam_angle_deg: float = -16.0
 @export_range(-5.0, 5.0, 0.1) var cam_side_offset: float = 0.0
-@export_range(20.0, 50.0, 0.5) var cam_fov: float = 30.0
+@export_range(20.0, 50.0, 0.5) var cam_fov: float = 36.0
 
 @onready var camera: Camera3D = $Camera3D
 

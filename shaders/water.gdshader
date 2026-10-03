@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, depth_prepass_alpha, cull_disabled, diffuse_lambert, specular_schlick_ggx;
+render_mode depth_draw_opaque, cull_disabled, unshaded;
 
 // Agua barata para móvil: sin reflejos en tiempo real.
 // Turquesa #5CC8C2 cerca -> azul noche #2B3A67 lejos, ondas seno por vértice + fresnel.
@@ -10,9 +10,8 @@ uniform vec3 sun_tint : source_color = vec3(1.0, 0.80, 0.62);
 uniform float wave_height : hint_range(0.0, 0.5) = 0.12;
 uniform float wave_speed = 1.2;
 uniform float wave_freq = 0.6;
-uniform float fresnel_power = 3.0;
-uniform float sun_glint = 0.35;
-uniform float alpha : hint_range(0.0, 1.0) = 0.88;
+uniform float fresnel_power = 5.0;
+uniform float sun_glint = 0.15;
 
 void vertex() {
 	float w1 = sin(VERTEX.x * wave_freq + TIME * wave_speed) * wave_height;
@@ -21,16 +20,12 @@ void vertex() {
 }
 
 void fragment() {
-	// Degradado cerca->lejos usando UV del PlaneMesh (v=0 cerca isla, v=1 lejos).
-	float far_mix = clamp(UV.y, 0.0, 1.0);
+	// Degradado cerca->lejos: UV.y=0 está al fondo (-Z), UV.y=1 junto a cámara.
+	float far_mix = clamp(1.0 - UV.y, 0.0, 1.0);
 	vec3 col = mix(shallow_color.rgb, deep_color.rgb, far_mix);
 
 	float fres = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), fresnel_power);
 	col += fres * sun_tint * sun_glint;
 
 	ALBEDO = col;
-	ALPHA = alpha;
-	ROUGHNESS = 0.35;
-	SPECULAR = 0.4;
-	METALLIC = 0.0;
 }
