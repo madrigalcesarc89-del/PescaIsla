@@ -225,7 +225,7 @@ transform = Transform3D(2.9982362, 0, -0.10285578, 0, 3, 0, 0.10285578, 0, 2.998
 surface_material_override/0 = SubResource("MuelleMat")
 
 [node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.55, 0.53, 1.25)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.62, 0.8, 1.05)
 script = ExtResource("8_lantern")
 
 [node name="Modelo" parent="Props/Farol" unique_id=975928068 instance=ExtResource("7_farol")]
