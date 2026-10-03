@@ -1,0 +1,23 @@
+# Godot 4 .gitignore — PescaIsla
+.godot/
+android/build/
+android/.gradle/
+
+# Exportados Android
+*.apk
+*.aab
+*.keystore
+
+# Backups editor
+*.tmp
+*.bak
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python temporal
+__pycache__/
+*.pyc

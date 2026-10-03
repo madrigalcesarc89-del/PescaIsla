@@ -1,0 +1,159 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/cat.gd" id="2_cat"]
+[ext_resource type="Shader" path="res://shaders/water.gdshader" id="3_water"]
+[ext_resource type="Texture2D" path="res://assets/cat/idle.png" id="4_idle"]
+[ext_resource type="Texture2D" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
+sky_top_color = Color(0.9686, 0.7176, 0.6392, 1)
+sky_horizon_color = Color(1, 0.9451, 0.8392, 1)
+ground_bottom_color = Color(0.1686, 0.2275, 0.4039, 1)
+ground_horizon_color = Color(0.3608, 0.7843, 0.7608, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("SkyMat_1")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_energy = 0.6
+tonemap_mode = 2
+glow_enabled = true
+glow_bloom = 0.1
+fog_enabled = true
+fog_light_color = Color(0.9686, 0.7176, 0.6392, 1)
+fog_density = 0.015
+
+[sub_resource type="ShaderMaterial" id="WaterMat_1"]
+shader = ExtResource("3_water")
+shader_parameter/shallow_color = Color(0.3608, 0.7843, 0.7608, 1)
+shader_parameter/deep_color = Color(0.1686, 0.2275, 0.4039, 1)
+
+[sub_resource type="PlaneMesh" id="WaterMesh_1"]
+size = Vector2(60, 60)
+subdivide_width = 64
+subdivide_depth = 64
+
+[sub_resource type="StandardMaterial3D" id="WoodMat_1"]
+albedo_color = Color(0.6902, 0.4784, 0.3373, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="DockBox_1"]
+size = Vector3(1.8, 0.15, 4.0)
+
+[sub_resource type="CylinderMesh" id="PostCyl_1"]
+top_radius = 0.09
+bottom_radius = 0.09
+height = 1.4
+
+[sub_resource type="StandardMaterial3D" id="SandMat_1"]
+albedo_color = Color(1, 0.9451, 0.8392, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="SandCyl_1"]
+top_radius = 2.2
+bottom_radius = 2.8
+height = 0.7
+
+[sub_resource type="StandardMaterial3D" id="RockMat_1"]
+albedo_color = Color(0.5608, 0.7255, 0.5882, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="RockSphere_1"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("5_shadow")
+albedo_color = Color(1, 1, 1, 0.85)
+
+[sub_resource type="PlaneMesh" id="ShadowMesh_1"]
+size = Vector2(1.2, 1.2)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 5.96, 9.71)
+rotation = Vector3(-0.4887, 0, 0)
+fov = 30.0
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.5236, -0.7854, 0)
+light_color = Color(1, 0.8, 0.62, 1)
+light_energy = 1.15
+shadow_enabled = true
+
+[node name="Water" type="MeshInstance3D" parent="."]
+mesh = SubResource("WaterMesh_1")
+surface_material_override/0 = SubResource("WaterMat_1")
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="DockDeck" type="MeshInstance3D" parent="Props"]
+position = Vector3(0, 0.45, 0)
+mesh = SubResource("DockBox_1")
+surface_material_override/0 = SubResource("WoodMat_1")
+
+[node name="Post1" type="MeshInstance3D" parent="Props"]
+position = Vector3(-0.8, 0, -1.8)
+mesh = SubResource("PostCyl_1")
+surface_material_override/0 = SubResource("WoodMat_1")
+
+[node name="Post2" type="MeshInstance3D" parent="Props"]
+position = Vector3(0.8, 0, -1.8)
+mesh = SubResource("PostCyl_1")
+surface_material_override/0 = SubResource("WoodMat_1")
+
+[node name="Post3" type="MeshInstance3D" parent="Props"]
+position = Vector3(-0.8, 0, 1.8)
+mesh = SubResource("PostCyl_1")
+surface_material_override/0 = SubResource("WoodMat_1")
+
+[node name="Post4" type="MeshInstance3D" parent="Props"]
+position = Vector3(0.8, 0, 1.8)
+mesh = SubResource("PostCyl_1")
+surface_material_override/0 = SubResource("WoodMat_1")
+
+[node name="IslandSand" type="MeshInstance3D" parent="Props"]
+position = Vector3(3.2, -0.15, 2.8)
+mesh = SubResource("SandCyl_1")
+surface_material_override/0 = SubResource("SandMat_1")
+
+[node name="Rock1" type="MeshInstance3D" parent="Props"]
+position = Vector3(2.6, 0.35, 2.4)
+mesh = SubResource("RockSphere_1")
+surface_material_override/0 = SubResource("RockMat_1")
+
+[node name="Rock2" type="MeshInstance3D" parent="Props"]
+position = Vector3(3.8, 0.25, 3.2)
+mesh = SubResource("RockSphere_1")
+surface_material_override/0 = SubResource("RockMat_1")
+
+[node name="Cat" type="Node3D" parent="."]
+position = Vector3(0, 0.53, -1.2)
+script = ExtResource("2_cat")
+
+[node name="Sprite3D" type="Sprite3D" parent="Cat"]
+position = Vector3(0, 0.85, 0)
+pixel_size = 0.0022
+billboard = 1
+shaded = false
+double_sided = true
+alpha_cut = 2
+alpha_scissor_threshold = 0.5
+texture = ExtResource("4_idle")
+
+[node name="Shadow" type="MeshInstance3D" parent="Cat"]
+position = Vector3(0, 0.02, 0)
+mesh = SubResource("ShadowMesh_1")
+surface_material_override/0 = SubResource("ShadowMat_1")

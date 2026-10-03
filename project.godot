@@ -1,0 +1,26 @@
+; Engine configuration file.
+; PescaIsla - Godot 4.7, Mobile, Android portrait 1080x1920
+
+config_version=5
+
+[application]
+
+config/name="PescaIsla"
+config/description="juego relax de pesca en una isla, Godot 4, Android, 2.5D estilo HD-2D con gato chibi como sprite 2D en escenario 3D."
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=2

@@ -1,0 +1,1 @@
+cozy aesthetic, low poly pastel, atardecer cálido. Paleta: turquesa #5CC8C2, rosa durazno #F7B7A3, crema #FFF1D6, madera #B07A56, verde salvia #8FB996, azul noche #2B3A67. Texturas lisas, bordes suaves, sin negro puro, luz dorada.
