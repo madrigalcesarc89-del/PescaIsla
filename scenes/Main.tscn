@@ -1,10 +1,11 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/cat.gd" id="2_cat"]
 [ext_resource type="Shader" path="res://shaders/water.gdshader" id="3_water"]
 [ext_resource type="Texture2D" path="res://assets/cat/idle.png" id="4_idle"]
 [ext_resource type="Texture2D" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
+[ext_resource type="PackedScene" path="res://assets/props/muelle.glb" id="6_muelle"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -102,30 +103,10 @@ surface_material_override/0 = SubResource("WaterMat_1")
 
 [node name="Props" type="Node3D" parent="."]
 
-[node name="DockDeck" type="MeshInstance3D" parent="Props"]
-position = Vector3(0, 0.45, 0)
-mesh = SubResource("DockBox_1")
-surface_material_override/0 = SubResource("WoodMat_1")
-
-[node name="Post1" type="MeshInstance3D" parent="Props"]
-position = Vector3(-0.8, 0, -1.8)
-mesh = SubResource("PostCyl_1")
-surface_material_override/0 = SubResource("WoodMat_1")
-
-[node name="Post2" type="MeshInstance3D" parent="Props"]
-position = Vector3(0.8, 0, -1.8)
-mesh = SubResource("PostCyl_1")
-surface_material_override/0 = SubResource("WoodMat_1")
-
-[node name="Post3" type="MeshInstance3D" parent="Props"]
-position = Vector3(-0.8, 0, 1.8)
-mesh = SubResource("PostCyl_1")
-surface_material_override/0 = SubResource("WoodMat_1")
-
-[node name="Post4" type="MeshInstance3D" parent="Props"]
-position = Vector3(0.8, 0, 1.8)
-mesh = SubResource("PostCyl_1")
-surface_material_override/0 = SubResource("WoodMat_1")
+[node name="Muelle" parent="Props" instance=ExtResource("6_muelle")]
+position = Vector3(0, -0.05, 0.3)
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(3, 3, 3)
 
 [node name="IslandSand" type="MeshInstance3D" parent="Props"]
 position = Vector3(3.2, -0.15, 2.8)
