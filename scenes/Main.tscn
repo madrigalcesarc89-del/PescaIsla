@@ -31,9 +31,9 @@ fog_density = 0.002
 
 [sub_resource type="ShaderMaterial" id="WaterMat_1"]
 shader = ExtResource("3_water")
-shader_parameter/shallow_color = Color(0.3608, 0.7843, 0.7608, 1)
+shader_parameter/shallow_color = Color(0.246, 0.657, 0.636, 1)
 shader_parameter/deep_color = Color(0.75, 0.62, 0.72, 1)
-shader_parameter/horizon_color = Color(1, 0.89, 0.78, 1)
+shader_parameter/horizon_color = Color(1, 0.73, 0.653, 1)
 
 [sub_resource type="PlaneMesh" id="WaterMesh_1"]
 size = Vector2(200, 200)
