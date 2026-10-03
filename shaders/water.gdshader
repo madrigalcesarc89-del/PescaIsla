@@ -6,7 +6,7 @@ render_mode depth_draw_opaque, cull_disabled, unshaded;
 
 uniform vec4 shallow_color : source_color = vec4(0.246, 0.657, 0.636, 1.0);
 uniform vec4 deep_color : source_color = vec4(0.75, 0.62, 0.72, 1.0);
-uniform vec4 horizon_color : source_color = vec4(1.0, 0.73, 0.653, 1.0);
+uniform vec4 horizon_color : source_color = vec4(0.988, 0.722, 0.632, 1.0);
 uniform vec3 sun_tint : source_color = vec3(1.0, 0.80, 0.62);
 uniform float wave_height : hint_range(0.0, 0.5) = 0.12;
 uniform float wave_speed = 1.2;
