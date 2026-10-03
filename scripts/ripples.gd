@@ -3,7 +3,7 @@ extends Node3D
 
 @export_range(0.6, 3.0, 0.1) var ring_period: float = 1.4
 @export_range(0.5, 2.5, 0.1) var ring_max: float = 1.3
-@export_range(0.0, 0.8, 0.05) var ring_alpha: float = 0.35
+@export_range(0.0, 0.8, 0.05) var ring_alpha: float = 0.25
 
 var _t: float = 0.0
 
