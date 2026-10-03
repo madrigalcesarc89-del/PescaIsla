@@ -124,7 +124,7 @@ mesh = SubResource("RockSphere_1")
 surface_material_override/0 = SubResource("RockMat_1")
 
 [node name="Cat" type="Node3D" parent="."]
-position = Vector3(0, 0.53, -1.2)
+position = Vector3(0, 0.53, 1.3)
 script = ExtResource("2_cat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat"]
