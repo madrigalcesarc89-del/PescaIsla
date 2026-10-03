@@ -1,19 +1,19 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene format=3 uid="uid://ppbjakwrjbae"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://scripts/cat.gd" id="2_cat"]
-[ext_resource type="Shader" path="res://shaders/water.gdshader" id="3_water"]
-[ext_resource type="Texture2D" path="res://assets/cat/idle.png" id="4_idle"]
-[ext_resource type="Texture2D" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
-[ext_resource type="PackedScene" path="res://assets/props/muelle.glb" id="6_muelle"]
-[ext_resource type="PackedScene" path="res://assets/props/farol.glb" id="7_farol"]
-[ext_resource type="Script" path="res://scripts/lantern.gd" id="8_lantern"]
-[ext_resource type="Texture2D" path="res://assets/textures/glow_disc.png" id="9_glow"]
-[ext_resource type="PackedScene" path="res://assets/props/bote.glb" id="10_bote"]
-[ext_resource type="Script" path="res://scripts/boat.gd" id="11_boat"]
-[ext_resource type="PackedScene" path="res://assets/props/rocas_1.glb" id="12_rocas1"]
-[ext_resource type="PackedScene" path="res://assets/props/rocas_2.glb" id="13_rocas2"]
-[ext_resource type="PackedScene" path="res://assets/props/rocas_3.glb" id="14_rocas3"]
+[ext_resource type="Script" uid="uid://ccv351kr04i48" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://bqrt7e7m1ptg5" path="res://scripts/cat.gd" id="2_cat"]
+[ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
+[ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
+[ext_resource type="Texture2D" uid="uid://buusmv0bbfk87" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
+[ext_resource type="PackedScene" uid="uid://cydy67ks17k8g" path="res://assets/props/muelle.glb" id="6_muelle"]
+[ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
+[ext_resource type="Script" uid="uid://bw5s523t53jif" path="res://scripts/lantern.gd" id="8_lantern"]
+[ext_resource type="Texture2D" uid="uid://cyk100r3ni4k7" path="res://assets/textures/glow_disc.png" id="9_glow"]
+[ext_resource type="PackedScene" uid="uid://bk16tnbtywi47" path="res://assets/props/bote.glb" id="10_bote"]
+[ext_resource type="Script" uid="uid://pi048tqeog0p" path="res://scripts/boat.gd" id="11_boat"]
+[ext_resource type="PackedScene" uid="uid://p03lin13asw2" path="res://assets/props/rocas_1.glb" id="12_rocas1"]
+[ext_resource type="PackedScene" uid="uid://d2d6jv8hnvxdc" path="res://assets/props/rocas_2.glb" id="13_rocas2"]
+[ext_resource type="PackedScene" uid="uid://da0crk0mv3br2" path="res://assets/props/rocas_3.glb" id="14_rocas3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -33,166 +33,149 @@ ambient_light_energy = 0.6
 tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.2
-glow_bloom = 0.0
 fog_enabled = true
 fog_light_color = Color(0.9686, 0.7176, 0.6392, 1)
 fog_density = 0.002
-
-[sub_resource type="ShaderMaterial" id="WaterMat_1"]
-shader = ExtResource("3_water")
-shader_parameter/shallow_color = Color(0.246, 0.657, 0.636, 1)
-shader_parameter/deep_color = Color(0.75, 0.62, 0.72, 1)
-shader_parameter/horizon_color = Color(1, 0.73, 0.653, 1)
 
 [sub_resource type="PlaneMesh" id="WaterMesh_1"]
 size = Vector2(200, 200)
 subdivide_width = 96
 subdivide_depth = 96
 
-[sub_resource type="StandardMaterial3D" id="SandMat_1"]
-albedo_color = Color(1, 0.9451, 0.8392, 1)
-roughness = 1.0
+[sub_resource type="ShaderMaterial" id="WaterMat_1"]
+render_priority = 0
+shader = ExtResource("3_water")
+shader_parameter/shallow_color = Color(0.246, 0.657, 0.636, 1)
+shader_parameter/deep_color = Color(0.75, 0.62, 0.72, 1)
+shader_parameter/horizon_color = Color(1, 0.73, 0.653, 1)
+shader_parameter/sun_tint = Color(1, 0.8, 0.62, 1)
+shader_parameter/wave_height = 0.12
+shader_parameter/wave_speed = 1.2
+shader_parameter/wave_freq = 0.6
+shader_parameter/fresnel_power = 3.0
+shader_parameter/sun_glint = 0.35
+
+[sub_resource type="QuadMesh" id="GlowQuad_1"]
+size = Vector2(0.35, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="GlowMat_1"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.66, 0.9)
+albedo_texture = ExtResource("9_glow")
+billboard_mode = 1
 
 [sub_resource type="CylinderMesh" id="SandCyl_1"]
 top_radius = 2.2
 bottom_radius = 2.8
 height = 0.7
 
-[sub_resource type="StandardMaterial3D" id="RockMat_1"]
-albedo_color = Color(0.5608, 0.7255, 0.5882, 1)
-roughness = 1.0
+[sub_resource type="StandardMaterial3D" id="SandMat_1"]
+albedo_color = Color(1, 0.9451, 0.8392, 1)
 
 [sub_resource type="SphereMesh" id="RockSphere_1"]
-radius = 0.5
-height = 1.0
 
-[sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
-transparency = 1
-shading_mode = 0
-albedo_texture = ExtResource("5_shadow")
-albedo_color = Color(1, 1, 1, 0.85)
+[sub_resource type="StandardMaterial3D" id="RockMat_1"]
+albedo_color = Color(0.5608, 0.7255, 0.5882, 1)
 
 [sub_resource type="PlaneMesh" id="ShadowMesh_1"]
 size = Vector2(1.2, 1.2)
 
-[sub_resource type="StandardMaterial3D" id="GlowMat_1"]
+[sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
 transparency = 1
-blend_mode = 1
 shading_mode = 0
-billboard_mode = 1
-albedo_color = Color(1, 0.85, 0.66, 0.9)
-albedo_texture = ExtResource("9_glow")
+albedo_color = Color(1, 1, 1, 0.85)
+albedo_texture = ExtResource("5_shadow")
 
-[sub_resource type="QuadMesh" id="GlowQuad_1"]
-size = Vector2(0.35, 0.35)
-
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=897212059]
 script = ExtResource("1_main")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=161045474]
 environment = SubResource("Env_1")
 
-[node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 5.96, 9.71)
-rotation = Vector3(-0.4887, 0, 0)
-fov = 30.0
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1769622133]
+transform = Transform3D(1, 0, 0, 0, 0.9612617, 0.27563736, 0, -0.27563736, 0.9612617, 0, 3.7050989, 7.6900935)
 current = true
+fov = 36.0
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.5236, -0.7854, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=628651504]
+transform = Transform3D(0.7071055, 0.3535548, -0.6123731, 0, 0.8660248, 0.5000011, 0.7071081, -0.3535535, 0.6123709, 0, 0, 0)
 light_color = Color(1, 0.8, 0.62, 1)
 light_energy = 0.8
 shadow_enabled = true
 
-[node name="Water" type="MeshInstance3D" parent="."]
+[node name="Water" type="MeshInstance3D" parent="." unique_id=1971805302]
 mesh = SubResource("WaterMesh_1")
 surface_material_override/0 = SubResource("WaterMat_1")
 
-[node name="Props" type="Node3D" parent="."]
+[node name="Props" type="Node3D" parent="." unique_id=2029458562]
 
-[node name="Muelle" parent="Props" instance=ExtResource("6_muelle")]
-position = Vector3(0, -0.05, 0.3)
-rotation = Vector3(0, 1.5708, 0)
-scale = Vector3(3, 3, 3)
+[node name="Muelle" parent="Props" unique_id=1076853241 instance=ExtResource("6_muelle")]
+transform = Transform3D(-1.0859971e-05, 0, 3, 0, 3, 0, -3, 0, -1.0859971e-05, 0, -0.05, 0.3)
 
-[node name="Farol" type="Node3D" parent="Props"]
-position = Vector3(0.55, 0.53, 1.25)
-scale = Vector3(0.5, 0.5, 0.5)
+[node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.55, 0.53, 1.25)
 script = ExtResource("8_lantern")
 
-[node name="Modelo" parent="Props/Farol" instance=ExtResource("7_farol")]
+[node name="Modelo" parent="Props/Farol" unique_id=975928068 instance=ExtResource("7_farol")]
 
-[node name="Glow" type="MeshInstance3D" parent="Props/Farol"]
-position = Vector3(0, 0.7, 0.3)
+[node name="Glow" type="MeshInstance3D" parent="Props/Farol" unique_id=2092916137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
 mesh = SubResource("GlowQuad_1")
 surface_material_override/0 = SubResource("GlowMat_1")
 
-[node name="Luz" type="OmniLight3D" parent="Props/Farol"]
-position = Vector3(0, 0.7, 0)
+[node name="Luz" type="OmniLight3D" parent="Props/Farol" unique_id=26443522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 light_color = Color(1, 0.85, 0.66, 1)
-light_energy = 1.0
 omni_range = 2.5
-shadow_enabled = false
 
-[node name="Bote" type="Node3D" parent="Props"]
-position = Vector3(0.5, -0.03, 1.9)
-rotation = Vector3(0, -0.4, 0)
-scale = Vector3(1.2, 1.2, 1.2)
+[node name="Bote" type="Node3D" parent="Props" unique_id=2129198538]
+transform = Transform3D(1.1052732, 0, -0.46730202, 0, 1.2, 0, 0.46730202, 0, 1.1052732, 0.5, -0.03, 1.9)
 script = ExtResource("11_boat")
 
-[node name="Modelo" parent="Props/Bote" instance=ExtResource("10_bote")]
+[node name="Modelo" parent="Props/Bote" unique_id=1996846982 instance=ExtResource("10_bote")]
 
-[node name="Roca1" parent="Props" instance=ExtResource("12_rocas1")]
-position = Vector3(1.2, -0.05, 3.0)
-rotation = Vector3(0, 0.5, 0)
-scale = Vector3(1.3, 1.3, 1.3)
+[node name="Roca1" parent="Props" unique_id=1539621057 instance=ExtResource("12_rocas1")]
+transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, 1.2, -0.05, 3)
 
-[node name="Roca2" parent="Props" instance=ExtResource("13_rocas2")]
-position = Vector3(-0.65, -0.05, 2.9)
-rotation = Vector3(0, 2.1, 0)
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="Roca2" parent="Props" unique_id=649656733 instance=ExtResource("13_rocas2")]
+transform = Transform3D(-0.3533922, 0, 0.6042466, 0, 0.7, 0, -0.6042466, 0, -0.3533922, -0.65, -0.05, 2.9)
 
-[node name="Roca3" parent="Props" instance=ExtResource("14_rocas3")]
-position = Vector3(-1.25, -0.05, 0.6)
-rotation = Vector3(0, 4.0, 0)
-scale = Vector3(0.9, 0.9, 0.9)
+[node name="Roca3" parent="Props" unique_id=303038551 instance=ExtResource("14_rocas3")]
+transform = Transform3D(-0.58827925, 0, -0.68112224, 0, 0.9, 0, 0.68112224, 0, -0.58827925, -1.25, -0.05, 0.6)
 
-[node name="Roca2b" parent="Props" instance=ExtResource("13_rocas2")]
-position = Vector3(1.0, -0.05, 2.9)
-rotation = Vector3(0, 1.2, 0)
-scale = Vector3(0.5, 0.5, 0.5)
+[node name="Roca2b" parent="Props" unique_id=744386726 instance=ExtResource("13_rocas2")]
+transform = Transform3D(0.18117885, 0, 0.46601954, 0, 0.5, 0, -0.46601954, 0, 0.18117885, 1, -0.05, 2.9)
 
-[node name="IslandSand" type="MeshInstance3D" parent="Props"]
-position = Vector3(3.2, -0.15, 2.8)
+[node name="IslandSand" type="MeshInstance3D" parent="Props" unique_id=605355524]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, -0.15, 2.8)
 mesh = SubResource("SandCyl_1")
 surface_material_override/0 = SubResource("SandMat_1")
 
-[node name="Rock1" type="MeshInstance3D" parent="Props"]
-position = Vector3(2.6, 0.35, 2.4)
+[node name="Rock1" type="MeshInstance3D" parent="Props" unique_id=913376932]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.35, 2.4)
 mesh = SubResource("RockSphere_1")
 surface_material_override/0 = SubResource("RockMat_1")
 
-[node name="Rock2" type="MeshInstance3D" parent="Props"]
-position = Vector3(3.8, 0.25, 3.2)
+[node name="Rock2" type="MeshInstance3D" parent="Props" unique_id=95564790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0.25, 3.2)
 mesh = SubResource("RockSphere_1")
 surface_material_override/0 = SubResource("RockMat_1")
 
-[node name="Cat" type="Node3D" parent="."]
-position = Vector3(0, 0.53, 1.3)
+[node name="Cat" type="Node3D" parent="." unique_id=712432126]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.3)
 script = ExtResource("2_cat")
 
-[node name="Sprite3D" type="Sprite3D" parent="Cat"]
-position = Vector3(0, 0.5, 0)
+[node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.49220592, 0.8017105, -0.45671058)
 cast_shadow = 0
 pixel_size = 0.0013
 billboard = 1
-shaded = false
-double_sided = true
 alpha_cut = 2
-alpha_scissor_threshold = 0.5
 texture = ExtResource("4_idle")
 
-[node name="Shadow" type="MeshInstance3D" parent="Cat"]
-position = Vector3(0, 0.02, 0)
+[node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
 mesh = SubResource("ShadowMesh_1")
 surface_material_override/0 = SubResource("ShadowMat_1")

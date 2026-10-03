@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjxp84arxdxhl"
-path="res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.ctex"
+path.s3tc="res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.s3tc.ctex"
+path.etc2="res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ddc50bfc78ad92745a3f079280dd47af"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/props/rocas_1_rock+cluster+3d+model_rm.jpg"
-dest_files=["res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.ctex"]
+dest_files=["res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.s3tc.ctex", "res://.godot/imported/rocas_1_rock+cluster+3d+model_rm.jpg-a8345b51f4c905769623296d9ab3d268.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
