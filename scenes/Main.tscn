@@ -17,6 +17,8 @@
 id="14_rocas3"]
 [ext_resource type="Texture2D" path="res://assets/textures/ring.png" id="15_ring"]
 [ext_resource type="Script" path="res://scripts/ripples.gd" id="16_ripples"]
+[ext_resource type="Texture2D" path="res://assets/textures/cloud.png" id="18_cloud"]
+[ext_resource type="Script" path="res://scripts/clouds.gd" id="19_clouds"]
 [ext_resource type="Texture2D" uid="uid://cffgejs6a3jjn" path="res://assets/props/rocas_1_rock+cluster+3d+model_basecolor.jpg" 
 id="15_rocktex1"]
 [ext_resource type="Texture2D" uid="uid://djwe3j66fguj4" path="res://assets/props/rocas_2_low-poly+rock+cluster+3d+model_basecolor.jpg" 
@@ -136,6 +138,51 @@ albedo_texture = ExtResource("9_glow")
 
 [sub_resource type="PlaneMesh" id="RingMesh"]
 size = Vector2(1, 1)
+
+[sub_resource type="StandardMaterial3D" id="SunMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(1, 0.82, 0.62, 0.3)
+albedo_texture = ExtResource("9_glow")
+
+[sub_resource type="QuadMesh" id="SunQuad"]
+size = Vector2(8, 8)
+
+[sub_resource type="StandardMaterial3D" id="CloudMat"]
+transparency = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(1, 0.93, 0.9, 0.5)
+albedo_texture = ExtResource("18_cloud")
+
+[sub_resource type="QuadMesh" id="CloudQuad"]
+size = Vector2(20, 10)
+
+[sub_resource type="StandardMaterial3D" id="PartMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(1, 0.85, 0.5, 0.8)
+albedo_texture = ExtResource("9_glow")
+
+[sub_resource type="QuadMesh" id="PartQuad"]
+material = SubResource("PartMat")
+size = Vector2(0.07, 0.07)
+
+[sub_resource type="ParticleProcessMaterial" id="PartProc"]
+emission_shape = 3
+emission_box_extents = Vector3(1.5, 0.75, 1.5)
+direction = Vector3(0, 1, 0)
+spread = 25.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.1
+initial_velocity_max = 0.3
+scale_min = 0.6
+scale_max = 1.2
+color = Color(1, 0.85, 0.55, 1)
 
 [sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
 transparency = 1
@@ -274,6 +321,35 @@ surface_material_override/0 = SubResource("GlintMat")
 transform = Transform3D(0.12, 0, 0, 0, 1, 0, 0, 0, 0.12, 0.9, 0.2, 2.6)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("GlintMat")
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 5, -90)
+mesh = SubResource("SunQuad")
+surface_material_override/0 = SubResource("SunMat")
+
+[node name="Nubes" type="Node3D" parent="." script = ExtResource("19_clouds")]
+
+[node name="Nube1" type="MeshInstance3D" parent="Nubes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 6, -85)
+mesh = SubResource("CloudQuad")
+surface_material_override/0 = SubResource("CloudMat")
+
+[node name="Nube2" type="MeshInstance3D" parent="Nubes"]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 6, 5, -75)
+mesh = SubResource("CloudQuad")
+surface_material_override/0 = SubResource("CloudMat")
+
+[node name="Nube3" type="MeshInstance3D" parent="Nubes"]
+transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 0, 7, -95)
+mesh = SubResource("CloudQuad")
+surface_material_override/0 = SubResource("CloudMat")
+
+[node name="Luciernagas" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 1)
+amount = 30
+lifetime = 4.5
+process_material = SubResource("PartProc")
+draw_pass_1 = SubResource("PartQuad")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.49220592, 0.8017105, -0.45671058)
