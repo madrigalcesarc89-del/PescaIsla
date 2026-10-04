@@ -33,7 +33,8 @@ void fragment() {
 	float d = distance(w_xz, vec2(0.0, 2.0));
 	float m1 = clamp((d - 3.0) / 22.0, 0.0, 1.0);
 	vec3 col = mix(shallow_color.rgb, deep_color.rgb, m1);
-	float m2 = smoothstep(25.0, 95.0, d);
+	// 14c: bruma corta 12-40 m: a 40 m el agua ya es horizon_color plano.
+	float m2 = smoothstep(12.0, 40.0, d);
 	col = mix(col, horizon_color.rgb, m2);
 
 	float fres = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), fresnel_power);
@@ -49,8 +50,8 @@ void fragment() {
 	float gl = smoothstep(0.78, 1.0, crest) * 0.09 * (1.0 - m2);
 	col += sun_tint * gl;
 
-	// 11c: bruma leve hacia el horizonte, anclada a horizon_color.
-	float haze = smoothstep(60.0, 100.0, d);
+	// 14c: remate de bruma dentro del tramo corto (termina plano en 40 m).
+	float haze = smoothstep(30.0, 40.0, d);
 	col = mix(col, horizon_color.rgb, haze * 0.35);
 
 	ALBEDO = col;
