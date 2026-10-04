@@ -3,7 +3,7 @@ extends Node3D
 
 @export_range(0.0, 0.3, 0.01) var flicker_amount: float = 0.12
 @export_range(1.0, 15.0, 0.5) var flicker_speed: float = 7.0
-@export_range(0.2, 3.0, 0.1) var base_energy: float = 1.35
+@export_range(0.2, 3.0, 0.1) var base_energy: float = 0.8
 
 var _t: float = 0.0
 

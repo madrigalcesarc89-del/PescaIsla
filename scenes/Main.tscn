@@ -254,13 +254,13 @@ script = ExtResource("8_lantern")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.25704908, 0)
 
 [node name="Glow" type="MeshInstance3D" parent="Props/Farol" unique_id=2092916137]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.85704908, 0.3)
 mesh = SubResource("GlowQuad_1")
 surface_material_override/0 = SubResource("GlowMat_1")
 
 [node name="Luz" type="OmniLight3D" parent="Props/Farol" unique_id=26443522]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
-light_color = Color(1, 0.72, 0.5, 1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.85704908, 0)
+light_color = Color(1, 0.8, 0.62, 1)
 omni_range = 2.5
 
 [node name="Bote" type="Node3D" parent="Props" unique_id=2129198538]
