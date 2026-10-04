@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://l5whea6gnw2"
-path.s3tc="res://.godot/imported/muelle_wooden+dock+3d+model_basecolor.jpg-14c6b4a6a66c055d317a3c069b99dcdf.s3tc.ctex"
-path.etc2="res://.godot/imported/muelle_wooden+dock+3d+model_basecolor.jpg-14c6b4a6a66c055d317a3c069b99dcdf.etc2.ctex"
+uid="uid://8ep08s7dtvby"
+path.s3tc="res://.godot/imported/muelle_wooden+table+3d+model_basecolor.jpg-ff6ba8eb106ce826a2e535e46165f902.s3tc.ctex"
+path.etc2="res://.godot/imported/muelle_wooden+table+3d+model_basecolor.jpg-ff6ba8eb106ce826a2e535e46165f902.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "ded1aafab28c85eac8b5699818750514"
+"md5": "4baa33166b5fc60a47b2c4b4e1edab96"
 }
 
 [deps]
 
-source_file="res://assets/props/muelle_wooden+dock+3d+model_basecolor.jpg"
-dest_files=["res://.godot/imported/muelle_wooden+dock+3d+model_basecolor.jpg-14c6b4a6a66c055d317a3c069b99dcdf.s3tc.ctex", "res://.godot/imported/muelle_wooden+dock+3d+model_basecolor.jpg-14c6b4a6a66c055d317a3c069b99dcdf.etc2.ctex"]
+source_file="res://assets/props/muelle_wooden+table+3d+model_basecolor.jpg"
+dest_files=["res://.godot/imported/muelle_wooden+table+3d+model_basecolor.jpg-ff6ba8eb106ce826a2e535e46165f902.s3tc.ctex", "res://.godot/imported/muelle_wooden+table+3d+model_basecolor.jpg-ff6ba8eb106ce826a2e535e46165f902.etc2.ctex"]
 
 [params]
 
