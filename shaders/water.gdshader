@@ -15,6 +15,7 @@ uniform float fresnel_power = 5.0;
 uniform float sun_glint = 0.15;
 
 varying vec2 w_xz;
+varying float crest;
 
 void vertex() {
 	float w1 = sin(VERTEX.x * wave_freq + TIME * wave_speed) * wave_height;
@@ -23,6 +24,8 @@ void vertex() {
 	float calm = 1.0 - smoothstep(20.0, 40.0, distance((MODEL_MATRIX * vec4(VERTEX, 1.0)).xz, vec2(0.0, 2.0)));
 	VERTEX.y += (w1 + w2) * calm;
 	w_xz = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xz;
+	// Cresta normalizada 0..1 para destellos (0 valle, 1 cresta).
+	crest = clamp(0.5 + (w1 + w2) / (3.2 * max(wave_height, 0.001)), 0.0, 1.0);
 }
 
 void fragment() {
@@ -35,6 +38,20 @@ void fragment() {
 
 	float fres = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), fresnel_power);
 	col += fres * sun_tint * sun_glint * (1.0 - m2);
+
+	// 11c: cáustica suave procedural que se desplaza lento (2 senos baratos).
+	// Solo cerca/medio: se apaga con m2 para no mover el tono del horizonte.
+	float ca = sin(w_xz.x * 1.35 + TIME * 0.5) * sin(w_xz.y * 1.7 - TIME * 0.42);
+	ca = smoothstep(0.55, 0.95, ca) * 0.05 * (1.0 - m2);
+	col += sun_tint * ca;
+
+	// 11c: destellos pequeños en crestas de ola.
+	float gl = smoothstep(0.78, 1.0, crest) * 0.09 * (1.0 - m2);
+	col += sun_tint * gl;
+
+	// 11c: bruma leve hacia el horizonte, anclada a horizon_color.
+	float haze = smoothstep(60.0, 100.0, d);
+	col = mix(col, horizon_color.rgb, haze * 0.35);
 
 	ALBEDO = col;
 }
