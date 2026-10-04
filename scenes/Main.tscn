@@ -5,7 +5,7 @@
 [ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
 [ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
 [ext_resource type="Texture2D" uid="uid://buusmv0bbfk87" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
-[ext_resource type="PackedScene" uid="uid://cydy67ks17k8g" path="res://assets/props/muelle.glb" id="6_muelle"]
+[ext_resource type="PackedScene" uid="uid://bincr8bqkxhkr" path="res://assets/props/muelle.glb" id="6_muelle"]
 [ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
 [ext_resource type="Script" uid="uid://bw5s523t53jif" path="res://scripts/lantern.gd" id="8_lantern"]
 [ext_resource type="Texture2D" uid="uid://cyk100r3ni4k7" path="res://assets/textures/glow_disc.png" id="9_glow"]
@@ -17,9 +17,9 @@
 [ext_resource type="Texture2D" uid="uid://b5flea4llxgmm" path="res://assets/textures/ring.png" id="15_ring"]
 [ext_resource type="Texture2D" uid="uid://6iein0srt672" path="res://assets/textures/cloud2.png" id="20_cloud2"]
 [ext_resource type="Texture2D" uid="uid://b3igbaeophyc3" path="res://assets/textures/sun.png" id="21_sun"]
-[ext_resource type="Texture2D" uid="uid://cpnkkepixsi6k" path="res://assets/props/muelle_roca_crema.jpg" id="24_muellecrema"]
 [ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
 [ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
+[ext_resource type="Shader" path="res://shaders/vignette.gdshader" id="30_vignette"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -37,6 +37,10 @@ sky = SubResource("Sky_1")
 ambient_light_source = 3
 ambient_light_energy = 0.6
 tonemap_mode = 2
+adjustment_enabled = true
+adjustment_brightness = 1.0
+adjustment_contrast = 1.05
+adjustment_saturation = 1.08
 glow_enabled = true
 glow_intensity = 0.2
 fog_enabled = true
@@ -139,11 +143,6 @@ billboard_mode = 1
 [sub_resource type="QuadMesh" id="CloudQuad"]
 size = Vector2(20, 10)
 
-[sub_resource type="StandardMaterial3D" id="MuelleMat"]
-albedo_color = Color(1, 1, 1, 1)
-albedo_texture = ExtResource("24_muellecrema")
-roughness = 0.8
-
 [sub_resource type="StandardMaterial3D" id="CloudMat"]
 transparency = 1
 shading_mode = 0
@@ -195,6 +194,13 @@ albedo_color = Color(1, 1, 1, 0.9)
 albedo_texture = ExtResource("23_gull")
 billboard_mode = 1
 
+[sub_resource type="ShaderMaterial" id="VignetteMat"]
+shader = ExtResource("30_vignette")
+shader_parameter/veil_color = Color(0.32, 0.2, 0.12, 1)
+shader_parameter/edge_amount = 0.08
+shader_parameter/grain_amount = 0.02
+shader_parameter/grain_enabled = true
+
 [node name="Main" type="Node3D" unique_id=897212059]
 script = ExtResource("1_main")
 
@@ -219,16 +225,14 @@ surface_material_override/0 = SubResource("WaterMat_1")
 [node name="Props" type="Node3D" parent="." unique_id=2029458562]
 
 [node name="Muelle" parent="Props" unique_id=1076853241 instance=ExtResource("6_muelle")]
-transform = Transform3D(2.9982362, 0, -0.10285578, 0, 3, 0, 0.10285578, 0, 2.9982362, 0, -0.05, 0.3)
-
-[node name="tripo_90f3cf9d_b1aa_4bd4_a225_e9855d312b5a" parent="Props/Muelle/RootNode"]
-surface_material_override/0 = SubResource("MuelleMat")
+transform = Transform3D(2.0784318, 0, -0.10404001, 0, 2.9999998, 0, 0.0713015, 0, 3.0327563, 0.12807178, -0.2658723, -0.0020903945)
 
 [node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.62, 0.8, 1.05)
 script = ExtResource("8_lantern")
 
 [node name="Modelo" parent="Props/Farol" unique_id=975928068 instance=ExtResource("7_farol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.25704908, 0)
 
 [node name="Glow" type="MeshInstance3D" parent="Props/Farol" unique_id=2092916137]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
@@ -241,14 +245,14 @@ light_color = Color(1, 0.85, 0.66, 1)
 omni_range = 2.5
 
 [node name="Bote" type="Node3D" parent="Props" unique_id=2129198538]
-transform = Transform3D(1.1052732, 0, -0.46730202, 0, 1.2, 0, 0.46730202, 0, 1.1052732, 0.35, -0.03, 1.7)
+transform = Transform3D(1.1052732, 0, -0.46730202, 0, 1.2, 0, 0.46730202, 0, 1.1052732, -0.1, -0.03, 1.32)
 script = ExtResource("11_boat")
 
 [node name="Modelo" parent="Props/Bote" unique_id=1996846982 instance=ExtResource("10_bote")]
-transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999976, 0, -2.9802322e-08, 0, 1, -0.37029475, -0.00411037, 0.3313011)
+transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999976, 0, -2.9802322e-08, 0, 1, -0.22736818, 0.116504334, 0.66935456)
 
 [node name="Roca1" parent="Props" unique_id=1539621057 instance=ExtResource("12_rocas1")]
-transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, 2.0188103, -0.0883773, -0.56164455)
+transform = Transform3D(1.1408572, 0, 0.62325317, 0, 1.3, 0, -0.62325317, 0, 1.1408572, -0.106655955, -0.0014913082, -2.1690855)
 
 [node name="Roca2b" parent="Props" unique_id=744386726 instance=ExtResource("13_rocas2")]
 transform = Transform3D(0.18117885, 0, 0.46601954, 0, 0.5, 0, -0.46601954, 0, 0.18117885, 1, -0.05, 2.9)
@@ -276,7 +280,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.3)
 script = ExtResource("2_cat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.29008776, 0.7305013, -0.6170982)
+transform = Transform3D(0.9922597, 0.124179944, 0, -0.124179944, 0.9922597, 0, 0, 0, 1, 0.96148413, 0.47993124, -1.0210223)
 cast_shadow = 0
 pixel_size = 0.0013
 billboard = 1
@@ -298,12 +302,12 @@ mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat1")
 
 [node name="Ring2" type="MeshInstance3D" parent="Ondas" unique_id=1699786503]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.2, 1.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6375813, 0.2, 1.6)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat2")
 
 [node name="Ring3" type="MeshInstance3D" parent="Ondas" unique_id=724203729]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3936769, 0.09429486, 2.1237829)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.040744, 0.09429486, 2.1237829)
 mesh = SubResource("RingMesh")
 surface_material_override/0 = SubResource("RingMat3")
 
@@ -395,3 +399,13 @@ surface_material_override/0 = SubResource("GullMat")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.4, -55)
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
+
+[node name="Pulido11" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="Vignette" type="ColorRect" parent="Pulido11"]
+material = SubResource("VignetteMat")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
