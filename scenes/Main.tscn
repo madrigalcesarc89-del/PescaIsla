@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bqrt7e7m1ptg5" path="res://scripts/cat.gd" id="2_cat"]
 [ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
 [ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
-[ext_resource type="Texture2D" uid="uid://buusmv0bbfk87" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
+[ext_resource type="Texture2D" uid="uid://w8aeqj7ebruo" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
 [ext_resource type="PackedScene" uid="uid://bincr8bqkxhkr" path="res://assets/props/muelle.glb" id="6_muelle"]
 [ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
 [ext_resource type="Script" uid="uid://bw5s523t53jif" path="res://scripts/lantern.gd" id="8_lantern"]
@@ -98,9 +98,12 @@ size = Vector2(1.2, 1.2)
 
 [sub_resource type="StandardMaterial3D" id="ShadowMat_1"]
 transparency = 1
+blend_mode = 2
 shading_mode = 0
-albedo_color = Color(1, 1, 1, 0.85)
+no_depth_test = true
+albedo_color = Color(0.85, 0.85, 0.85, 1)
 albedo_texture = ExtResource("5_shadow")
+uv1_offset = Vector3(-0.15, -0.12, 0)
 
 [sub_resource type="PlaneMesh" id="RingMesh"]
 size = Vector2(1, 1)
@@ -311,7 +314,7 @@ modulate = Color(1.04, 0.99, 0.94, 1)
 texture = ExtResource("4_idle")
 
 [node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961484, 0.05, -1.021022)
 mesh = SubResource("ShadowMesh_1")
 surface_material_override/0 = SubResource("ShadowMat_1")
 
