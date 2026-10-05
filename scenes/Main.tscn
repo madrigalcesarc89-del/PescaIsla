@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bqrt7e7m1ptg5" path="res://scripts/cat.gd" id="2_cat"]
 [ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
 [ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
+[ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/cat/defringe/idle.png" id="44_idle_df"]
 [ext_resource type="Texture2D" uid="uid://w8aeqj7ebruo" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
 [ext_resource type="PackedScene" uid="uid://bincr8bqkxhkr" path="res://assets/props/muelle.glb" id="6_muelle"]
 [ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
@@ -311,7 +312,7 @@ no_depth_test = true
 alpha_cut = 2
 render_priority = 10
 modulate = Color(1.04, 0.99, 0.94, 1)
-texture = ExtResource("4_idle")
+texture = ExtResource("44_idle_df")
 
 [node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961484, 0.05, -1.021022)
