@@ -1,0 +1,9 @@
+{
+  "fishes": [
+    { "id": "sardina", "name": "Sardina", "rarity": 0, "rarity_name": "Común", "weight": 45, "value": 5, "color": "6FB7D6" },
+    { "id": "payaso", "name": "Pez payaso", "rarity": 1, "rarity_name": "Poco común", "weight": 25, "value": 12, "color": "F28C38" },
+    { "id": "globo", "name": "Pez globo", "rarity": 2, "rarity_name": "Raro", "weight": 15, "value": 25, "color": "B48CE8" },
+    { "id": "dorado", "name": "Pez dorado", "rarity": 3, "rarity_name": "Épico", "weight": 10, "value": 60, "color": "F2C230" },
+    { "id": "luna", "name": "Pez luna", "rarity": 4, "rarity_name": "Legendario", "weight": 5, "value": 150, "color": "7FE8A8" }
+  ]
+}

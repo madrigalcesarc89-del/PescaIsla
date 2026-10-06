@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://cpnkkepixsi6k" path="res://assets/props/muelle_roca_crema.jpg" id="32_crema"]
 [ext_resource type="Texture2D" uid="uid://8ep08s7dtvby" path="res://assets/props/muelle_wooden+table+3d+model_basecolor.jpg" id="33_table"]
 [ext_resource type="Shader" path="res://shaders/shadow_blob.gdshader" id="34_blob"]
+[ext_resource type="Script" path="res://scripts/fishing.gd" id="35_fish"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -457,3 +458,6 @@ offset_bottom = -1278.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 0
+
+[node name="Fishing" type="Node" parent="."]
+script = ExtResource("35_fish")
