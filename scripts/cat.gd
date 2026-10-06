@@ -13,6 +13,14 @@ extends Node3D
 @export_range(0.5, 4.0, 0.1) var breath_speed: float = 2.0
 @export_range(0.0, 0.08, 0.005) var breath_amount: float = 0.02
 
+## Textura por pose (versiones defringe, igual que la escena).
+const POSE_TEXTURES := {
+	"idle": "res://assets/cat/defringe/idle.png",
+	"cast": "res://assets/cat/defringe/cast.png",
+	"wait": "res://assets/cat/defringe/wait.png",
+	"catch": "res://assets/cat/defringe/catch.png",
+}
+
 var _time: float = 0.0
 var _base_scale: Vector3 = Vector3.ONE
 var _current_pose: String = "idle"
@@ -38,6 +46,10 @@ func set_pose(pose: String) -> void:
 		return
 	_current_pose = pose
 	_base_scale = Vector3.ONE * _pose_factor(pose)
+	if sprite != null and POSE_TEXTURES.has(pose):
+		var tex := load(POSE_TEXTURES[pose]) as Texture2D
+		if tex != null:
+			sprite.texture = tex
 
 
 func _pose_factor(pose: String) -> Vector3:

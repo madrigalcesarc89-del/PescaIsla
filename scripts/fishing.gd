@@ -52,6 +52,11 @@ var _t_state: float = 0.0
 var _wait_time: float = 0.0
 var _zone_phase: float = 0.0
 
+var _bobber: MeshInstance3D
+var _splash: GPUParticles3D
+var _line_layer: CanvasLayer
+var _line: Line2D
+
 @onready var _cat: Node3D = $"../Cat"
 @onready var _cam: Camera3D = $"../Camera3D"
 
@@ -59,7 +64,67 @@ var _zone_phase: float = 0.0
 func _ready() -> void:
 	_load_db()
 	_load_game()
+	_build_visuals()
 	_enter(State.IDLE)
+
+
+func _build_visuals() -> void:
+	_bobber = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.06
+	sphere.height = 0.12
+	_bobber.mesh = sphere
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(0.9, 0.2, 0.2)
+	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_bobber.set_surface_override_material(0, bmat)
+	_bobber.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_bobber.position = bobber_pos
+	_bobber.visible = false
+	add_child(_bobber)
+	_splash = GPUParticles3D.new()
+	_splash.amount = 12
+	_splash.lifetime = 0.6
+	_splash.one_shot = true
+	_splash.explosiveness = 0.9
+	_splash.emitting = false
+	var pmat := ParticleProcessMaterial.new()
+	pmat.direction = Vector3(0, 1, 0)
+	pmat.spread = 35.0
+	pmat.initial_velocity_min = 1.2
+	pmat.initial_velocity_max = 2.2
+	pmat.gravity = Vector3(0, -6, 0)
+	pmat.scale_min = 0.5
+	pmat.scale_max = 1.0
+	pmat.color = Color(1, 1, 1)
+	_splash.process_material = pmat
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.12, 0.12)
+	var qmat := StandardMaterial3D.new()
+	qmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	qmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	qmat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	qmat.albedo_color = Color(1, 1, 1, 0.9)
+	qmat.albedo_texture = load("res://assets/textures/glow_disc.png")
+	quad.material = qmat
+	_splash.draw_pass_1 = quad
+	_splash.position = bobber_pos
+	add_child(_splash)
+	_line_layer = CanvasLayer.new()
+	_line_layer.layer = 5
+	add_child(_line_layer)
+	_line = Line2D.new()
+	_line.width = 3.0
+	_line.default_color = Color(0.25, 0.18, 0.12)
+	_line.visible = false
+	_line_layer.add_child(_line)
+
+
+func _splash_at() -> void:
+	if _splash == null or _bobber == null:
+		return
+	_splash.global_position = _bobber.global_position
+	_splash.restart()
 
 
 func _process(delta: float) -> void:
@@ -89,6 +154,7 @@ func _process(delta: float) -> void:
 					_enter(State.CATCH)
 			if _t_state >= reel_limit:
 				_enter(State.ESCAPE)
+	_update_visuals(delta)
 
 
 ## Entrada del jugador: botón ¡Pescar! (solo en IDLE).
@@ -124,10 +190,39 @@ func dismiss() -> bool:
 
 
 func _enter(s: int) -> void:
+	var prev := state
 	state = s
 	_t_state = 0.0
 	_apply_pose()
+	if _bobber != null:
+		_bobber.visible = s == State.WAIT or s == State.BITE or s == State.REEL
+		if _bobber.visible:
+			_bobber.position = bobber_pos
+	if s == State.WAIT and prev == State.CAST:
+		_splash_at()
+	if s == State.BITE or s == State.CATCH:
+		_splash_at()
 	state_changed.emit(state)
+
+
+func _update_visuals(delta: float) -> void:
+	if _line == null or _cam == null:
+		return
+	var show_line := state == State.WAIT or state == State.BITE or state == State.REEL
+	var tip := _cam.unproject_position(rod_tip)
+	if state == State.CAST:
+		show_line = true
+		var k := clampf(_t_state / maxf(cast_time, 0.01), 0.0, 1.0)
+		var target := _cam.unproject_position(bobber_pos)
+		_line.points = PackedVector2Array([tip, tip.lerp(target, k)])
+	elif show_line and _bobber != null:
+		var bp := bobber_pos
+		if state == State.BITE:
+			bp.y -= 0.06
+			bp.x += sin(_t_state * 30.0) * 0.03
+		_bobber.position = _bobber.position.lerp(bp, minf(delta * 10.0, 1.0))
+		_line.points = PackedVector2Array([tip, _cam.unproject_position(_bobber.position)])
+	_line.visible = show_line and not _cam.is_position_behind(rod_tip)
 
 
 func _apply_pose() -> void:
