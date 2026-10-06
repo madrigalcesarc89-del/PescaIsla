@@ -65,6 +65,7 @@ func _ready() -> void:
 	_load_db()
 	_load_game()
 	_build_visuals()
+	_build_ui()
 	_enter(State.IDLE)
 
 
@@ -155,6 +156,7 @@ func _process(delta: float) -> void:
 			if _t_state >= reel_limit:
 				_enter(State.ESCAPE)
 	_update_visuals(delta)
+	_process_ui(delta)
 
 
 ## Entrada del jugador: botón ¡Pescar! (solo en IDLE).
@@ -202,6 +204,7 @@ func _enter(s: int) -> void:
 		_splash_at()
 	if s == State.BITE or s == State.CATCH:
 		_splash_at()
+	_refresh_ui()
 	state_changed.emit(state)
 
 
@@ -299,3 +302,220 @@ func _save_game() -> void:
 		push_warning("Fishing: no se pudo guardar")
 		return
 	f.store_string(JSON.stringify({"coins": coins, "caught": caught}))
+
+
+# ------------------------------------------------------------------
+# Interfaz (CanvasLayer vertical, botones >= 64 px, área segura).
+# ------------------------------------------------------------------
+
+var _ui_layer: CanvasLayer
+var _ui_root: Control
+var _coins_label: Label
+var _hint_label: Label
+var _action_btn: Button
+var _hold_btn: Button
+var _reel_bar: Control
+var _reel_label: Label
+var _card_box: CenterContainer
+var _card_icon: TextureRect
+var _card_title: Label
+var _card_info: Label
+var _bite_pulse: float = 0.0
+
+
+class ReelBar:
+	extends Control
+	var game: Node = null
+
+	func _draw() -> void:
+		if game == null:
+			return
+		var r := Rect2(Vector2.ZERO, size)
+		draw_rect(r, Color(0.1, 0.1, 0.12, 0.85))
+		var zc: float = game.zone_center
+		var zh: float = game.zone_half
+		var zy0 := (1.0 - (zc + zh)) * size.y
+		var zy1 := (1.0 - (zc - zh)) * size.y
+		draw_rect(Rect2(0, zy0, size.x, zy1 - zy0), Color(0.25, 0.8, 0.35, 0.9))
+		var my: float = (1.0 - float(game.marker)) * size.y
+		draw_rect(Rect2(-6, my - 5, size.x + 12, 10), Color.WHITE)
+
+
+func _build_ui() -> void:
+	_ui_layer = CanvasLayer.new()
+	_ui_layer.layer = 20
+	add_child(_ui_layer)
+	_ui_root = Control.new()
+	_ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_layer.add_child(_ui_root)
+	_apply_safe_area(_ui_root)
+	_coins_label = Label.new()
+	_coins_label.add_theme_font_size_override("font_size", 34)
+	_coins_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_coins_label.position = Vector2(24, 24)
+	_coins_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(_coins_label)
+	_hint_label = Label.new()
+	_hint_label.add_theme_font_size_override("font_size", 32)
+	_hint_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_hint_label.position = Vector2(-400, 24)
+	_hint_label.size = Vector2(800, 60)
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(_hint_label)
+	_action_btn = Button.new()
+	_action_btn.add_theme_font_size_override("font_size", 40)
+	_action_btn.custom_minimum_size = Vector2(280, 110)
+	_action_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_action_btn.position = Vector2(-140, -250)
+	_action_btn.size = Vector2(280, 110)
+	_action_btn.pressed.connect(_on_action_pressed)
+	_ui_root.add_child(_action_btn)
+	_hold_btn = Button.new()
+	_hold_btn.add_theme_font_size_override("font_size", 36)
+	_hold_btn.custom_minimum_size = Vector2(280, 128)
+	_hold_btn.text = "MANTÉN"
+	_hold_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_hold_btn.position = Vector2(-140, -268)
+	_hold_btn.size = Vector2(280, 128)
+	_hold_btn.button_down.connect(_on_hold_down)
+	_hold_btn.button_up.connect(_on_hold_up)
+	_ui_root.add_child(_hold_btn)
+	_reel_bar = ReelBar.new()
+	_reel_bar.game = self
+	_reel_bar.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	_reel_bar.position = Vector2(-110, -230)
+	_reel_bar.size = Vector2(60, 420)
+	_reel_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(_reel_bar)
+	_reel_label = Label.new()
+	_reel_label.add_theme_font_size_override("font_size", 32)
+	_reel_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_reel_label.position = Vector2(-400, -340)
+	_reel_label.size = Vector2(800, 56)
+	_reel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reel_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(_reel_label)
+	_card_box = CenterContainer.new()
+	_card_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ui_root.add_child(_card_box)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(440, 0)
+	_card_box.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 18)
+	panel.add_child(vbox)
+	_card_icon = TextureRect.new()
+	_card_icon.custom_minimum_size = Vector2(192, 192)
+	_card_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_card_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	vbox.add_child(_card_icon)
+	_card_title = Label.new()
+	_card_title.add_theme_font_size_override("font_size", 46)
+	_card_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_card_title)
+	_card_info = Label.new()
+	_card_info.add_theme_font_size_override("font_size", 32)
+	_card_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_card_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(_card_info)
+	var cont_btn := Button.new()
+	cont_btn.add_theme_font_size_override("font_size", 36)
+	cont_btn.custom_minimum_size = Vector2(240, 96)
+	cont_btn.text = "SEGUIR"
+	cont_btn.pressed.connect(_on_continue)
+	var ccenter := CenterContainer.new()
+	ccenter.add_child(cont_btn)
+	vbox.add_child(ccenter)
+	_refresh_ui()
+
+
+func _apply_safe_area(c: Control) -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var sa := DisplayServer.get_display_safe_area()
+	var m := 16.0
+	c.offset_left = maxf(0.0, sa.position.x) + m
+	c.offset_top = maxf(0.0, sa.position.y) + m
+	c.offset_right = -maxf(0.0, vp.x - sa.end.x) - m
+	c.offset_bottom = -maxf(0.0, vp.y - sa.end.y) - m
+
+
+func _make_circle_texture(hex_color: String, px: int = 192) -> Texture2D:
+	var col := Color(hex_color)
+	var img := Image.create(px, px, false, Image.FORMAT_RGBA8)
+	var r := float(px) * 0.5
+	for y in range(px):
+		for x in range(px):
+			var d := Vector2(x - r + 0.5, y - r + 0.5).length()
+			if d <= r:
+				var edge := clampf((r - d) / 4.0, 0.0, 1.0)
+				img.set_pixel(x, y, Color(col.r, col.g, col.b, edge))
+	return ImageTexture.create_from_image(img)
+
+
+func _refresh_ui() -> void:
+	if _ui_root == null:
+		return
+	_coins_label.text = "Monedas: %d" % coins
+	_action_btn.visible = state == State.IDLE or state == State.BITE
+	_action_btn.disabled = state != State.IDLE and state != State.BITE
+	if state == State.IDLE:
+		_action_btn.text = "¡PESCAR!"
+		_hint_label.text = "Toca para lanzar el anzuelo"
+	elif state == State.CAST:
+		_hint_label.text = "Lanzando..."
+	elif state == State.WAIT:
+		_hint_label.text = "Espera... atento al flotador"
+	elif state == State.BITE:
+		_action_btn.text = "¡TIRAR!"
+		_hint_label.text = "¡PICÓ! ¡Tira ahora!"
+	elif state == State.REEL:
+		_hint_label.text = "Mantén el marcador en verde"
+	else:
+		_hint_label.text = ""
+	_hold_btn.visible = state == State.REEL
+	_reel_bar.visible = state == State.REEL
+	_reel_label.visible = state == State.REEL
+	_card_box.visible = state == State.CATCH or state == State.ESCAPE
+	if state == State.CATCH and not current_fish.is_empty():
+		_card_icon.texture = _make_circle_texture(str(current_fish.get("color", "FFFFFF")))
+		_card_title.text = str(current_fish.get("name", "Pez"))
+		_card_info.text = "%s\n+%d monedas" % [str(current_fish.get("rarity_name", "")), int(current_fish.get("value", 0))]
+	elif state == State.ESCAPE:
+		_card_icon.texture = _make_circle_texture("556070")
+		_card_title.text = "Se escapó..."
+		_card_info.text = "Sin penalización.\n¡Prueba otra vez!"
+
+
+func _process_ui(delta: float) -> void:
+	if _ui_root == null:
+		return
+	if state == State.BITE:
+		_bite_pulse += delta * 6.0
+		var k := 0.75 + 0.25 * sin(_bite_pulse)
+		_action_btn.modulate = Color(1, k, k)
+	else:
+		_action_btn.modulate = Color.WHITE
+	if state == State.REEL:
+		_reel_bar.queue_redraw()
+		_reel_label.text = "%.1f / %d s" % [reel_progress, int(reel_need)]
+
+
+func _on_action_pressed() -> void:
+	if state == State.IDLE:
+		start_fishing()
+	elif state == State.BITE:
+		strike()
+
+
+func _on_hold_down() -> void:
+	set_holding(true)
+
+
+func _on_hold_up() -> void:
+	set_holding(false)
+
+
+func _on_continue() -> void:
+	dismiss()
