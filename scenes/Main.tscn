@@ -316,6 +316,7 @@ texture = ExtResource("44_idle_df")
 
 [node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961484, 0.05, -1.021022)
+visible = false
 mesh = SubResource("ShadowMesh_1")
 surface_material_override/0 = SubResource("ShadowMat_1")
 
