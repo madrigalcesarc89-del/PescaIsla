@@ -9,10 +9,11 @@ extends Node3D
 @export_range(-60.0, -10.0, 0.5) var cam_angle_deg: float = -16.0
 @export_range(-5.0, 5.0, 0.1) var cam_side_offset: float = 0.0
 @export_range(20.0, 50.0, 0.5) var cam_fov: float = 36.0
-## Muestra un contador de FPS (para pruebas en celular). Apagado por defecto.
-@export var show_fps: bool = false
+## Muestra un contador de FPS (para pruebas en celular). Activo en compilación de prueba.
+@export var show_fps: bool = true
 
 var _fps_label: Label
+var _fps_timer: float = 0.0
 
 @onready var camera: Camera3D = $Camera3D
 
@@ -24,18 +25,31 @@ func _ready() -> void:
 		layer.layer = 10
 		add_child(layer)
 		_fps_label = Label.new()
-		_fps_label.visible = false
+		_fps_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fps_label.visible = show_fps
 		layer.add_child(_fps_label)
+		_update_fps_text()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		_update_camera()
 		return
 	if _fps_label != null:
 		_fps_label.visible = show_fps
 		if show_fps:
-			_fps_label.text = str(Engine.get_frames_per_second()) + " fps"
+			_fps_timer += delta
+			if _fps_timer >= 0.5:
+				_fps_timer = 0.0
+				_update_fps_text()
+
+
+func _update_fps_text() -> void:
+	if _fps_label == null:
+		return
+	var fps: float = float(Engine.get_frames_per_second())
+	var ms: float = 1000.0 / maxf(fps, 1.0)
+	_fps_label.text = "FPS: %d | %.1f ms" % [int(fps), ms]
 
 
 func _update_camera() -> void:
