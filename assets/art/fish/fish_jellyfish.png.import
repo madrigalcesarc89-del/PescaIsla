@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c54qaabo5ks0r"
-path="res://.godot/imported/_stern_check.png-7559e6db16a3d2411f37a534f03a07df.ctex"
+uid="uid://bba3slnh4tv31"
+path="res://.godot/imported/fish_jellyfish.png-169eeb5a6b51bba899efb82d62e423b2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/_stern_check.png"
-dest_files=["res://.godot/imported/_stern_check.png-7559e6db16a3d2411f37a534f03a07df.ctex"]
+source_file="res://assets/art/fish/fish_jellyfish.png"
+dest_files=["res://.godot/imported/fish_jellyfish.png-169eeb5a6b51bba899efb82d62e423b2.ctex"]
 
 [params]
 

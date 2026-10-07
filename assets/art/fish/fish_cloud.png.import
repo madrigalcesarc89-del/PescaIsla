@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://mtx5vegoqibj"
-path="res://.godot/imported/_stern3.png-e9c823832b9d195e3519b29310a9a534.ctex"
+uid="uid://chap21nxskvtt"
+path="res://.godot/imported/fish_cloud.png-cf13460def29d30b4ea270d40deeaa35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/_stern3.png"
-dest_files=["res://.godot/imported/_stern3.png-e9c823832b9d195e3519b29310a9a534.ctex"]
+source_file="res://assets/art/fish/fish_cloud.png"
+dest_files=["res://.godot/imported/fish_cloud.png-cf13460def29d30b4ea270d40deeaa35.ctex"]
 
 [params]
 

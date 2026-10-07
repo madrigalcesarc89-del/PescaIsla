@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c7adollfondoi"
-path="res://.godot/imported/_stern2.png-5052a92a3c5dad9481d7505de9512c41.ctex"
+uid="uid://d04rf6q5wumov"
+path="res://.godot/imported/fish_mint_puffer.png-729e744d4617740532523aaffde8b453.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/_stern2.png"
-dest_files=["res://.godot/imported/_stern2.png-5052a92a3c5dad9481d7505de9512c41.ctex"]
+source_file="res://assets/art/fish/fish_mint_puffer.png"
+dest_files=["res://.godot/imported/fish_mint_puffer.png-729e744d4617740532523aaffde8b453.ctex"]
 
 [params]
 
