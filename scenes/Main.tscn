@@ -3,8 +3,6 @@
 [ext_resource type="Script" uid="uid://ccv351kr04i48" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" uid="uid://bqrt7e7m1ptg5" path="res://scripts/cat.gd" id="2_cat"]
 [ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
-[ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
-[ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 [ext_resource type="Texture2D" uid="uid://w8aeqj7ebruo" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
 [ext_resource type="PackedScene" uid="uid://bincr8bqkxhkr" path="res://assets/props/muelle.glb" id="6_muelle"]
 [ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
@@ -20,13 +18,11 @@
 [ext_resource type="Texture2D" uid="uid://b3igbaeophyc3" path="res://assets/textures/sun.png" id="21_sun"]
 [ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
 [ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
-[ext_resource type="Shader" path="res://shaders/vignette.gdshader" id="30_vignette"]
+[ext_resource type="Shader" uid="uid://wxccsnd0i2tl" path="res://shaders/vignette.gdshader" id="30_vignette"]
+[ext_resource type="Shader" uid="uid://p11cr3ldkmax" path="res://shaders/shadow_blob.gdshader" id="34_blob"]
+[ext_resource type="Script" uid="uid://dlqn7swauiq5h" path="res://scripts/fishing.gd" id="35_fish"]
 [ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/art/bg/bg_sunset.jpg" id="40_fondo"]
-[ext_resource type="Shader" path="res://shaders/dock_wet.gdshader" id="31_dockwet"]
-[ext_resource type="Texture2D" uid="uid://cpnkkepixsi6k" path="res://assets/props/muelle_roca_crema.jpg" id="32_crema"]
-[ext_resource type="Texture2D" uid="uid://8ep08s7dtvby" path="res://assets/props/muelle_wooden+table+3d+model_basecolor.jpg" id="33_table"]
-[ext_resource type="Shader" path="res://shaders/shadow_blob.gdshader" id="34_blob"]
-[ext_resource type="Script" path="res://scripts/fishing.gd" id="35_fish"]
+[ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
 sky_top_color = Color(0.9137, 0.6627, 0.7216, 1)
@@ -44,15 +40,14 @@ sky = SubResource("Sky_1")
 ambient_light_source = 3
 ambient_light_energy = 0.6
 tonemap_mode = 2
-adjustment_enabled = true
-adjustment_brightness = 1.0
-adjustment_contrast = 1.05
-adjustment_saturation = 1.08
 glow_enabled = true
 glow_intensity = 0.2
 fog_enabled = true
 fog_light_color = Color(0.9686, 0.7176, 0.6392, 1)
 fog_density = 0.002
+adjustment_enabled = true
+adjustment_contrast = 1.05
+adjustment_saturation = 1.08
 
 [sub_resource type="PlaneMesh" id="WaterMesh_1"]
 size = Vector2(200, 200)
@@ -208,19 +203,6 @@ shader_parameter/edge_amount = 0.08
 shader_parameter/grain_amount = 0.02
 shader_parameter/grain_enabled = true
 
-[sub_resource type="ShaderMaterial" id="DockWetMat"]
-shader = ExtResource("31_dockwet")
-shader_parameter/base_tex = ExtResource("32_crema")
-shader_parameter/table_tex = ExtResource("33_table")
-shader_parameter/dry_tint = Color(0.51, 0.52, 0.55, 1)
-shader_parameter/wet_bottom = 0.0
-shader_parameter/wet_top = 0.55
-shader_parameter/wet_dark = 0.72
-shader_parameter/rim_tint = Color(1, 0.8, 0.6, 1)
-shader_parameter/rim_amount = 0.13
-shader_parameter/rough_dry = 1.0
-shader_parameter/rough_wet = 0.65
-
 [node name="Main" type="Node3D" unique_id=897212059]
 script = ExtResource("1_main")
 
@@ -245,10 +227,7 @@ surface_material_override/0 = SubResource("WaterMat_1")
 [node name="Props" type="Node3D" parent="." unique_id=2029458562]
 
 [node name="Muelle" parent="Props" unique_id=1076853241 instance=ExtResource("6_muelle")]
-transform = Transform3D(2.0784318, 0, -0.10404001, 0, 2.9999998, 0, 0.0713015, 0, 3.0327563, 0.12807178, -0.2658723, -0.0020903945)
-
-[node name="tripo_node_e8dd501d-e682-4fbe-93bc-dbb62c03c3c5" parent="Props/Muelle"]
-surface_material_override/0 = SubResource("DockWetMat")
+transform = Transform3D(2.0784318, 0, -0.10404001, 0, 2.9999998, 0, 0.0713015, 0, 3.0327563, -0.02459371, -0.2658723, -0.0020903945)
 
 [node name="Farol" type="Node3D" parent="Props" unique_id=1641219232]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.62, 0.8, 1.05)
@@ -258,12 +237,12 @@ script = ExtResource("8_lantern")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.25704908, 0)
 
 [node name="Glow" type="MeshInstance3D" parent="Props/Farol" unique_id=2092916137]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.85704908, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.8570491, 0.3)
 mesh = SubResource("GlowQuad_1")
 surface_material_override/0 = SubResource("GlowMat_1")
 
 [node name="Luz" type="OmniLight3D" parent="Props/Farol" unique_id=26443522]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.85704908, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.227807, 0.8570491, 0)
 light_color = Color(1, 0.8, 0.62, 1)
 omni_range = 2.5
 
@@ -299,18 +278,18 @@ mesh = SubResource("RockSphere_1")
 surface_material_override/0 = SubResource("RockMat_1")
 
 [node name="Cat" type="Node3D" parent="." unique_id=712432126]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116928816, 0.6, 1.3)
 script = ExtResource("2_cat")
 
 [node name="Sprite3D" type="Sprite3D" parent="Cat" unique_id=787568847]
-transform = Transform3D(0.9922597, 0.124179944, 0, -0.124179944, 0.9922597, 0, 0, 0, 1, 0.96148413, 0.47993124, -1.0210223)
+transform = Transform3D(0.9922597, 0.124179944, 0, -0.124179944, 0.9922597, 0, 0, 0, 1, 0.60745853, 0.47993124, -1.0210223)
 cast_shadow = 0
+modulate = Color(1.04, 0.99, 0.94, 1)
 pixel_size = 0.0013
 billboard = 1
 no_depth_test = true
 alpha_cut = 2
 render_priority = 10
-modulate = Color(1.04, 0.99, 0.94, 1)
 texture = ExtResource("44_idle_df")
 
 [node name="Shadow" type="MeshInstance3D" parent="Cat" unique_id=1725781314]
@@ -434,21 +413,20 @@ visible = false
 mesh = SubResource("GullQuad")
 surface_material_override/0 = SubResource("GullMat")
 
-[node name="Pulido11" type="CanvasLayer" parent="."]
+[node name="Pulido11" type="CanvasLayer" parent="." unique_id=1717186698]
 layer = 11
 
-[node name="Vignette" type="ColorRect" parent="Pulido11"]
+[node name="Vignette" type="ColorRect" parent="Pulido11" unique_id=561624367]
 material = SubResource("VignetteMat")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="Fondo" type="CanvasLayer" parent="."]
+[node name="Fondo" type="CanvasLayer" parent="." unique_id=123802426]
 layer = -1
 
-[node name="Cielo" type="TextureRect" parent="Fondo"]
-texture = ExtResource("40_fondo")
+[node name="Cielo" type="TextureRect" parent="Fondo" unique_id=240869789]
 texture_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -456,8 +434,8 @@ anchor_bottom = 1.0
 offset_top = -1278.0
 offset_bottom = -1278.0
 mouse_filter = 2
+texture = ExtResource("40_fondo")
 expand_mode = 1
-stretch_mode = 0
 
-[node name="Fishing" type="Node" parent="."]
+[node name="Fishing" type="Node" parent="." unique_id=510232045]
 script = ExtResource("35_fish")
