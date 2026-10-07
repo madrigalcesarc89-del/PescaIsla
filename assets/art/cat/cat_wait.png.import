@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kyy2eo2s1ava"
-path.s3tc="res://.godot/imported/wait.png-02da813b6d191868ae23cf6af3d528f6.s3tc.ctex"
-path.etc2="res://.godot/imported/wait.png-02da813b6d191868ae23cf6af3d528f6.etc2.ctex"
+path.s3tc="res://.godot/imported/cat_wait.png-297591d338c1635d920001e212df4c5e.s3tc.ctex"
+path.etc2="res://.godot/imported/cat_wait.png-297591d338c1635d920001e212df4c5e.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/cat/defringe/wait.png"
-dest_files=["res://.godot/imported/wait.png-02da813b6d191868ae23cf6af3d528f6.s3tc.ctex", "res://.godot/imported/wait.png-02da813b6d191868ae23cf6af3d528f6.etc2.ctex"]
+source_file="res://assets/art/cat/cat_wait.png"
+dest_files=["res://.godot/imported/cat_wait.png-297591d338c1635d920001e212df4c5e.s3tc.ctex", "res://.godot/imported/cat_wait.png-297591d338c1635d920001e212df4c5e.etc2.ctex"]
 
 [params]
 

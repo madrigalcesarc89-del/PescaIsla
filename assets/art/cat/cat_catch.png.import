@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://oe7oolrhl6tp"
-path.s3tc="res://.godot/imported/catch.png-d20e4916e51c1fedf6ba6354c12898a4.s3tc.ctex"
-path.etc2="res://.godot/imported/catch.png-d20e4916e51c1fedf6ba6354c12898a4.etc2.ctex"
+path.s3tc="res://.godot/imported/cat_catch.png-e8f698a5079f4f07aea1e2a3916d3fc6.s3tc.ctex"
+path.etc2="res://.godot/imported/cat_catch.png-e8f698a5079f4f07aea1e2a3916d3fc6.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/cat/defringe/catch.png"
-dest_files=["res://.godot/imported/catch.png-d20e4916e51c1fedf6ba6354c12898a4.s3tc.ctex", "res://.godot/imported/catch.png-d20e4916e51c1fedf6ba6354c12898a4.etc2.ctex"]
+source_file="res://assets/art/cat/cat_catch.png"
+dest_files=["res://.godot/imported/cat_catch.png-e8f698a5079f4f07aea1e2a3916d3fc6.s3tc.ctex", "res://.godot/imported/cat_catch.png-e8f698a5079f4f07aea1e2a3916d3fc6.etc2.ctex"]
 
 [params]
 

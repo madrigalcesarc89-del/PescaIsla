@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxd28j0fn453e"
-path.s3tc="res://.godot/imported/cast.png-9589f7e6f0c4af660d3ee6e305484db8.s3tc.ctex"
-path.etc2="res://.godot/imported/cast.png-9589f7e6f0c4af660d3ee6e305484db8.etc2.ctex"
+path.s3tc="res://.godot/imported/cat_cast.png-74a2531e07d8cb762b7ad9f952b4148b.s3tc.ctex"
+path.etc2="res://.godot/imported/cat_cast.png-74a2531e07d8cb762b7ad9f952b4148b.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/cat/defringe/cast.png"
-dest_files=["res://.godot/imported/cast.png-9589f7e6f0c4af660d3ee6e305484db8.s3tc.ctex", "res://.godot/imported/cast.png-9589f7e6f0c4af660d3ee6e305484db8.etc2.ctex"]
+source_file="res://assets/art/cat/cat_cast.png"
+dest_files=["res://.godot/imported/cat_cast.png-74a2531e07d8cb762b7ad9f952b4148b.s3tc.ctex", "res://.godot/imported/cat_cast.png-74a2531e07d8cb762b7ad9f952b4148b.etc2.ctex"]
 
 [params]
 

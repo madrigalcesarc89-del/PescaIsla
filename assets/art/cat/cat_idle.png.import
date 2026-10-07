@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2283yq3sycr0"
-path.s3tc="res://.godot/imported/idle.png-74638d60ccdb811d44bfaab07bad2be4.s3tc.ctex"
-path.etc2="res://.godot/imported/idle.png-74638d60ccdb811d44bfaab07bad2be4.etc2.ctex"
+path.s3tc="res://.godot/imported/cat_idle.png-77b7c45f060b7ce978c3cf20eb1436a5.s3tc.ctex"
+path.etc2="res://.godot/imported/cat_idle.png-77b7c45f060b7ce978c3cf20eb1436a5.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/cat/defringe/idle.png"
-dest_files=["res://.godot/imported/idle.png-74638d60ccdb811d44bfaab07bad2be4.s3tc.ctex", "res://.godot/imported/idle.png-74638d60ccdb811d44bfaab07bad2be4.etc2.ctex"]
+source_file="res://assets/art/cat/cat_idle.png"
+dest_files=["res://.godot/imported/cat_idle.png-77b7c45f060b7ce978c3cf20eb1436a5.s3tc.ctex", "res://.godot/imported/cat_idle.png-77b7c45f060b7ce978c3cf20eb1436a5.etc2.ctex"]
 
 [params]
 

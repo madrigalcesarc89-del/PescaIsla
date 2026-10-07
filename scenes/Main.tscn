@@ -21,7 +21,7 @@
 [ext_resource type="Texture2D" uid="uid://b2r6l4rdgrigh" path="res://assets/textures/isle.png" id="22_isle"]
 [ext_resource type="Texture2D" uid="uid://bi3sr6s7xxquv" path="res://assets/textures/gull.png" id="23_gull"]
 [ext_resource type="Shader" path="res://shaders/vignette.gdshader" id="30_vignette"]
-[ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/textures/fondo.jpg" id="40_fondo"]
+[ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/art/bg/bg_sunset.jpg" id="40_fondo"]
 [ext_resource type="Shader" path="res://shaders/dock_wet.gdshader" id="31_dockwet"]
 [ext_resource type="Texture2D" uid="uid://cpnkkepixsi6k" path="res://assets/props/muelle_roca_crema.jpg" id="32_crema"]
 [ext_resource type="Texture2D" uid="uid://8ep08s7dtvby" path="res://assets/props/muelle_wooden+table+3d+model_basecolor.jpg" id="33_table"]
