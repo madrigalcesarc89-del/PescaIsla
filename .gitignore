@@ -24,3 +24,16 @@ __pycache__/
 
 # Local: ruta del Godot de este PC (no commitear)
 docs/godot-path.txt
+
+# Reorg: originales y trabajo sin clasificar (no commitear, ver AGENTS.md)
+source/
+# Previews locales de validación (reorg_base.png ya commiteado se conserva)
+docs/previews/
+# Ajustes locales de exportación (cada PC los suyos; ver AGENTS.md)
+export_presets.cfg
+# Claves y certificados extra
+*.jks
+*.p12
+*.pfx
+*.key
+*.pem

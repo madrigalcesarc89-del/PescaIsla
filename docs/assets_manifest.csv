@@ -1,0 +1,79 @@
+id,ruta,origen,fecha,notas
+rod_bamboo,assets/art/shop/rod_bamboo.png,Grok,2026-10-06,caña futura
+rod_coral,assets/art/shop/rod_coral.png,Grok,2026-10-06,caña futura
+rod_moon,assets/art/shop/rod_moon.png,Grok,2026-10-06,caña futura
+rod_cherry,assets/art/shop/rod_cherry.png,Grok,2026-10-06,caña futura
+rod_rainbow,assets/art/shop/rod_rainbow.png,Grok,2026-10-06,caña futura
+bait_pink_worm,assets/art/shop/bait_pink_worm.png,Grok,2026-10-06,cebo futuro
+bait_peach_shrimp,assets/art/shop/bait_peach_shrimp.png,Grok,2026-10-06,cebo futuro
+bait_firefly_worm,assets/art/shop/bait_firefly_worm.png,Grok,2026-10-06,cebo futuro
+bait_golden_pearl,assets/art/shop/bait_golden_pearl.png,Grok,2026-10-06,cebo futuro
+prop_beach_chair,source/modelos/beach chair 3d model.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_beach_chair,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_cama_de_gato,source/modelos/cama de gato 3d.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_cama_de_gato,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_cartoon_birdhouse,source/modelos/cartoon birdhouse 3d model.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_cartoon_birdhouse,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_decorative_table_lamp,source/modelos/decorative table lamp 3d model.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_decorative_table_lamp,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_fogatao,source/modelos/fogata 3d modelo.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_fogatao,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_planta_suculentao,source/modelos/planta suculenta 3d modelo.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_planta_suculentao,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_string_lights,source/modelos/string lights 3d model.glb,tienda,2026-10-06,set: glb + basecolor/normal/rm
+prop_string_lights,source/modelos/,tienda,,3 texturas del set (ver glb)
+prop_wooden_hot_tub,source/modelos/wooden hot tub 3d model.glb,tienda,2026-10-07,set: glb + basecolor/normal/rm
+prop_wooden_hot_tub,source/modelos/,tienda,,3 texturas del set (ver glb)
+concept_47422,source/concepto/grok-image-47422ba1-aae8-473f-a730-781bc8f36d66.png,Grok,2026-10-07,concept art 2D del modelo 3D
+concept_8446e,source/concepto/grok-image-8446e9df-bc3c-466a-86dc-98dc2c763f53.png,Grok,2026-10-07,concept art 2D del modelo 3D
+concept_d6eb7,source/concepto/grok-image-d6eb729f-48cc-40f0-a01c-ab198f046e75.png,Grok,2026-10-07,concept art 2D del modelo 3D
+amb_day,assets/audio/ambient/amb_day.ogg,ElevenLabs,2026-10-07,convertir q4; original en source/audio
+amb_night,assets/audio/ambient/amb_night.ogg,ElevenLabs,2026-10-07,convertir q4; original en source/audio
+amb_fire,assets/audio/ambient/amb_fire.ogg,ElevenLabs,2026-10-07,convertir q4; original en source/audio
+sfx_catch_legend,assets/audio/sfx/sfx_catch_legend.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_place,assets/audio/ui/ui_place.ogg,ElevenLabs,2026-10-07,convertir q4
+mus_night,assets/audio/music/mus_night.ogg,ElevenLabs,2026-10-07,22MB: NO commitear wav; convertir q4 (~2MB)
+mus_sunset,assets/audio/music/mus_sunset.ogg,ElevenLabs,2026-10-07,22MB: NO commitear wav; convertir q4 (~2MB)
+bg_dawn,assets/art/bg/bg_dawn.jpg,Grok,2026-10-06,fondo vertical
+bg_day,assets/art/bg/bg_day.jpg,Grok,2026-10-06,fondo vertical
+bg_night,assets/art/bg/bg_night.jpg,Grok,2026-10-06,fondo vertical
+cat_bite,source/gato/bite.png,Grok,2026-10-06,pose futura 1152x1728
+cat_celebrate,source/gato/celebrate.png,Grok,2026-10-06,pose futura 1152x1728
+cat_fail,source/gato/fail.png,Grok,2026-10-06,pose futura 1152x1728
+cat_reel,source/gato/reel.png,Grok,2026-10-06,pose futura 1152x1728
+fish_pink_sardine,source/peces/Sardina_Rosa.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: común
+fish_moon,source/peces/Pez_Luna.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: común
+fish_cream_carp,source/peces/Carpa_Crema.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: común
+fish_mint_puffer,source/peces/Pez_globo_menta.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: poco común
+fish_peach_angelfish,source/peces/Pez_angel_durazno.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: poco común
+fish_jellyfish,source/peces/medusa_pequena.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: poco común
+fish_lanternfish,source/peces/pez_linterna.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: raro
+fish_golden_koi,source/peces/koi_dorado.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: raro
+fish_seahorse,source/peces/caballito_mar.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: raro
+fish_cloud,source/peces/pez_nube.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: legendario
+fish_mini_whale,source/peces/ballena_mini.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: legendario
+fish_sea_dragon,source/peces/dragon_mar.png,Grok,2026-10-06,original 1408; copia 512+defringe en assets/art/fish/; rareza: legendario
+ui_frames,source/ui/grok-image-191dc348-b66c-4d3c-b7e1-de563c48ba78.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; marcos de carta x4
+ui_icons,source/ui/grok-image-2522e48b-868c-489e-8131-0a3569ee1c3d.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; hoja de iconos x11
+ui_panel,source/ui/grok-image-2857f7dd-a11f-412b-8383-2f8a00733bed.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; panel/fondo carta
+ui_buttons,source/ui/grok-image-9ee22366-436b-4747-ab24-30527054b368.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; botones x3
+ui_alert_bite,source/ui/grok-image-9d6acbb0-0eb5-4f82-85ac-6f3e370f5570.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; bocadillo !
+ui_bar_frame,source/ui/grok-image-a027ed75-24a8-4e20-aaf5-633ab43447c9.png,Grok,2026-10-07,HOJA: cortar en piezas antes de usar; marco barra tension
+sfx_bite,assets/audio/sfx/sfx_bite.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_cast,assets/audio/sfx/sfx_cast.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_catch,assets/audio/sfx/sfx_catch.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_catch_rare,assets/audio/sfx/sfx_catch_rare.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_daynight,assets/audio/sfx/sfx_daynight.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_fail,assets/audio/sfx/sfx_fail.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_fish_out,assets/audio/sfx/sfx_fish_out.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_reel,assets/audio/sfx/sfx_reel.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_reel_tense,assets/audio/sfx/sfx_reel_tense.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_splash,assets/audio/sfx/sfx_splash.ogg,ElevenLabs,2026-10-07,convertir q4
+sfx_cat_meow,assets/audio/sfx/sfx_cat_meow.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_back,assets/audio/ui/ui_back.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_buy,assets/audio/ui/ui_buy.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_close,assets/audio/ui/ui_close.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_coin,assets/audio/ui/ui_coin.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_deny,assets/audio/ui/ui_deny.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_open,assets/audio/ui/ui_open.ogg,ElevenLabs,2026-10-07,convertir q4
+ui_tap,assets/audio/ui/ui_tap.ogg,ElevenLabs,2026-10-07,convertir q4
