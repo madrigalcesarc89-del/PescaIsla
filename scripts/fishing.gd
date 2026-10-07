@@ -541,6 +541,7 @@ func _refresh_ui() -> void:
 		_card_icon.texture = _fish_texture(current_fish)
 		_card_title.text = fish_text(current_fish, "name_es")
 		_card_info.text = "%s\n+%d monedas\n%s" % [rarity_name(str(current_fish.get("rarity", ""))), int(current_fish.get("value", 0)), fish_text(current_fish, "description_es")]
+		_spawn_float_gain(int(current_fish.get("value", 0)))
 	elif state == State.ESCAPE:
 		_card_icon.texture = _make_circle_texture("556070")
 		_card_title.text = "Se escapó..."
@@ -568,6 +569,25 @@ func _process_ui(delta: float) -> void:
 	if state == State.REEL:
 		_reel_bar.queue_redraw()
 		_reel_label.text = "%.1f / %d s" % [reel_progress, int(reel_need)]
+
+
+## Contador temporal de monedas: "+N" que sube y se desvanece en 2 s.
+func _spawn_float_gain(amount: int) -> void:
+	if _ui_root == null or amount <= 0:
+		return
+	var lab := Label.new()
+	lab.add_theme_font_size_override("font_size", 44)
+	lab.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	lab.add_theme_color_override("font_outline_color", Color(0.3, 0.2, 0.05))
+	lab.add_theme_constant_override("outline_size", 8)
+	lab.text = "+%d" % amount
+	lab.position = Vector2(150, 110)
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(lab)
+	var tw := lab.create_tween().set_parallel(true)
+	tw.tween_property(lab, "position:y", 30.0, 2.0)
+	tw.tween_property(lab, "modulate:a", 0.0, 2.0)
+	tw.chain().tween_callback(lab.queue_free)
 
 
 func _on_action_pressed() -> void:
