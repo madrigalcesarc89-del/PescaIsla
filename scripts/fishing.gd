@@ -15,7 +15,9 @@ const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
 ## Velocidad base de la zona; se multiplica por `difficulty` del pez.
 const ZONE_BASE_SPEED := 0.9
 
-## Pose del gato por estado (texturas: idle/cast/wait/catch).
+## Pose del gato por estado (texturas disponibles: idle/cast/wait/catch).
+## BITE/REEL/ESCAPE reutilizan poses como MARCADORES hasta tener arte propio
+## (ver source/gato/: bite, reel, fail, celebrate — estilo distinto, sin integrar).
 const POSE_FOR_STATE := {
 	State.IDLE: "idle",
 	State.CAST: "cast",
@@ -357,6 +359,7 @@ var _card_box: CenterContainer
 var _card_icon: TextureRect
 var _card_title: Label
 var _card_info: Label
+var _bite_label: Label
 var _bite_pulse: float = 0.0
 
 
@@ -465,6 +468,17 @@ func _build_ui() -> void:
 	var ccenter := CenterContainer.new()
 	ccenter.add_child(cont_btn)
 	vbox.add_child(ccenter)
+	_bite_label = Label.new()
+	_bite_label.add_theme_font_size_override("font_size", 110)
+	_bite_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	_bite_label.add_theme_color_override("font_outline_color", Color(0.35, 0.2, 0.05))
+	_bite_label.add_theme_constant_override("outline_size", 12)
+	_bite_label.text = "!"
+	_bite_label.size = Vector2(120, 140)
+	_bite_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_bite_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bite_label.visible = false
+	_ui_root.add_child(_bite_label)
 	_refresh_ui()
 
 
@@ -489,6 +503,14 @@ func _make_circle_texture(hex_color: String, px: int = 192) -> Texture2D:
 				var edge := clampf((r - d) / 4.0, 0.0, 1.0)
 				img.set_pixel(x, y, Color(col.r, col.g, col.b, edge))
 	return ImageTexture.create_from_image(img)
+
+
+## Textura real del pez; círculo de color solo si falta el archivo.
+func _fish_texture(fish: Dictionary) -> Texture2D:
+	var tex = load(str(fish.get("texture", "")))
+	if tex is Texture2D:
+		return tex
+	return _make_circle_texture("FFFFFF")
 
 
 func _refresh_ui() -> void:
@@ -516,9 +538,9 @@ func _refresh_ui() -> void:
 	_reel_label.visible = state == State.REEL
 	_card_box.visible = state == State.CATCH or state == State.ESCAPE
 	if state == State.CATCH and not current_fish.is_empty():
-		_card_icon.texture = _make_circle_texture(str(current_fish.get("color", "FFFFFF")))
-		_card_title.text = str(current_fish.get("name", "Pez"))
-		_card_info.text = "%s\n+%d monedas" % [str(current_fish.get("rarity_name", "")), int(current_fish.get("value", 0))]
+		_card_icon.texture = _fish_texture(current_fish)
+		_card_title.text = fish_text(current_fish, "name_es")
+		_card_info.text = "%s\n+%d monedas\n%s" % [rarity_name(str(current_fish.get("rarity", ""))), int(current_fish.get("value", 0)), fish_text(current_fish, "description_es")]
 	elif state == State.ESCAPE:
 		_card_icon.texture = _make_circle_texture("556070")
 		_card_title.text = "Se escapó..."
@@ -532,7 +554,16 @@ func _process_ui(delta: float) -> void:
 		_bite_pulse += delta * 6.0
 		var k := 0.75 + 0.25 * sin(_bite_pulse)
 		_action_btn.modulate = Color(1, k, k)
-	else:
+		_bite_label.visible = _bobber != null and _line.points.size() >= 1
+		if _bite_label.visible:
+			# El final de la línea ya está en coords de canvas correctas
+			# (unproject_position no coincide con el stretch en este caso).
+			var bend := _line.points[_line.points.size() - 1]
+			_bite_label.position = bend + Vector2(-60, -200)
+			var s := 1.0 + 0.15 * sin(_bite_pulse * 1.5)
+			_bite_label.scale = Vector2(s, s)
+	elif _bite_label != null:
+		_bite_label.visible = false
 		_action_btn.modulate = Color.WHITE
 	if state == State.REEL:
 		_reel_bar.queue_redraw()
