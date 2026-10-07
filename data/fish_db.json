@@ -1,9 +1,16 @@
 {
   "fishes": [
-    { "id": "sardina", "name": "Sardina", "rarity": 0, "rarity_name": "Común", "weight": 45, "value": 5, "color": "6FB7D6" },
-    { "id": "payaso", "name": "Pez payaso", "rarity": 1, "rarity_name": "Poco común", "weight": 25, "value": 12, "color": "F28C38" },
-    { "id": "globo", "name": "Pez globo", "rarity": 2, "rarity_name": "Raro", "weight": 15, "value": 25, "color": "B48CE8" },
-    { "id": "dorado", "name": "Pez dorado", "rarity": 3, "rarity_name": "Épico", "weight": 10, "value": 60, "color": "F2C230" },
-    { "id": "luna", "name": "Pez luna", "rarity": 4, "rarity_name": "Legendario", "weight": 5, "value": 150, "color": "7FE8A8" }
+    { "id": "fish_pink_sardine", "name_es": "Sardina rosa", "name_en": "Pink sardine", "rarity": "common", "value": 5, "texture": "res://assets/art/fish/fish_pink_sardine.png", "weight": 25.0, "difficulty": 1.0, "description_es": "Pequeña y rápida. La más fácil de ver." },
+    { "id": "fish_moon", "name_es": "Pez luna", "name_en": "Moon fish", "rarity": "common", "value": 6, "texture": "res://assets/art/fish/fish_moon.png", "weight": 20.0, "difficulty": 1.0, "description_es": "Brilla un poco de noche. Común pero bonito." },
+    { "id": "fish_cream_carp", "name_es": "Carpa crema", "name_en": "Cream carp", "rarity": "common", "value": 8, "texture": "res://assets/art/fish/fish_cream_carp.png", "weight": 15.0, "difficulty": 1.0, "description_es": "Tranquila y redonda. Buena para practicar." },
+    { "id": "fish_mint_puffer", "name_es": "Pez globo menta", "name_en": "Mint pufferfish", "rarity": "uncommon", "value": 15, "texture": "res://assets/art/fish/fish_mint_puffer.png", "weight": 12.0, "difficulty": 1.2, "description_es": "Se infla si te descuidas. Tira a tiempo." },
+    { "id": "fish_peach_angelfish", "name_es": "Pez ángel durazno", "name_en": "Peach angelfish", "rarity": "uncommon", "value": 20, "texture": "res://assets/art/fish/fish_peach_angelfish.png", "weight": 9.0, "difficulty": 1.2, "description_es": "Elegante y algo escurridizo." },
+    { "id": "fish_jellyfish", "name_es": "Medusa pequeña", "name_en": "Small jellyfish", "rarity": "uncommon", "value": 25, "texture": "res://assets/art/fish/fish_jellyfish.png", "weight": 7.0, "difficulty": 1.2, "description_es": "Flota sin prisa, pero pica con la espera." },
+    { "id": "fish_lanternfish", "name_es": "Pez linterna", "name_en": "Lanternfish", "rarity": "rare", "value": 50, "texture": "res://assets/art/fish/fish_lanternfish.png", "weight": 4.0, "difficulty": 1.5, "description_es": "Su luz atrae miradas... y buenos precios." },
+    { "id": "fish_golden_koi", "name_es": "Koi dorado", "name_en": "Golden koi", "rarity": "rare", "value": 65, "texture": "res://assets/art/fish/fish_golden_koi.png", "weight": 3.0, "difficulty": 1.5, "description_es": "Trae suerte a quien lo atrapa." },
+    { "id": "fish_seahorse", "name_es": "Caballito de mar", "name_en": "Seahorse", "rarity": "rare", "value": 80, "texture": "res://assets/art/fish/fish_seahorse.png", "weight": 3.0, "difficulty": 1.5, "description_es": "Pequeño, raro y muy cotizado." },
+    { "id": "fish_cloud", "name_es": "Pez nube", "name_en": "Cloud fish", "rarity": "legendary", "value": 200, "texture": "res://assets/art/fish/fish_cloud.png", "weight": 1.0, "difficulty": 1.9, "description_es": "Dicen que vive entre nubes. Casi imposible." },
+    { "id": "fish_mini_whale", "name_es": "Ballena mini", "name_en": "Mini whale", "rarity": "legendary", "value": 300, "texture": "res://assets/art/fish/fish_mini_whale.png", "weight": 0.6, "difficulty": 1.9, "description_es": "Enorme para el anzuelo. Leyenda de la isla." },
+    { "id": "fish_sea_dragon", "name_es": "Dragón de mar", "name_en": "Sea dragon", "rarity": "legendary", "value": 400, "texture": "res://assets/art/fish/fish_sea_dragon.png", "weight": 0.4, "difficulty": 1.9, "description_es": "El rey de estas aguas. Solo para maestros." }
   ]
 }

@@ -8,6 +8,12 @@ enum State { IDLE, CAST, WAIT, BITE, REEL, CATCH, ESCAPE }
 
 const SAVE_PATH := "user://save.json"
 const DB_PATH := "res://data/fish_db.json"
+const STRINGS_PATH := "res://data/strings.json"
+
+## Índice de rareza para la zona de recogida (ancho).
+const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
+## Velocidad base de la zona; se multiplica por `difficulty` del pez.
+const ZONE_BASE_SPEED := 0.9
 
 ## Pose del gato por estado (texturas: idle/cast/wait/catch).
 const POSE_FOR_STATE := {
@@ -37,6 +43,7 @@ signal state_changed(new_state: int)
 
 var state: int = State.IDLE
 var fishes: Array = []
+var strings: Dictionary = {}
 var current_fish: Dictionary = {}
 var coins: int = 0
 var caught: Dictionary = {}
@@ -63,6 +70,7 @@ var _line: Line2D
 
 func _ready() -> void:
 	_load_db()
+	_load_strings()
 	_load_game()
 	_build_visuals()
 	_build_ui()
@@ -250,11 +258,28 @@ func _pick_fish() -> void:
 
 
 func _setup_zone() -> void:
-	var rarity := int(current_fish.get("rarity", 0))
-	zone_half = 0.16 - float(rarity) * 0.02
-	zone_speed = 0.5 + float(rarity) * 0.45
+	var rarity := str(current_fish.get("rarity", "common"))
+	var idx := int(RARITY_INDEX.get(rarity, 0))
+	zone_half = 0.16 - float(idx) * 0.02
+	zone_speed = ZONE_BASE_SPEED * float(current_fish.get("difficulty", 1.0))
 	zone_center = 0.5
 	_zone_phase = 0.0
+
+
+## Texto de la tabla de traducción con respaldo en fish_db.
+func fish_text(fish: Dictionary, field: String) -> String:
+	var fid := str(fish.get("id", ""))
+	var entry = strings.get("fish", {}).get(fid, {})
+	if typeof(entry) == TYPE_DICTIONARY and entry.has(field):
+		return str(entry[field])
+	return str(fish.get(field, ""))
+
+
+func rarity_name(rarity: String) -> String:
+	var entry = strings.get("rarities", {}).get(rarity, {})
+	if typeof(entry) == TYPE_DICTIONARY and entry.has("es"):
+		return str(entry["es"])
+	return rarity
 
 
 func _register_catch() -> void:
@@ -279,6 +304,18 @@ func _load_db() -> void:
 	var arr = data.get("fishes", [])
 	if typeof(arr) == TYPE_ARRAY:
 		fishes = arr
+
+
+func _load_strings() -> void:
+	strings = {}
+	if not FileAccess.file_exists(STRINGS_PATH):
+		push_warning("Fishing: falta %s" % STRINGS_PATH)
+		return
+	var data = JSON.parse_string(FileAccess.get_file_as_string(STRINGS_PATH))
+	if typeof(data) == TYPE_DICTIONARY:
+		strings = data
+	else:
+		push_warning("Fishing: JSON inválido en %s" % STRINGS_PATH)
 
 
 func _load_game() -> void:

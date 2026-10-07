@@ -1,0 +1,22 @@
+{
+  "rarities": {
+    "common": { "es": "Común", "en": "Common" },
+    "uncommon": { "es": "Poco común", "en": "Uncommon" },
+    "rare": { "es": "Raro", "en": "Rare" },
+    "legendary": { "es": "Legendario", "en": "Legendary" }
+  },
+  "fish": {
+    "fish_pink_sardine": { "name_es": "Sardina rosa", "name_en": "Pink sardine", "description_es": "Pequeña y rápida. La más fácil de ver." },
+    "fish_moon": { "name_es": "Pez luna", "name_en": "Moon fish", "description_es": "Brilla un poco de noche. Común pero bonito." },
+    "fish_cream_carp": { "name_es": "Carpa crema", "name_en": "Cream carp", "description_es": "Tranquila y redonda. Buena para practicar." },
+    "fish_mint_puffer": { "name_es": "Pez globo menta", "name_en": "Mint pufferfish", "description_es": "Se infla si te descuidas. Tira a tiempo." },
+    "fish_peach_angelfish": { "name_es": "Pez ángel durazno", "name_en": "Peach angelfish", "description_es": "Elegante y algo escurridizo." },
+    "fish_jellyfish": { "name_es": "Medusa pequeña", "name_en": "Small jellyfish", "description_es": "Flota sin prisa, pero pica con la espera." },
+    "fish_lanternfish": { "name_es": "Pez linterna", "name_en": "Lanternfish", "description_es": "Su luz atrae miradas... y buenos precios." },
+    "fish_golden_koi": { "name_es": "Koi dorado", "name_en": "Golden koi", "description_es": "Trae suerte a quien lo atrapa." },
+    "fish_seahorse": { "name_es": "Caballito de mar", "name_en": "Seahorse", "description_es": "Pequeño, raro y muy cotizado." },
+    "fish_cloud": { "name_es": "Pez nube", "name_en": "Cloud fish", "description_es": "Dicen que vive entre nubes. Casi imposible." },
+    "fish_mini_whale": { "name_es": "Ballena mini", "name_en": "Mini whale", "description_es": "Enorme para el anzuelo. Leyenda de la isla." },
+    "fish_sea_dragon": { "name_es": "Dragón de mar", "name_en": "Sea dragon", "description_es": "El rey de estas aguas. Solo para maestros." }
+  }
+}
