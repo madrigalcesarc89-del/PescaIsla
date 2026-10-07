@@ -9,9 +9,26 @@ extends Node3D
 	"cast": Vector3.ONE,
 	"wait": Vector3.ONE,
 	"catch": Vector3.ONE,
+	"bite": Vector3.ONE,
+	"reel": Vector3.ONE,
+	"fail": Vector3.ONE,
+	"celebrate": Vector3.ONE,
 }
 @export_range(0.5, 4.0, 0.1) var breath_speed: float = 2.0
 @export_range(0.0, 0.08, 0.005) var breath_amount: float = 0.02
+## Offset por pose en píxeles de textura (Sprite3D.offset): centra los pies
+## (poses de pie/sentado) o el torso en X (catch/celebrate, en el aire) como idle.
+## Medido sobre los PNG generados; corrección de rotación 7° incluida.
+@export var pose_offset: Dictionary = {
+	"idle": Vector2.ZERO,
+	"wait": Vector2(1.3, 50.7),
+	"cast": Vector2(21.8, 45.6),
+	"bite": Vector2(20.0, 38.8),
+	"reel": Vector2(-164.7, -15.2),
+	"fail": Vector2(-118.3, 12.8),
+	"catch": Vector2(-3.5, 0.4),
+	"celebrate": Vector2(-45.1, 5.7),
+}
 
 ## Textura por pose (versiones defringe, igual que la escena).
 const POSE_TEXTURES := {
@@ -19,6 +36,10 @@ const POSE_TEXTURES := {
 	"cast": "res://assets/art/cat/cat_cast.png",
 	"wait": "res://assets/art/cat/cat_wait.png",
 	"catch": "res://assets/art/cat/cat_catch.png",
+	"bite": "res://assets/art/cat/cat_bite.png",
+	"reel": "res://assets/art/cat/cat_reel.png",
+	"fail": "res://assets/art/cat/cat_fail.png",
+	"celebrate": "res://assets/art/cat/cat_celebrate.png",
 }
 
 var _time: float = 0.0
@@ -50,6 +71,8 @@ func set_pose(pose: String) -> void:
 		var tex := load(POSE_TEXTURES[pose]) as Texture2D
 		if tex != null:
 			sprite.texture = tex
+	if sprite != null:
+		sprite.offset = pose_offset.get(pose, Vector2.ZERO)
 
 
 func _pose_factor(pose: String) -> Vector3:
