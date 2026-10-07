@@ -15,10 +15,10 @@ extends Node3D
 
 ## Textura por pose (versiones defringe, igual que la escena).
 const POSE_TEXTURES := {
-	"idle": "res://assets/cat/defringe/idle.png",
-	"cast": "res://assets/cat/defringe/cast.png",
-	"wait": "res://assets/cat/defringe/wait.png",
-	"catch": "res://assets/cat/defringe/catch.png",
+	"idle": "res://assets/art/cat/cat_idle.png",
+	"cast": "res://assets/art/cat/cat_cast.png",
+	"wait": "res://assets/art/cat/cat_wait.png",
+	"catch": "res://assets/art/cat/cat_catch.png",
 }
 
 var _time: float = 0.0

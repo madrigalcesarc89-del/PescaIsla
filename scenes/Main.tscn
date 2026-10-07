@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bqrt7e7m1ptg5" path="res://scripts/cat.gd" id="2_cat"]
 [ext_resource type="Shader" uid="uid://cclf7xx5y7nbe" path="res://shaders/water.gdshader" id="3_water"]
 [ext_resource type="Texture2D" uid="uid://cc1w3mrcvkn0k" path="res://assets/cat/idle.png" id="4_idle"]
-[ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/cat/defringe/idle.png" id="44_idle_df"]
+[ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 [ext_resource type="Texture2D" uid="uid://w8aeqj7ebruo" path="res://assets/textures/shadow_blob.png" id="5_shadow"]
 [ext_resource type="PackedScene" uid="uid://bincr8bqkxhkr" path="res://assets/props/muelle.glb" id="6_muelle"]
 [ext_resource type="PackedScene" uid="uid://rvjxibxoe5av" path="res://assets/props/farol.glb" id="7_farol"]
