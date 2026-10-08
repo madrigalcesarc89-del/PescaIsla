@@ -22,11 +22,13 @@ const POSE_FOR_STATE := {
 	State.IDLE: "idle",
 	State.CAST: "cast",
 	State.WAIT: "wait",
-	State.BITE: "wait",
-	State.REEL: "cast",
-	State.CATCH: "catch",
-	State.ESCAPE: "idle",
+	State.BITE: "bite",
+	State.REEL: "reel",
+	State.CATCH: "celebrate",
+	State.ESCAPE: "fail",
 }
+## Vuelta a IDLE tras mostrar CATCH/ESCAPE.
+const RESULT_HOLD := 1.5
 
 @export var wait_min: float = 2.0
 @export var wait_max: float = 6.0
@@ -176,6 +178,9 @@ func _process(delta: float) -> void:
 					_enter(State.CATCH)
 			if _t_state >= reel_limit:
 				_enter(State.ESCAPE)
+	if state == State.CATCH or state == State.ESCAPE:
+		if _t_state >= RESULT_HOLD:
+			_enter(State.IDLE)
 	_update_visuals(delta)
 	_process_ui(delta)
 
