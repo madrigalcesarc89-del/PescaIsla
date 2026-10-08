@@ -16,18 +16,18 @@ extends Node3D
 }
 @export_range(0.5, 4.0, 0.1) var breath_speed: float = 2.0
 @export_range(0.0, 0.08, 0.005) var breath_amount: float = 0.02
-## Offset por pose en píxeles de textura (Sprite3D.offset): centra los pies
-## (poses de pie/sentado) o el torso en X (catch/celebrate, en el aire) como idle.
-## Medido sobre los PNG generados; corrección de rotación 7° incluida.
+## Offset por pose en píxeles de textura, marco local (x derecha, y arriba):
+## centra los pies (pie/sentado) o el torso en X (catch/celebrate, en el aire).
+## El billboard ignora la rotación del nodo: sin corrección de rotación.
 @export var pose_offset: Dictionary = {
 	"idle": Vector2.ZERO,
-	"wait": Vector2(1.3, 50.7),
-	"cast": Vector2(21.8, 45.6),
-	"bite": Vector2(20.0, 38.8),
-	"reel": Vector2(-164.7, -15.2),
-	"fail": Vector2(-118.3, 12.8),
-	"catch": Vector2(-3.5, 0.4),
-	"celebrate": Vector2(-45.1, 5.7),
+	"wait": Vector2(-12.0, -47.5),
+	"cast": Vector2(55.0, -46.0),
+	"bite": Vector2(55.0, -41.0),
+	"reel": Vector2(-182.5, 23.5),
+	"fail": Vector2(-120.0, 4.0),
+	"catch": Vector2(-3.5, 0.0),
+	"celebrate": Vector2(-45.5, 0.0),
 }
 
 ## Textura por pose (versiones defringe, igual que la escena).

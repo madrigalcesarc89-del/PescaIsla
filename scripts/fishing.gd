@@ -38,8 +38,19 @@ const POSE_FOR_STATE := {
 @export var marker_down: float = 0.7
 ## Punto del agua donde cae el flotador (mundo).
 @export var bobber_pos: Vector3 = Vector3(1.8, 0.15, 2.2)
-## Punta de la caña (mundo, aprox. sobre el sprite).
-@export var rod_tip: Vector3 = Vector3(1.2, 1.55, 0.28)
+
+## Punta de la caña por pose, en píxeles de su textura (medido).
+## idle es un punto virtual fuera del lienzo que reproduce la
+## alineación 17.0; celebrate no tiene caña (sin entrada = sin línea).
+const ROD_TIP_PX := {
+	"idle": Vector2(738, 132),
+	"cast": Vector2(698, 0),
+	"wait": Vector2(740, 3),
+	"catch": Vector2(618, 5),
+	"bite": Vector2(708, 134),
+	"reel": Vector2(716, 4),
+	"fail": Vector2(606, 3),
+}
 
 signal state_changed(new_state: int)
 
@@ -221,9 +232,11 @@ func _enter(s: int) -> void:
 func _update_visuals(delta: float) -> void:
 	if _line == null or _cam == null:
 		return
-	var show_line := state == State.WAIT or state == State.BITE or state == State.REEL
-	var tip := _cam.unproject_position(rod_tip)
-	if state == State.CAST:
+	var anchor := _rod_anchor_world()
+	var has_tip := anchor.y > -50.0
+	var show_line := has_tip and (state == State.WAIT or state == State.BITE or state == State.REEL or state == State.ESCAPE)
+	var tip := _cam.unproject_position(anchor)
+	if state == State.CAST and has_tip:
 		show_line = true
 		var k := clampf(_t_state / maxf(cast_time, 0.01), 0.0, 1.0)
 		var target := _cam.unproject_position(bobber_pos)
@@ -234,8 +247,39 @@ func _update_visuals(delta: float) -> void:
 			bp.y -= 0.06
 			bp.x += sin(_t_state * 30.0) * 0.03
 		_bobber.position = _bobber.position.lerp(bp, minf(delta * 10.0, 1.0))
-		_line.points = PackedVector2Array([tip, _cam.unproject_position(_bobber.position)])
-	_line.visible = show_line and not _cam.is_position_behind(rod_tip)
+		var bend := _cam.unproject_position(_bobber.position)
+		if state == State.ESCAPE:
+			var mid := (tip + bend) * 0.5 + Vector2(sin(_t_state * 3.0) * 18.0, 60.0)
+			_line.points = PackedVector2Array([tip, mid, bend])
+		else:
+			_line.points = PackedVector2Array([tip, bend])
+	_line.visible = show_line and not _cam.is_position_behind(anchor)
+
+
+func _pose_name() -> String:
+	return str(POSE_FOR_STATE.get(state, "idle"))
+
+
+## Punta de la caña en el mundo SIN usar la rotación del nodo:
+## el billboard la ignora al renderizar (probado: rotar el nodo no mueve nada).
+## Solo traslación + escala (respiración), con offset en marco local (x der, y arriba).
+func _rod_anchor_world() -> Vector3:
+	if _cat == null:
+		return Vector3(0.0, -100.0, 0.0)
+	var spr := _cat.get_node_or_null("Sprite3D") as Sprite3D
+	if spr == null or spr.texture == null:
+		return Vector3(0.0, -100.0, 0.0)
+	var pose := _pose_name()
+	if not ROD_TIP_PX.has(pose):
+		return Vector3(0.0, -100.0, 0.0)
+	var tip: Vector2 = ROD_TIP_PX[pose]
+	var sz := Vector2(spr.texture.get_width(), spr.texture.get_height())
+	var ps := spr.pixel_size
+	if ps <= 0.0:
+		return Vector3(0.0, -100.0, 0.0)
+	var sc: Vector3 = _cat.scale
+	var local := Vector3((tip.x - sz.x * 0.5 + spr.offset.x) * ps, (sz.y * 0.5 - tip.y + spr.offset.y) * ps, 0.0)
+	return spr.global_position + Vector3(local.x * sc.x, local.y * sc.y, 0.0)
 
 
 func _apply_pose() -> void:
@@ -360,6 +404,7 @@ var _card_icon: TextureRect
 var _card_title: Label
 var _card_info: Label
 var _bite_label: Label
+var _escape_label: Label
 var _bite_pulse: float = 0.0
 
 
@@ -479,6 +524,17 @@ func _build_ui() -> void:
 	_bite_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bite_label.visible = false
 	_ui_root.add_child(_bite_label)
+	_escape_label = Label.new()
+	_escape_label.add_theme_font_size_override("font_size", 90)
+	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	_escape_label.add_theme_color_override("font_outline_color", Color(0.1, 0.2, 0.3))
+	_escape_label.add_theme_constant_override("outline_size", 10)
+	_escape_label.text = "?"
+	_escape_label.size = Vector2(120, 120)
+	_escape_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_escape_label.visible = false
+	_ui_root.add_child(_escape_label)
 	_refresh_ui()
 
 
@@ -569,6 +625,11 @@ func _process_ui(delta: float) -> void:
 	if state == State.REEL:
 		_reel_bar.queue_redraw()
 		_reel_label.text = "%.1f / %d s" % [reel_progress, int(reel_need)]
+	if state == State.ESCAPE and _line.points.size() >= 1:
+		_escape_label.visible = true
+		_escape_label.position = _line.points[0] + Vector2(30, -160)
+	elif _escape_label != null:
+		_escape_label.visible = false
 
 
 ## Contador temporal de monedas: "+N" que sube y se desvanece en 2 s.
