@@ -42,9 +42,9 @@ const RESULT_HOLD := 1.5
 ## Reserva como fallback; en cada lanzamiento se recalcula con un rayo
 ## desde el punto de pantalla CAST_SCREEN contra el plano del agua (18c).
 @export var bobber_pos: Vector3 = Vector3(1.8, 0.15, 2.2)
-## Objetivo del lanzamiento en pantalla (65 % ancho, 58 % alto):
-## margenes >=12 % a cada borde en cualquier proporcion.
-const CAST_SCREEN := Vector2(0.65, 0.58)
+## Objetivo del lanzamiento en pantalla (68 % ancho, 87 % alto):
+## agua abierta en todas las proporciones, margenes >=12 % a cada borde.
+const CAST_SCREEN := Vector2(0.68, 0.87)
 ## Marron calido translucido de la linea (#5A3D2B al 85 %).
 const LINE_COLOR := Color(0.353, 0.239, 0.169, 0.85)
 
