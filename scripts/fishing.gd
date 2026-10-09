@@ -87,6 +87,8 @@ var _line_layer: CanvasLayer
 var _line: Line2D
 ## Punto de caida del lanzamiento actual (mundo, calculado por rayo).
 var _cast_target: Vector3
+## Pildoras del HUD: {panel, label, pos, wide}.
+var _pills: Array = []
 
 @onready var _cat: Node3D = $"../Cat"
 @onready var _cam: Camera3D = $"../Camera3D"
@@ -466,6 +468,64 @@ class ReelBar:
 		draw_rect(Rect2(-6, my - 5, size.x + 12, 10), Color.WHITE)
 
 
+## Pildora redondeada con texto de contraste (18d): Panel marron
+## translucido detras del Label, ajustado al texto en _layout_pills().
+## Letra mayor, contorno marron oscuro de 4 px y sombra suave.
+## pos: esquina sup-izq del panel; si y<0, distancia al borde inferior.
+## wide: centra el panel en el ancho disponible.
+func _pill(anchor_pos: Vector2, wide: bool, font_size: int, align: HorizontalAlignment) -> Label:
+	var panel := Panel.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.2, 0.12, 0.07, 0.55)
+	sb.set_corner_radius_all(30)
+	panel.add_theme_stylebox_override("panel", sb)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(panel)
+	var lab := Label.new()
+	lab.add_theme_font_size_override("font_size", font_size)
+	lab.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
+	lab.add_theme_color_override("font_outline_color", Color(0.25, 0.15, 0.08))
+	lab.add_theme_constant_override("outline_size", 4)
+	lab.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
+	lab.add_theme_constant_override("shadow_offset_x", 2)
+	lab.add_theme_constant_override("shadow_offset_y", 3)
+	lab.horizontal_alignment = align
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_root.add_child(lab)
+	_pills.append({"panel": panel, "label": lab, "pos": anchor_pos, "wide": wide})
+	return lab
+
+
+## Ajusta cada pildora al tamano real de su texto (18d).
+func _layout_pills() -> void:
+	if _ui_root == null:
+		return
+	var rw: Vector2 = _ui_root.size
+	if rw.x <= 0.0:
+		return
+	for p in _pills:
+		var panel: Panel = p["panel"]
+		var lab: Label = p["label"]
+		panel.visible = lab.visible and lab.text != ""
+		lab.visible = panel.visible
+		if not panel.visible:
+			continue
+		var ms := lab.get_combined_minimum_size()
+		var pos: Vector2 = p["pos"]
+		var w: float = ms.x + 60.0
+		var h: float = ms.y + 24.0
+		if bool(p["wide"]):
+			w = minf(w, rw.x - pos.x * 2.0)
+			panel.position = Vector2((rw.x - w) * 0.5, pos.y)
+		elif pos.y < 0.0:
+			panel.position = Vector2(pos.x, rw.y + pos.y - h)
+		else:
+			panel.position = pos
+		panel.size = Vector2(w, h)
+		lab.position = panel.position + Vector2(30.0, 12.0)
+		lab.size = Vector2(w - 60.0, ms.y)
+
+
 func _build_ui() -> void:
 	_ui_layer = CanvasLayer.new()
 	_ui_layer.layer = 20
@@ -475,20 +535,8 @@ func _build_ui() -> void:
 	_ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ui_layer.add_child(_ui_root)
 	_apply_safe_area(_ui_root)
-	_coins_label = Label.new()
-	_coins_label.add_theme_font_size_override("font_size", 34)
-	_coins_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_coins_label.position = Vector2(24, 24)
-	_coins_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(_coins_label)
-	_hint_label = Label.new()
-	_hint_label.add_theme_font_size_override("font_size", 32)
-	_hint_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_hint_label.position = Vector2(-400, 24)
-	_hint_label.size = Vector2(800, 60)
-	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(_hint_label)
+	_coins_label = _pill(Vector2(24, 24), false, 42, HORIZONTAL_ALIGNMENT_LEFT)
+	_hint_label = _pill(Vector2(120, 110), true, 40, HORIZONTAL_ALIGNMENT_CENTER)
 	_action_btn = Button.new()
 	_action_btn.add_theme_font_size_override("font_size", 40)
 	_action_btn.custom_minimum_size = Vector2(280, 110)
@@ -514,14 +562,7 @@ func _build_ui() -> void:
 	_reel_bar.size = Vector2(60, 420)
 	_reel_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ui_root.add_child(_reel_bar)
-	_reel_label = Label.new()
-	_reel_label.add_theme_font_size_override("font_size", 32)
-	_reel_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_reel_label.position = Vector2(-400, -340)
-	_reel_label.size = Vector2(800, 56)
-	_reel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_reel_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(_reel_label)
+	_reel_label = _pill(Vector2(120, -340), true, 40, HORIZONTAL_ALIGNMENT_CENTER)
 	_card_box = CenterContainer.new()
 	_card_box.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_ui_root.add_child(_card_box)
@@ -642,6 +683,7 @@ func _refresh_ui() -> void:
 		_card_icon.texture = _make_circle_texture("556070")
 		_card_title.text = "Se escapó..."
 		_card_info.text = "Sin penalización.\n¡Prueba otra vez!"
+	_layout_pills()
 
 
 func _process_ui(delta: float) -> void:
@@ -665,6 +707,7 @@ func _process_ui(delta: float) -> void:
 	if state == State.REEL:
 		_reel_bar.queue_redraw()
 		_reel_label.text = "%.1f / %d s" % [reel_progress, int(reel_need)]
+		_layout_pills()
 	if state == State.ESCAPE and _line.points.size() >= 1:
 		_escape_label.visible = true
 		_escape_label.position = _line.points[0] + Vector2(30, -160)
