@@ -21,6 +21,7 @@
 [ext_resource type="Shader" uid="uid://wxccsnd0i2tl" path="res://shaders/vignette.gdshader" id="30_vignette"]
 [ext_resource type="Shader" uid="uid://p11cr3ldkmax" path="res://shaders/shadow_blob.gdshader" id="34_blob"]
 [ext_resource type="Script" uid="uid://dlqn7swauiq5h" path="res://scripts/fishing.gd" id="35_fish"]
+[ext_resource type="Script" path="res://scripts/camera_fit.gd" id="36_camfit"]
 [ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/art/bg/bg_sunset.jpg" id="40_fondo"]
 [ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 
@@ -213,6 +214,7 @@ environment = SubResource("Env_1")
 transform = Transform3D(1, 0, 0, 0, 0.9612617, 0.27563736, 0, -0.27563736, 0.9612617, 0, 3.7050989, 7.6900935)
 current = true
 fov = 36.0
+script = ExtResource("36_camfit")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=628651504]
 transform = Transform3D(0.7071055, 0.3535548, -0.6123731, 0, 0.8660248, 0.5000011, 0.7071081, -0.3535535, 0.6123709, 0, 0, 0)
