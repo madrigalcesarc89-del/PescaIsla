@@ -39,7 +39,14 @@ const RESULT_HOLD := 1.5
 @export var marker_up: float = 0.9
 @export var marker_down: float = 0.7
 ## Punto del agua donde cae el flotador (mundo).
+## Reserva como fallback; en cada lanzamiento se recalcula con un rayo
+## desde el punto de pantalla CAST_SCREEN contra el plano del agua (18c).
 @export var bobber_pos: Vector3 = Vector3(1.8, 0.15, 2.2)
+## Objetivo del lanzamiento en pantalla (65 % ancho, 58 % alto):
+## margenes >=12 % a cada borde en cualquier proporcion.
+const CAST_SCREEN := Vector2(0.65, 0.58)
+## Marron calido translucido de la linea (#5A3D2B al 85 %).
+const LINE_COLOR := Color(0.353, 0.239, 0.169, 0.85)
 
 ## Punta de la caña por pose, en píxeles de su textura (medido).
 ## idle es un punto virtual fuera del lienzo que reproduce la
@@ -78,6 +85,8 @@ var _bobber: MeshInstance3D
 var _splash: GPUParticles3D
 var _line_layer: CanvasLayer
 var _line: Line2D
+## Punto de caida del lanzamiento actual (mundo, calculado por rayo).
+var _cast_target: Vector3
 
 @onready var _cat: Node3D = $"../Cat"
 @onready var _cam: Camera3D = $"../Camera3D"
@@ -138,8 +147,8 @@ func _build_visuals() -> void:
 	_line_layer.layer = 5
 	add_child(_line_layer)
 	_line = Line2D.new()
-	_line.width = 3.0
-	_line.default_color = Color(0.25, 0.18, 0.12)
+	_line.width = 2.0
+	_line.default_color = LINE_COLOR
 	_line.visible = false
 	_line_layer.add_child(_line)
 
@@ -222,10 +231,12 @@ func _enter(s: int) -> void:
 	state = s
 	_t_state = 0.0
 	_apply_pose()
+	if s == State.CAST:
+		_cast_target = _compute_cast_target()
 	if _bobber != null:
 		_bobber.visible = s == State.WAIT or s == State.BITE or s == State.REEL
 		if _bobber.visible:
-			_bobber.position = bobber_pos
+			_bobber.position = _cast_target
 	if s == State.WAIT and prev == State.CAST:
 		_splash_at()
 	if s == State.BITE or s == State.CATCH:
@@ -244,10 +255,10 @@ func _update_visuals(delta: float) -> void:
 	if state == State.CAST and has_tip:
 		show_line = true
 		var k := clampf(_t_state / maxf(cast_time, 0.01), 0.0, 1.0)
-		var target := _cam.unproject_position(bobber_pos)
+		var target := _cam.unproject_position(_cast_target)
 		_line.points = PackedVector2Array([tip, tip.lerp(target, k)])
 	elif show_line and _bobber != null:
-		var bp := bobber_pos
+		var bp := _cast_target
 		if state == State.BITE:
 			bp.y -= 0.06
 			bp.x += sin(_t_state * 30.0) * 0.03
@@ -257,12 +268,36 @@ func _update_visuals(delta: float) -> void:
 			var mid := (tip + bend) * 0.5 + Vector2(sin(_t_state * 3.0) * 18.0, 60.0)
 			_line.points = PackedVector2Array([tip, mid, bend])
 		else:
-			_line.points = PackedVector2Array([tip, bend])
+			# Ligera curva: comba perpendicular del 2.5 % + vaiven suave.
+			var d := bend - tip
+			var n := Vector2(-d.y, d.x)
+			if n.length() > 0.01:
+				n = n.normalized()
+			var mid2 := (tip + bend) * 0.5 + n * (d.length() * 0.025 + sin(_t_state * 2.0) * 3.0)
+			_line.points = PackedVector2Array([tip, mid2, bend])
 	_line.visible = show_line and not _cam.is_position_behind(anchor)
 
 
 func _pose_name() -> String:
 	return str(POSE_FOR_STATE.get(state, "idle"))
+
+
+## Objetivo del lanzamiento: rayo desde CAST_SCREEN contra el plano del agua.
+## Con stretch/expand los px de canvas son px de ventana (escala 1).
+func _compute_cast_target() -> Vector3:
+	if _cam == null:
+		return bobber_pos
+	var canvas: Vector2 = get_viewport().get_visible_rect().size
+	var sp := Vector2(CAST_SCREEN.x * canvas.x, CAST_SCREEN.y * canvas.y)
+	var origin := _cam.project_ray_origin(sp)
+	var dir := _cam.project_ray_normal(sp)
+	# Interseccion manual con el plano horizontal y=0.15 (nivel del agua).
+	if absf(dir.y) < 0.0001:
+		return bobber_pos
+	var t := (0.15 - origin.y) / dir.y
+	if t < 0.0:
+		return bobber_pos
+	return origin + dir * t
 
 
 ## Punta de la caña en el mundo SIN usar la rotación del nodo:
