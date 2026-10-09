@@ -22,6 +22,7 @@
 [ext_resource type="Shader" uid="uid://p11cr3ldkmax" path="res://shaders/shadow_blob.gdshader" id="34_blob"]
 [ext_resource type="Script" uid="uid://dlqn7swauiq5h" path="res://scripts/fishing.gd" id="35_fish"]
 [ext_resource type="Script" path="res://scripts/camera_fit.gd" id="36_camfit"]
+[ext_resource type="Script" path="res://scripts/background_fit.gd" id="37_bgfit"]
 [ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/art/bg/bg_sunset.jpg" id="40_fondo"]
 [ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 
@@ -438,6 +439,7 @@ offset_bottom = -1278.0
 mouse_filter = 2
 texture = ExtResource("40_fondo")
 expand_mode = 1
+script = ExtResource("37_bgfit")
 
 [node name="Fishing" type="Node" parent="." unique_id=510232045]
 script = ExtResource("35_fish")
