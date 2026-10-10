@@ -23,6 +23,8 @@ signal settings_pressed
 @onready var _reel_pill: PanelContainer = $ReelPill
 @onready var _reel_label: Label = $ReelPill/ReelLabel
 @onready var _bubble: TextureRect = $BubbleAlert
+@onready var _toast_pill: PanelContainer = $ToastPill
+@onready var _toast_label: Label = $ToastPill/ToastLabel
 @onready var _soon: PanelContainer = $SoonPanel
 @onready var _soon_title: Label = $SoonPanel/VBox/SoonTitle
 
@@ -31,7 +33,7 @@ func _ready() -> void:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "PillCoins"):
 		var pill: StyleBox = th.get_stylebox("panel", "PillCoins")
-		for p in [_coins_pill, _hint_pill, _reel_pill, _soon]:
+		for p in [_coins_pill, _hint_pill, _reel_pill, _soon, _toast_pill]:
 			(p as PanelContainer).add_theme_stylebox_override("panel", pill)
 	resized.connect(_fit_pills)
 	_action_btn.pressed.connect(func() -> void: action_pressed.emit())
@@ -110,6 +112,22 @@ func set_bubble(p: Vector2) -> void:
 		return
 	_bubble.visible = true
 	_bubble.position = p + Vector2(-95.0, -200.0)
+
+
+## Aviso corto que se desvanece solo a los 1.8 s (20c).
+func show_toast(t: String) -> void:
+	_toast_label.text = t
+	var rw := size
+	var ms := _toast_label.get_combined_minimum_size()
+	var w := minf(ms.x + 60.0, rw.x - 240.0)
+	_toast_pill.position = Vector2((rw.x - w) * 0.5, rw.y * 0.42)
+	_toast_pill.size = Vector2(w, ms.y + 24.0)
+	_toast_pill.visible = true
+	_toast_pill.modulate = Color(1, 1, 1, 1)
+	var tw := create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_property(_toast_pill, "modulate:a", 0.0, 0.3)
+	tw.tween_callback(_toast_pill.hide)
 
 
 func _fit_pills() -> void:

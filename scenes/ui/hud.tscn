@@ -160,6 +160,18 @@ offset_bottom = 184.0
 texture = ExtResource("10_bubble")
 expand_mode = 1
 
+[node name="ToastPill" type="PanelContainer" parent="."]
+visible = false
+offset_left = 240.0
+offset_top = 760.0
+offset_right = 840.0
+offset_bottom = 836.0
+
+[node name="ToastLabel" type="Label" parent="ToastPill"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "¡Casi!"
+
 [node name="SoonPanel" type="PanelContainer" parent="."]
 visible = false
 anchor_left = 0.5

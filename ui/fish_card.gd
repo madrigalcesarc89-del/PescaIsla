@@ -20,6 +20,7 @@ var _pulse: Tween = null
 @onready var _dim: ColorRect = $Dim
 @onready var _box: VBoxContainer = $Center/CardBox
 @onready var _frame_rect: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FrameRect
+@onready var _backing: ColorRect = $Center/CardBox/FrameCenter/FrameBox/Backing
 @onready var _halo: TextureRect = $Center/CardBox/FrameCenter/FrameBox/HaloGlow
 @onready var _fish: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FishIcon
 @onready var _badge_panel: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/BadgePanel
@@ -35,11 +36,19 @@ func _ready() -> void:
 	_layout = JSON.parse_string(FileAccess.get_file_as_string("res://data/ui_layout.json"))
 	_box.resized.connect(func() -> void: _box.pivot_offset = _box.size * 0.5)
 	_fun_btn.pressed.connect(func() -> void: continued.emit())
+	_dim.gui_input.connect(_on_dim_tap)
 	_paint_text(_name_label, 48)
 	_paint_text(_value_label, 40)
 	_badge_label.add_theme_font_size_override("font_size", 34)
 	_badge_label.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
 	_badge_label.add_theme_constant_override("outline_size", 0)
+
+
+func _on_dim_tap(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		continued.emit()
+	elif event is InputEventScreenTouch and (event as InputEventScreenTouch).pressed:
+		continued.emit()
 
 
 func _paint_text(lab: Label, px: int) -> void:
@@ -50,11 +59,6 @@ func _paint_text(lab: Label, px: int) -> void:
 
 func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String) -> void:
 	_setup(frame_key, tex, name_text, badge_text, value_text, HALO_MOD.has(frame_key))
-
-
-func show_escape(tex: Texture2D) -> void:
-	_setup("frame_common", tex, SettingsData.t("escaped"), "", SettingsData.t("no_penalty"), false)
-	_coin_icon.visible = false
 
 
 func hide_card() -> void:
@@ -70,7 +74,7 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 	_fish.texture = tex
 	_name_label.text = name_text
 	_value_label.text = value_text
-	_fun_btn.text = SettingsData.t("great")
+	_fun_btn.text = SettingsData.t("continue")
 	_badge_panel.visible = badge_text != ""
 	_badge_label.text = badge_text
 	_coin_icon.visible = true
@@ -81,6 +85,9 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 		var r: Array = fr.get(key[0], [])
 		(key[1] as Control).position = Vector2(float(r[0]), float(r[1])) * DS
 		(key[1] as Control).size = Vector2(float(r[2]), float(r[3])) * DS
+	var br: Array = fr.get("backing_rect", [])
+	_backing.position = Vector2(float(br[0]), float(br[1])) * DS
+	_backing.size = Vector2(float(br[2]), float(br[3])) * DS
 	_halo.visible = halo
 	if halo:
 		_halo.modulate = HALO_MOD.get(frame_key, Color.WHITE)

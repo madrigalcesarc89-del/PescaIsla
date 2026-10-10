@@ -21,7 +21,7 @@ script = ExtResource("1_card")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.6)
+color = Color(0.15, 0.08, 0.04, 0.45)
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -37,6 +37,11 @@ custom_minimum_size = Vector2(420, 766)
 
 [node name="FrameBox" type="Control" parent="Center/CardBox/FrameCenter"]
 custom_minimum_size = Vector2(400, 766)
+
+[node name="Backing" type="ColorRect" parent="Center/CardBox/FrameCenter/FrameBox"]
+offset_right = 292.0
+offset_bottom = 636.0
+color = Color(1, 0.945, 0.839, 1)
 
 [node name="FrameRect" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox"]
 anchors_preset = 15

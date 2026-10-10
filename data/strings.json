@@ -29,6 +29,8 @@
     "escaped": { "es": "Se escapó...", "en": "It got away..." },
     "no_penalty": { "es": "Sin penalización", "en": "No penalty" },
     "credits_t": { "es": "Créditos", "en": "Credits" },
+    "continue": { "es": "Continuar", "en": "Continue" },
+    "almost": { "es": "¡Casi! Inténtalo otra vez", "en": "Almost! Try again" },
     "credits_body": { "es": "PescaIsla · pesca tranquila con gato.\nArte y código: César + IA.", "en": "PescaIsla · cozy fishing with a cat.\nArt and code: Cesar + AI." }
   },
   "fish": {

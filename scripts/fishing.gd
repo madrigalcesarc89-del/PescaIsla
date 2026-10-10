@@ -27,8 +27,9 @@ const POSE_FOR_STATE := {
 	State.CATCH: "celebrate",
 	State.ESCAPE: "fail",
 }
-## Vuelta a IDLE tras mostrar CATCH/ESCAPE.
-const RESULT_HOLD := 1.5
+## Vuelta a IDLE tras el aviso de ESCAPE (la tarjeta de CATCH
+## permanece hasta que el jugador la toque, 20c).
+const RESULT_HOLD := 1.8
 
 @export var wait_min: float = 2.0
 @export var wait_max: float = 6.0
@@ -193,7 +194,7 @@ func _process(delta: float) -> void:
 					_enter(State.CATCH)
 			if _t_state >= reel_limit:
 				_enter(State.ESCAPE)
-	if state == State.CATCH or state == State.ESCAPE:
+	if state == State.ESCAPE:
 		if _t_state >= RESULT_HOLD:
 			_enter(State.IDLE)
 	_update_visuals(delta)
@@ -603,7 +604,7 @@ func _refresh_ui() -> void:
 			"+%d %s" % [int(current_fish.get("value", 0)), SettingsData.t("coins").to_lower()])
 		_spawn_float_gain(int(current_fish.get("value", 0)))
 	elif state == State.ESCAPE:
-		_fishcard.show_escape(_make_circle_texture("556070"))
+		_hud.show_toast(SettingsData.t("almost"))
 	else:
 		_fishcard.hide_card()
 

@@ -1,1 +1,196 @@
-{"badge_h": 44, "badge_w": 140, "button": {"h": 150, "w": 420}, "controls": {"button": [420, 150], "meter": [296, 500], "panel_card": [640, 1175]}, "frames": {"frame_common": {"badge_rect": [143, 85, 140, 44], "fish_rect": [73, 139, 280, 469], "name_rect": [68, 618, 290, 60], "value_rect": [68, 682, 290, 52], "window": [48, 73, 330, 685]}, "frame_legendary": {"badge_rect": [142, 71, 140, 44], "fish_rect": [71, 125, 283, 480], "name_rect": [66, 615, 293, 60], "value_rect": [66, 679, 293, 52], "window": [46, 59, 333, 696]}, "frame_rare": {"badge_rect": [142, 71, 140, 44], "fish_rect": [72, 125, 281, 480], "name_rect": [67, 615, 291, 60], "value_rect": [67, 679, 291, 52], "window": [47, 59, 331, 696]}, "frame_uncommon": {"badge_rect": [142, 85, 140, 44], "fish_rect": [71, 139, 282, 469], "name_rect": [66, 618, 292, 60], "value_rect": [66, 682, 292, 52], "window": [46, 73, 332, 685]}}, "margins_9slice": {"btn_primary": [37, 32, 45, 45], "meter_frame": [134, 134, 120, 120], "panel_cream": [68, 68, 68, 68]}}
+{
+ "badge_h": 44,
+ "badge_w": 140,
+ "button": {
+  "h": 150,
+  "w": 420
+ },
+ "controls": {
+  "button": [
+   420,
+   150
+  ],
+  "meter": [
+   296,
+   500
+  ],
+  "panel_card": [
+   640,
+   1175
+  ]
+ },
+ "frames": {
+  "frame_common": {
+   "badge_rect": [
+    143,
+    85,
+    140,
+    44
+   ],
+   "fish_rect": [
+    73,
+    139,
+    280,
+    469
+   ],
+   "name_rect": [
+    68,
+    618,
+    290,
+    60
+   ],
+   "value_rect": [
+    68,
+    682,
+    290,
+    52
+   ],
+   "window": [
+    48,
+    73,
+    330,
+    685
+   ],
+   "backing_rect": [
+    58,
+    77,
+    310,
+    675
+   ]
+  },
+  "frame_legendary": {
+   "badge_rect": [
+    142,
+    71,
+    140,
+    44
+   ],
+   "fish_rect": [
+    71,
+    125,
+    283,
+    480
+   ],
+   "name_rect": [
+    66,
+    615,
+    293,
+    60
+   ],
+   "value_rect": [
+    66,
+    679,
+    293,
+    52
+   ],
+   "window": [
+    46,
+    59,
+    333,
+    696
+   ],
+   "backing_rect": [
+    56,
+    63,
+    313,
+    686
+   ]
+  },
+  "frame_rare": {
+   "badge_rect": [
+    142,
+    71,
+    140,
+    44
+   ],
+   "fish_rect": [
+    72,
+    125,
+    281,
+    480
+   ],
+   "name_rect": [
+    67,
+    615,
+    291,
+    60
+   ],
+   "value_rect": [
+    67,
+    679,
+    291,
+    52
+   ],
+   "window": [
+    47,
+    59,
+    331,
+    696
+   ],
+   "backing_rect": [
+    57,
+    63,
+    311,
+    686
+   ]
+  },
+  "frame_uncommon": {
+   "badge_rect": [
+    142,
+    85,
+    140,
+    44
+   ],
+   "fish_rect": [
+    71,
+    139,
+    282,
+    469
+   ],
+   "name_rect": [
+    66,
+    618,
+    292,
+    60
+   ],
+   "value_rect": [
+    66,
+    682,
+    292,
+    52
+   ],
+   "window": [
+    46,
+    73,
+    332,
+    685
+   ],
+   "backing_rect": [
+    56,
+    77,
+    312,
+    675
+   ]
+  }
+ },
+ "margins_9slice": {
+  "btn_primary": [
+   37,
+   32,
+   45,
+   45
+  ],
+  "meter_frame": [
+   134,
+   134,
+   120,
+   120
+  ],
+  "panel_cream": [
+   68,
+   68,
+   68,
+   68
+  ]
+ }
+}
