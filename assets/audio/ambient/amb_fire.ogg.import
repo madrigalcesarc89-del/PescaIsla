@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/amb_fire.ogg-27e8e8534b2c8dcb27269f2cf8363b97
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

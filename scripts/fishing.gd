@@ -513,6 +513,9 @@ func _on_shop_stub() -> void:
 
 
 func _on_settings_stub() -> void:
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("open")
 	_settings.show_panel()
 
 

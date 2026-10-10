@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/amb_night.ogg-d5dfa2ac08e5720b66092f2d7f274d4
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

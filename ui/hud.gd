@@ -61,6 +61,9 @@ func show_soon(title: String, body: String) -> void:
 	$SoonPanel/VBox/SoonText.text = body
 	$SoonPanel/VBox/BtnCenter/SoonClose.text = SettingsData.t("close")
 	_soon.visible = true
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("open")
 
 
 func set_coins(n: int) -> void:

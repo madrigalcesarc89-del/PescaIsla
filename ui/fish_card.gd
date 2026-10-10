@@ -86,6 +86,9 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 		_halo.modulate = HALO_MOD.get(frame_key, Color.WHITE)
 		_halo.position = (_fish.position + _fish.size * 0.5) - _halo.size * 0.5
 	visible = true
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("open")
 	_enter_fx()
 	_pulse_halo(halo)
 
