@@ -110,9 +110,9 @@ func _build_visuals() -> void:
 	sphere.radius = 0.06
 	sphere.height = 0.12
 	_bobber.mesh = sphere
-	var bmat := StandardMaterial3D.new()
-	bmat.albedo_color = Color(0.9, 0.2, 0.2)
-	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var bob_shader := load("res://shaders/bobber.gdshader") as Shader
+	var bmat := ShaderMaterial.new()
+	bmat.shader = bob_shader
 	_bobber.set_surface_override_material(0, bmat)
 	_bobber.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_bobber.position = bobber_pos
@@ -305,9 +305,14 @@ func _update_visuals(delta: float) -> void:
 		_line.points = PackedVector2Array([tip, tip.lerp(target, k)])
 	elif show_line and _bobber != null:
 		var bp := _cast_target
-		if state == State.BITE:
+		if state == State.WAIT:
+			# Flote leve en espera (20g).
+			bp.y += sin(_t_state * 2.5) * 0.04
+		elif state == State.BITE:
 			bp.y -= 0.06
 			bp.x += sin(_t_state * 30.0) * 0.03
+		elif state == State.REEL:
+			bp.y += sin(_t_state * 9.0) * 0.015
 		_bobber.position = _bobber.position.lerp(bp, minf(delta * 10.0, 1.0))
 		var bend := _cam.unproject_position(_bobber.position)
 		if state == State.ESCAPE:
