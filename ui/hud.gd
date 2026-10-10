@@ -35,6 +35,10 @@ func _ready() -> void:
 		var pill: StyleBox = th.get_stylebox("panel", "PillCoins")
 		for p in [_coins_pill, _hint_pill, _reel_pill, _soon, _toast_pill]:
 			(p as PanelContainer).add_theme_stylebox_override("panel", pill)
+		# MANTEN como pildora del tema (20f): mantiene button_down/up.
+		for sb in ["normal", "hover", "pressed", "focus", "disabled"]:
+			_hold_btn.add_theme_stylebox_override(sb, pill)
+		_hold_btn.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
 	resized.connect(_fit_pills)
 	_action_btn.pressed.connect(func() -> void: action_pressed.emit())
 	_hold_btn.button_down.connect(func() -> void: hold_down.emit())
@@ -100,6 +104,8 @@ func show_reel(v: bool) -> void:
 	_reel_pill.visible = v
 	_album_btn.modulate = Color(1, 1, 1, 0.3 if v else 1.0)
 	_shop_btn.modulate = Color(1, 1, 1, 0.3 if v else 1.0)
+	_hint_pill.visible = not v
+	_hint_label.visible = not v
 	_fit_pills()
 
 

@@ -83,15 +83,14 @@ text = "¡PESCAR!"
 script = ExtResource("3_press")
 
 [node name="HoldBtn" type="Button" parent="."]
-visible = false
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -210.0
-offset_top = -280.0
+offset_top = -540.0
 offset_right = 210.0
-offset_bottom = -130.0
+offset_bottom = -390.0
 text = "MANTÉN"
 script = ExtResource("3_press")
 
@@ -140,9 +139,9 @@ stretch_mode = 5
 [node name="ReelBox" type="Control" parent="."]
 visible = false
 anchor_left = 1.0
-anchor_top = 0.5
+anchor_top = 0.475
 anchor_right = 1.0
-anchor_bottom = 0.5
+anchor_bottom = 0.475
 offset_left = -224.0
 offset_top = -249.0
 offset_right = -24.0
