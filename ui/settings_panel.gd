@@ -53,6 +53,8 @@ func refresh_texts() -> void:
 	_credits_b.text = "Cesar Madrigal Castro"
 	_close_btn.text = SettingsData.t("close")
 	_paint_lang()
+	for l in [_title, _music_label, _sfx_label, _vib_label, _lang_label, _credits_b]:
+		UiFit.paint_light(l, 40)
 	UiFit.fit_label(_title, 460.0, 1, 36, 56)
 	UiFit.fit_label(_music_label, 200.0, 1, 28, 40)
 	UiFit.fit_label(_sfx_label, 200.0, 1, 28, 40)

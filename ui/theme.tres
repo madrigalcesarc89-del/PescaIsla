@@ -167,6 +167,8 @@ content_margin_bottom = 90.0
 [resource]
 default_font = ExtResource("1_nunito")
 default_font_size = 40
+TextOnLight/colors/font_color = Color(0.353, 0.239, 0.169, 1)
+TextOnDark/colors/font_color = Color(1, 0.945, 0.839, 1)
 BadgeCommon/styles/panel = SubResource("BadgeCommon")
 BadgeLegendary/styles/panel = SubResource("BadgeLegendary")
 BadgeRare/styles/panel = SubResource("BadgeRare")

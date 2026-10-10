@@ -40,8 +40,7 @@ func _ready() -> void:
 	_paint_text(_name_label, 48)
 	_paint_text(_value_label, 40)
 	_badge_label.add_theme_font_size_override("font_size", 34)
-	_badge_label.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
-	_badge_label.add_theme_constant_override("outline_size", 0)
+	UiFit.paint_light(_badge_label, 34)
 
 
 func _on_dim_tap(event: InputEvent) -> void:
@@ -52,8 +51,7 @@ func _on_dim_tap(event: InputEvent) -> void:
 
 
 func _paint_text(lab: Label, px: int) -> void:
-	# Solo tamano: el tema (crema + contorno marron + sombra) ya lee
-	# bien sobre el fondo oscurecido tras la ventana del marco.
+	UiFit.paint_light(lab, px)
 	lab.add_theme_font_size_override("font_size", px)
 
 

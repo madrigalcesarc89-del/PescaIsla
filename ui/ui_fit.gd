@@ -42,3 +42,14 @@ static func _fits(font: Font, text: String, max_width: float, max_lines: int, px
 			if lines > max_lines:
 				return false
 	return lines <= max_lines
+
+
+## Texto sobre fondo claro (21b): rol text_on_light, sin contorno ni sombra.
+## Sobre cielo o escena se usa el tema por defecto (con contorno).
+static func paint_light(c: Control, px: int) -> void:
+	var col := Color(0.353, 0.239, 0.169)
+	if c.has_theme_color("font_color", "TextOnLight"):
+		col = c.get_theme_color("font_color", "TextOnLight")
+	c.add_theme_color_override("font_color", col)
+	c.add_theme_constant_override("outline_size", 0)
+	c.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
