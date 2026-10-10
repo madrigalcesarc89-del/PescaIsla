@@ -102,7 +102,7 @@ func _paint_switch() -> void:
 	var key := "SwitchOn" if SettingsData.vibration else "SwitchOff"
 	if th != null and th.has_stylebox("panel", key):
 		_switch_track.add_theme_stylebox_override("panel", th.get_stylebox("panel", key))
-	_switch_thumb.position = Vector2(64, 8) if SettingsData.vibration else Vector2(8, 8)
+	_switch_thumb.position = Vector2(68, 10) if SettingsData.vibration else Vector2(8, 10)
 
 
 func _paint_lang() -> void:

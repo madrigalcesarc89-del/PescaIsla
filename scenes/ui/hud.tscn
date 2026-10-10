@@ -222,6 +222,6 @@ autowrap_mode = 2
 text = "Contenido en camino."
 
 [node name="SoonClose" type="Button" parent="SoonPanel/VBox"]
-custom_minimum_size = Vector2(300, 120)
+custom_minimum_size = Vector2(300, 132)
 text = "Cerrar"
 script = ExtResource("3_press")
