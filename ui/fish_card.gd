@@ -20,7 +20,7 @@ var _pulse: Tween = null
 @onready var _dim: ColorRect = $Dim
 @onready var _box: VBoxContainer = $Center/CardBox
 @onready var _frame_rect: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FrameRect
-@onready var _backing: ColorRect = $Center/CardBox/FrameCenter/FrameBox/Backing
+@onready var _backing: Panel = $Center/CardBox/FrameCenter/FrameBox/Backing
 @onready var _halo: TextureRect = $Center/CardBox/FrameCenter/FrameBox/HaloGlow
 @onready var _fish: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FishIcon
 @onready var _badge_panel: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/BadgePanel
@@ -34,6 +34,10 @@ var _pulse: Tween = null
 
 func _ready() -> void:
 	_layout = JSON.parse_string(FileAccess.get_file_as_string("res://data/ui_layout.json"))
+	var bs := StyleBoxFlat.new()
+	bs.bg_color = Color(1.0, 0.945, 0.839)
+	bs.set_corner_radius_all(54)
+	_backing.add_theme_stylebox_override("panel", bs)
 	_box.resized.connect(func() -> void: _box.pivot_offset = _box.size * 0.5)
 	_fun_btn.pressed.connect(func() -> void: continued.emit())
 	_dim.gui_input.connect(_on_dim_tap)
@@ -79,16 +83,22 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + frame_key.get_slice("_", 1).capitalize()):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + frame_key.get_slice("_", 1).capitalize()))
-	for key in [["badge_rect", _badge_panel], ["fish_rect", _fish], ["name_rect", _name_label], ["value_rect", _value_box]]:
+	var w: Array = fr.get("window", [0, 0, 425, 815])
+	var wx := float(w[0]) * DS
+	var ww := float(w[2]) * DS
+	# Relleno redondeado 6 px mayor que la ventana, detras del marco (21c).
+	_backing.position = Vector2(wx - 6.0, float(fr.get("backing_rect", [0, 77, 310, 675])[1]) * DS - 6.0)
+	_backing.size = Vector2(ww + 12.0, float(fr.get("backing_rect", [0, 77, 310, 675])[3]) * DS + 12.0)
+	# Contenido al 84 % del ancho, centrado.
+	var cw := ww * 0.84
+	var cx0 := wx + (ww - cw) * 0.5
+	var win_cx := wx + ww * 0.5
+	for key in [["fish_rect", _fish], ["name_rect", _name_label]]:
 		var r: Array = fr.get(key[0], [])
-		(key[1] as Control).position = Vector2(float(r[0]), float(r[1])) * DS
-		(key[1] as Control).size = Vector2(float(r[2]), float(r[3])) * DS
-	var br: Array = fr.get("backing_rect", [])
-	_backing.position = Vector2(float(br[0]), float(br[1])) * DS
-	_backing.size = Vector2(float(br[2]), float(br[3])) * DS
-	var win_cx := (float(fr.get("window", [0, 0, 425, 815])[0]) + float(fr.get("window", [0, 0, 425, 815])[2]) * 0.5) * DS
-	UiFit.fit_label(_name_label, float(fr.get("name_rect", [0, 0, 290, 60])[2]) * DS, 1, 26, 48)
-	UiFit.fit_label(_value_label, float(fr.get("value_rect", [0, 0, 290, 52])[2]) * DS, 1, 26, 40)
+		(key[1] as Control).position = Vector2(cx0, float(r[1]) * DS)
+		(key[1] as Control).size = Vector2(cw, float(r[3]) * DS)
+	UiFit.fit_label(_name_label, cw, 1, 26, 48)
+	_fit_value(fr, win_cx, cw)
 	_grow_badge(fr, win_cx)
 	_halo.visible = halo
 	if halo:
@@ -109,6 +119,17 @@ func _enter_fx() -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_box, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_dim, "modulate:a", 1.0, 0.2)
+
+
+func _fit_value(fr: Dictionary, win_cx: float, cw: float) -> void:
+	# Ancho real icono + texto con 12 px de margen por lado (21c).
+	var vr: Array = fr.get("value_rect", [0, 682, 290, 52])
+	var allowed := cw - 24.0 - 58.0
+	UiFit.fit_label(_value_label, allowed, 1, 26, 40)
+	var tw := _value_label.get_combined_minimum_size().x
+	var bw := minf(cw, tw + 58.0 + 24.0)
+	_value_box.position = Vector2(win_cx - bw * 0.5, float(vr[1]) * DS)
+	_value_box.size = Vector2(bw, float(vr[3]) * DS)
 
 
 func _grow_badge(fr: Dictionary, win_cx: float) -> void:

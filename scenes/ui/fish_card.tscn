@@ -29,7 +29,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="CardBox" type="VBoxContainer" parent="Center"]
-theme_override_constants/separation = 16
+theme_override_constants/separation = 24
 alignment = 1
 
 [node name="FrameCenter" type="CenterContainer" parent="Center/CardBox"]
@@ -38,10 +38,9 @@ custom_minimum_size = Vector2(420, 766)
 [node name="FrameBox" type="Control" parent="Center/CardBox/FrameCenter"]
 custom_minimum_size = Vector2(400, 766)
 
-[node name="Backing" type="ColorRect" parent="Center/CardBox/FrameCenter/FrameBox"]
+[node name="Backing" type="Panel" parent="Center/CardBox/FrameCenter/FrameBox"]
 offset_right = 292.0
 offset_bottom = 636.0
-color = Color(1, 0.945, 0.839, 1)
 
 [node name="FrameRect" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox"]
 anchors_preset = 15
