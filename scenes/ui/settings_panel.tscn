@@ -1,0 +1,135 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://ui/settings_panel.gd" id="1_set"]
+[ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://ui/pressable.gd" id="3_press"]
+[ext_resource type="FontFile" path="res://assets/fonts/Baloo2-SemiBold.ttf" id="4_baloo"]
+
+[node name="SettingsPanel" type="Control"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_set")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(640, 0)
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="Center/Panel/VBox"]
+theme_override_fonts/font = ExtResource("4_baloo")
+theme_override_font_sizes/font_size = 56
+horizontal_alignment = 1
+text = "Ajustes"
+
+[node name="MusicRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 16
+
+[node name="MusicLabel" type="Label" parent="Center/Panel/VBox/MusicRow"]
+custom_minimum_size = Vector2(220, 0)
+size_flags_vertical = 4
+text = "Música"
+
+[node name="MusicSlider" type="HSlider" parent="Center/Panel/VBox/MusicRow"]
+custom_minimum_size = Vector2(0, 64)
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 0.7
+
+[node name="SfxRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 16
+
+[node name="SfxLabel" type="Label" parent="Center/Panel/VBox/SfxRow"]
+custom_minimum_size = Vector2(220, 0)
+size_flags_vertical = 4
+text = "Efectos"
+
+[node name="SfxSlider" type="HSlider" parent="Center/Panel/VBox/SfxRow"]
+custom_minimum_size = Vector2(0, 64)
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 0.9
+
+[node name="VibRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 16
+
+[node name="VibLabel" type="Label" parent="Center/Panel/VBox/VibRow"]
+custom_minimum_size = Vector2(220, 0)
+size_flags_vertical = 4
+text = "Vibración"
+
+[node name="Switch" type="Button" parent="Center/Panel/VBox/VibRow"]
+custom_minimum_size = Vector2(120, 64)
+size_flags_vertical = 4
+script = ExtResource("3_press")
+
+[node name="Track" type="Panel" parent="Center/Panel/VBox/VibRow/Switch"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+mouse_filter = 2
+
+[node name="Thumb" type="Panel" parent="Center/Panel/VBox/VibRow/Switch"]
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+
+[node name="LangRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+theme_override_constants/separation = 16
+
+[node name="LangLabel" type="Label" parent="Center/Panel/VBox/LangRow"]
+custom_minimum_size = Vector2(220, 0)
+size_flags_vertical = 4
+text = "Idioma"
+
+[node name="LangBtns" type="HBoxContainer" parent="Center/Panel/VBox/LangRow"]
+theme_override_constants/separation = 16
+
+[node name="BtnES" type="Button" parent="Center/Panel/VBox/LangRow/LangBtns"]
+custom_minimum_size = Vector2(160, 100)
+text = "ES"
+script = ExtResource("3_press")
+
+[node name="BtnEN" type="Button" parent="Center/Panel/VBox/LangRow/LangBtns"]
+custom_minimum_size = Vector2(160, 100)
+text = "EN"
+script = ExtResource("3_press")
+
+[node name="CreditsTitle" type="Label" parent="Center/Panel/VBox"]
+theme_override_fonts/font = ExtResource("4_baloo")
+theme_override_font_sizes/font_size = 44
+horizontal_alignment = 1
+text = "Créditos"
+
+[node name="CreditsBody" type="Label" parent="Center/Panel/VBox"]
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "..."
+
+[node name="BtnCenter" type="CenterContainer" parent="Center/Panel/VBox"]
+
+[node name="CloseBtn" type="Button" parent="Center/Panel/VBox/BtnCenter"]
+custom_minimum_size = Vector2(420, 150)
+text = "Cerrar"
+script = ExtResource("3_press")

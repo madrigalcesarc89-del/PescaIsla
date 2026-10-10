@@ -53,7 +53,7 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 
 
 func show_escape(tex: Texture2D) -> void:
-	_setup("frame_common", tex, "Se escapó...", "", "Sin penalización", false)
+	_setup("frame_common", tex, SettingsData.t("escaped"), "", SettingsData.t("no_penalty"), false)
 	_coin_icon.visible = false
 
 
@@ -70,6 +70,7 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 	_fish.texture = tex
 	_name_label.text = name_text
 	_value_label.text = value_text
+	_fun_btn.text = SettingsData.t("great")
 	_badge_panel.visible = badge_text != ""
 	_badge_label.text = badge_text
 	_coin_icon.visible = true

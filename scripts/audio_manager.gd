@@ -36,11 +36,18 @@ func _make_buses() -> void:
 
 
 func set_music_volume(v: float) -> void:
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(clampf(v, 0.01, 1.0)) - 14.0)
+	_set_bus_db_safe("Music", linear_to_db(clampf(v, 0.01, 1.0)) - 14.0)
 
 
 func set_sfx_volume(v: float) -> void:
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(clampf(v, 0.01, 1.0)) - 6.0)
+	_set_bus_db_safe("SFX", linear_to_db(clampf(v, 0.01, 1.0)) - 6.0)
+
+
+func _set_bus_db_safe(bus_name: String, db: float) -> void:
+	var bi := AudioServer.get_bus_index(bus_name)
+	if bi < 0:
+		return
+	AudioServer.set_bus_volume_db(bi, db)
 
 
 ## SFX con variacion de tono +-5 %.

@@ -93,6 +93,8 @@ var _cast_target: Vector3
 
 
 func _ready() -> void:
+	SettingsData.load_all()
+	SettingsData.apply_audio()
 	_load_db()
 	_load_strings()
 	_load_game()
@@ -174,7 +176,8 @@ func _process(delta: float) -> void:
 			if _t_state >= _wait_time:
 				_pick_fish()
 				_setup_zone()
-				Input.vibrate_handheld(200)
+				if SettingsData.vibration:
+					Input.vibrate_handheld(200)
 				_enter(State.BITE)
 		State.BITE:
 			if _t_state >= bite_window:
@@ -377,19 +380,23 @@ func _setup_zone() -> void:
 	_zone_phase = 0.0
 
 
-## Texto de la tabla de traducción con respaldo en fish_db.
+## Texto de la tabla de traducción con respaldo en fish_db (idioma activo).
 func fish_text(fish: Dictionary, field: String) -> String:
 	var fid := str(fish.get("id", ""))
 	var entry = strings.get("fish", {}).get(fid, {})
-	if typeof(entry) == TYPE_DICTIONARY and entry.has(field):
-		return str(entry[field])
-	return str(fish.get(field, ""))
+	for suffix in [SettingsData.lang, "es"]:
+		if typeof(entry) == TYPE_DICTIONARY and entry.has(field + "_" + suffix):
+			return str(entry[field + "_" + suffix])
+	return str(fish.get(field + "_es", fish.get(field, "")))
 
 
 func rarity_name(rarity: String) -> String:
 	var entry = strings.get("rarities", {}).get(rarity, {})
-	if typeof(entry) == TYPE_DICTIONARY and entry.has("es"):
-		return str(entry["es"])
+	if typeof(entry) == TYPE_DICTIONARY:
+		if entry.has(SettingsData.lang):
+			return str(entry[SettingsData.lang])
+		if entry.has("es"):
+			return str(entry["es"])
 	return rarity
 
 
@@ -459,6 +466,7 @@ func _save_game() -> void:
 var _ui_layer: CanvasLayer
 var _hud: Control
 var _fishcard: Control
+var _settings: Control
 var _escape_label: Label
 
 
@@ -478,6 +486,9 @@ func _build_ui() -> void:
 	_fishcard = load("res://scenes/ui/fish_card.tscn").instantiate()
 	_ui_layer.add_child(_fishcard)
 	_fishcard.continued.connect(_on_continue)
+	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
+	_ui_layer.add_child(_settings)
+	_settings.lang_changed.connect(_on_lang_changed)
 	_escape_label = Label.new()
 	_escape_label.add_theme_font_size_override("font_size", 90)
 	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -492,17 +503,21 @@ func _build_ui() -> void:
 	_refresh_ui()
 
 
-## Panel "Proximamente" para album/tienda/ajustes hasta 19d/19f.
+## Panel "Proximamente" para album/tienda hasta su fase.
 func _on_album_stub() -> void:
-	pass
+	_hud.show_soon(SettingsData.t("album"), SettingsData.t("soon_body"))
 
 
 func _on_shop_stub() -> void:
-	pass
+	_hud.show_soon(SettingsData.t("shop"), SettingsData.t("soon_body"))
 
 
 func _on_settings_stub() -> void:
-	_hud.show_soon("Ajustes")
+	_settings.show_panel()
+
+
+func _on_lang_changed() -> void:
+	_refresh_ui()
 
 
 func _apply_safe_area(c: Control) -> void:
@@ -540,21 +555,22 @@ func _refresh_ui() -> void:
 	if _hud == null:
 		return
 	_hud.set_coins(coins)
+	_hud.set_hold_text(SettingsData.t("hold"))
 	if state == State.IDLE:
-		_hud.show_action("¡PESCAR!")
-		_hud.set_hint("Toca para lanzar el anzuelo")
+		_hud.show_action(SettingsData.t("action_fish"))
+		_hud.set_hint(SettingsData.t("hint_idle"))
 	elif state == State.CAST:
 		_hud.show_action("")
-		_hud.set_hint("Lanzando...")
+		_hud.set_hint(SettingsData.t("hint_cast"))
 	elif state == State.WAIT:
 		_hud.show_action("")
-		_hud.set_hint("Espera... atento al flotador")
+		_hud.set_hint(SettingsData.t("hint_wait"))
 	elif state == State.BITE:
-		_hud.show_action("¡TIRAR!")
-		_hud.set_hint("¡PICÓ! ¡Tira ahora!")
+		_hud.show_action(SettingsData.t("action_strike"))
+		_hud.set_hint(SettingsData.t("hint_bite"))
 	elif state == State.REEL:
 		_hud.show_action("")
-		_hud.set_hint("Mantén el marcador en verde")
+		_hud.set_hint(SettingsData.t("hint_reel"))
 	else:
 		_hud.show_action("")
 		_hud.set_hint("")
@@ -563,8 +579,8 @@ func _refresh_ui() -> void:
 	if state == State.CATCH and not current_fish.is_empty():
 		var rarity := str(current_fish.get("rarity", "common"))
 		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
-			fish_text(current_fish, "name_es"), rarity_name(rarity),
-			"+%d monedas" % int(current_fish.get("value", 0)))
+			fish_text(current_fish, "name"), rarity_name(rarity),
+			"+%d %s" % [int(current_fish.get("value", 0)), SettingsData.t("coins").to_lower()])
 		_spawn_float_gain(int(current_fish.get("value", 0)))
 	elif state == State.ESCAPE:
 		_fishcard.show_escape(_make_circle_texture("556070"))

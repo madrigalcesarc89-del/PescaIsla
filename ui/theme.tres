@@ -194,3 +194,5 @@ Label/fonts/font = ExtResource("1_nunito")
 Label/font_sizes/font_size = 40
 PanelContainer/styles/panel = SubResource("PanelCream")
 PillCoins/styles/panel = SubResource("PillCoins")
+SwitchOff/styles/panel = SubResource("SwitchOff")
+SwitchOn/styles/panel = SubResource("SwitchOn")

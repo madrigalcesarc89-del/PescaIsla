@@ -45,12 +45,10 @@ func _ready() -> void:
 
 
 func _on_album() -> void:
-	show_soon("Álbum")
 	album_pressed.emit()
 
 
 func _on_shop() -> void:
-	show_soon("Tienda")
 	shop_pressed.emit()
 
 
@@ -58,13 +56,15 @@ func _on_soon_close() -> void:
 	_soon.visible = false
 
 
-func show_soon(title: String) -> void:
+func show_soon(title: String, body: String) -> void:
 	_soon_title.text = title
+	$SoonPanel/VBox/SoonText.text = body
+	$SoonPanel/VBox/BtnCenter/SoonClose.text = SettingsData.t("close")
 	_soon.visible = true
 
 
 func set_coins(n: int) -> void:
-	_coins_label.text = "Monedas: %d" % n
+	_coins_label.text = "%s: %d" % [SettingsData.t("coins"), n]
 	_fit_pills()
 
 
@@ -81,6 +81,10 @@ func show_action(t: String) -> void:
 
 func show_hold(v: bool) -> void:
 	_hold_btn.visible = v
+
+
+func set_hold_text(t: String) -> void:
+	_hold_btn.text = t
 
 
 func show_reel(v: bool) -> void:
