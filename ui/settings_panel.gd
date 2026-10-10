@@ -105,5 +105,15 @@ func _paint_switch() -> void:
 
 
 func _paint_lang() -> void:
-	_btn_es.disabled = SettingsData.lang == "es"
-	_btn_en.disabled = SettingsData.lang == "en"
+	# Activo resaltado (durazno), inactivo neutro (gris) sin deshabilitar.
+	var th := theme
+	var gray: StyleBox = null
+	if th != null and th.has_stylebox("disabled", "Button"):
+		gray = th.get_stylebox("disabled", "Button")
+	for b in [_btn_es, _btn_en]:
+		(b as Button).disabled = false
+	var active := _btn_es if SettingsData.lang == "es" else _btn_en
+	var idle := _btn_en if SettingsData.lang == "es" else _btn_es
+	(active as Button).remove_theme_stylebox_override("normal")
+	if gray != null:
+		(idle as Button).add_theme_stylebox_override("normal", gray)
