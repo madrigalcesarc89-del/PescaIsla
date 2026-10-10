@@ -177,7 +177,7 @@ func _process(delta: float) -> void:
 				_pick_fish()
 				_setup_zone()
 				if SettingsData.vibration:
-					Input.vibrate_handheld(200)
+					Input.vibrate_handheld(90)
 				_enter(State.BITE)
 		State.BITE:
 			if _t_state >= bite_window:
@@ -252,6 +252,22 @@ func _enter(s: int) -> void:
 	state_changed.emit(state)
 
 
+## Vibracion por estado (20b): picada 90 ms, captura 60+40+60 ms.
+## Nada en toques de interfaz; respeta el interruptor (on por defecto).
+func _vibrate_state(s: int) -> void:
+	if not SettingsData.vibration:
+		return
+	if s == State.CATCH:
+		Input.vibrate_handheld(60)
+		_catch_buzz()
+
+
+func _catch_buzz() -> void:
+	await get_tree().create_timer(0.1).timeout
+	if SettingsData.vibration:
+		Input.vibrate_handheld(60)
+
+
 ## Sonido del estado (19e); sin AudioManager no falla.
 func _audio_state(s: int) -> void:
 	var am := get_node_or_null("/root/AudioManager")
@@ -267,6 +283,7 @@ func _audio_state(s: int) -> void:
 		am.play_sfx("out_of_water")
 		am.play_sfx("coin")
 		am.play_jingle(str(current_fish.get("rarity", "common")))
+	_vibrate_state(s)
 	if s == State.REEL:
 		am.reel_start()
 	else:
