@@ -1,0 +1,91 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://ui/fish_card.gd" id="1_card"]
+[ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://ui/pressable.gd" id="3_press"]
+[ext_resource type="Texture2D" path="res://assets/textures/glow_disc.png" id="4_glow"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.png" id="5_coin"]
+
+[sub_resource type="CanvasItemMaterial" id="HaloAdd"]
+blend_mode = 1
+
+[node name="FishCard" type="Control"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_card")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CardBox" type="VBoxContainer" parent="Center"]
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="FrameCenter" type="CenterContainer" parent="Center/CardBox"]
+custom_minimum_size = Vector2(420, 766)
+
+[node name="FrameBox" type="Control" parent="Center/CardBox/FrameCenter"]
+custom_minimum_size = Vector2(400, 766)
+
+[node name="FrameRect" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+
+[node name="HaloGlow" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox"]
+visible = false
+offset_right = 200.0
+offset_bottom = 200.0
+material = SubResource("HaloAdd")
+texture = ExtResource("4_glow")
+expand_mode = 1
+
+[node name="FishIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox"]
+offset_right = 263.0
+offset_bottom = 441.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BadgePanel" type="PanelContainer" parent="Center/CardBox/FrameCenter/FrameBox"]
+offset_right = 132.0
+offset_bottom = 41.0
+
+[node name="BadgeLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox/BadgePanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Común"
+
+[node name="ValueBox" type="HBoxContainer" parent="Center/CardBox/FrameCenter/FrameBox"]
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/ValueBox"]
+custom_minimum_size = Vector2(48, 48)
+texture = ExtResource("5_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ValueLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox/ValueBox"]
+horizontal_alignment = 1
+text = "+12"
+
+[node name="NameLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox"]
+horizontal_alignment = 1
+text = "Pez"
+
+[node name="FunButton" type="Button" parent="Center/CardBox"]
+custom_minimum_size = Vector2(420, 150)
+text = "¡Genial!"
+script = ExtResource("3_press")

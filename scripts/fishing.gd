@@ -433,10 +433,7 @@ func _save_game() -> void:
 
 var _ui_layer: CanvasLayer
 var _hud: Control
-var _card_box: CenterContainer
-var _card_icon: TextureRect
-var _card_title: Label
-var _card_info: Label
+var _fishcard: Control
 var _escape_label: Label
 
 
@@ -453,7 +450,9 @@ func _build_ui() -> void:
 	_hud.album_pressed.connect(_on_album_stub)
 	_hud.shop_pressed.connect(_on_shop_stub)
 	_hud.settings_pressed.connect(_on_settings_stub)
-	_build_card()
+	_fishcard = load("res://scenes/ui/fish_card.tscn").instantiate()
+	_ui_layer.add_child(_fishcard)
+	_fishcard.continued.connect(_on_continue)
 	_escape_label = Label.new()
 	_escape_label.add_theme_font_size_override("font_size", 90)
 	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -479,41 +478,6 @@ func _on_shop_stub() -> void:
 
 func _on_settings_stub() -> void:
 	_hud.show_soon("Ajustes")
-
-
-func _build_card() -> void:
-	_card_box = CenterContainer.new()
-	_card_box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_hud.add_child(_card_box)
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(440, 0)
-	_card_box.add_child(panel)
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 18)
-	panel.add_child(vbox)
-	_card_icon = TextureRect.new()
-	_card_icon.custom_minimum_size = Vector2(192, 192)
-	_card_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_card_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	vbox.add_child(_card_icon)
-	_card_title = Label.new()
-	_card_title.add_theme_font_size_override("font_size", 46)
-	_card_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(_card_title)
-	_card_info = Label.new()
-	_card_info.add_theme_font_size_override("font_size", 32)
-	_card_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_card_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(_card_info)
-	var cont_btn := Button.new()
-	cont_btn.add_theme_font_size_override("font_size", 36)
-	cont_btn.custom_minimum_size = Vector2(240, 96)
-	cont_btn.text = "SEGUIR"
-	cont_btn.pressed.connect(_on_continue)
-	var ccenter := CenterContainer.new()
-	ccenter.add_child(cont_btn)
-	vbox.add_child(ccenter)
-	_refresh_ui()
 
 
 func _apply_safe_area(c: Control) -> void:
@@ -571,16 +535,16 @@ func _refresh_ui() -> void:
 		_hud.set_hint("")
 	_hud.show_hold(state == State.REEL)
 	_hud.show_reel(state == State.REEL)
-	_card_box.visible = state == State.CATCH or state == State.ESCAPE
 	if state == State.CATCH and not current_fish.is_empty():
-		_card_icon.texture = _fish_texture(current_fish)
-		_card_title.text = fish_text(current_fish, "name_es")
-		_card_info.text = "%s\n+%d monedas\n%s" % [rarity_name(str(current_fish.get("rarity", ""))), int(current_fish.get("value", 0)), fish_text(current_fish, "description_es")]
+		var rarity := str(current_fish.get("rarity", "common"))
+		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
+			fish_text(current_fish, "name_es"), rarity_name(rarity),
+			"+%d monedas" % int(current_fish.get("value", 0)))
 		_spawn_float_gain(int(current_fish.get("value", 0)))
 	elif state == State.ESCAPE:
-		_card_icon.texture = _make_circle_texture("556070")
-		_card_title.text = "Se escapó..."
-		_card_info.text = "Sin penalización.\n¡Prueba otra vez!"
+		_fishcard.show_escape(_make_circle_texture("556070"))
+	else:
+		_fishcard.hide_card()
 
 
 func _process_ui(_delta: float) -> void:
