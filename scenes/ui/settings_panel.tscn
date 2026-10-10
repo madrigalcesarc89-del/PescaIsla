@@ -106,12 +106,12 @@ text = "Idioma"
 theme_override_constants/separation = 16
 
 [node name="BtnES" type="Button" parent="Center/Panel/VBox/LangRow/LangBtns"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(160, 132)
 text = "ES"
 script = ExtResource("3_press")
 
 [node name="BtnEN" type="Button" parent="Center/Panel/VBox/LangRow/LangBtns"]
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(160, 132)
 text = "EN"
 script = ExtResource("3_press")
 

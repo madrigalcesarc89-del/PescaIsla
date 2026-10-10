@@ -42,14 +42,22 @@ text = "Monedas: 199"
 [node name="SettingsBtn" type="Button" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -120.0
+offset_left = -156.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 120.0
-theme_override_font_sizes/font_size = 40
-icon = ExtResource("6_settings")
-expand_icon = true
+offset_bottom = 156.0
 script = ExtResource("3_press")
+
+[node name="SettingsIcon" type="TextureRect" parent="SettingsBtn"]
+offset_left = 23.0
+offset_top = 23.0
+offset_right = 109.0
+offset_bottom = 109.0
+modulate = Color(0.353, 0.239, 0.169, 1)
+mouse_filter = 2
+texture = ExtResource("6_settings")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="HintPill" type="PanelContainer" parent="."]
 offset_left = 220.0
@@ -91,27 +99,43 @@ script = ExtResource("3_press")
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = -120.0
-offset_right = 120.0
+offset_top = -156.0
+offset_right = 156.0
 offset_bottom = -24.0
-theme_override_font_sizes/font_size = 40
-icon = ExtResource("7_album")
-expand_icon = true
 script = ExtResource("3_press")
+
+[node name="AlbumIcon" type="TextureRect" parent="AlbumBtn"]
+offset_left = 23.0
+offset_top = 23.0
+offset_right = 109.0
+offset_bottom = 109.0
+modulate = Color(0.353, 0.239, 0.169, 1)
+mouse_filter = 2
+texture = ExtResource("7_album")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ShopBtn" type="Button" parent="."]
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -120.0
+offset_left = -156.0
+offset_top = -156.0
 offset_right = -24.0
 offset_bottom = -24.0
-theme_override_font_sizes/font_size = 40
-icon = ExtResource("8_shop")
-expand_icon = true
 script = ExtResource("3_press")
+
+[node name="ShopIcon" type="TextureRect" parent="ShopBtn"]
+offset_left = 23.0
+offset_top = 23.0
+offset_right = 109.0
+offset_bottom = 109.0
+modulate = Color(0.353, 0.239, 0.169, 1)
+mouse_filter = 2
+texture = ExtResource("8_shop")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ReelBox" type="Control" parent="."]
 visible = false

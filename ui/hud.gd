@@ -98,6 +98,8 @@ func show_reel(v: bool) -> void:
 	_reel_box.visible = v
 	_reel_label.visible = v
 	_reel_pill.visible = v
+	_album_btn.modulate = Color(1, 1, 1, 0.3 if v else 1.0)
+	_shop_btn.modulate = Color(1, 1, 1, 0.3 if v else 1.0)
 	_fit_pills()
 
 
@@ -138,7 +140,7 @@ func _fit_pills() -> void:
 	if rw.x <= 0.0:
 		return
 	_fit_one(_coins_pill, _coins_label, Vector2(24, 24), false)
-	_fit_one(_hint_pill, _hint_label, Vector2(120, 110), true)
+	_fit_one(_hint_pill, _hint_label, Vector2(120, -470), true)
 	_fit_one(_reel_pill, _reel_label, Vector2(120, -300), true)
 
 
@@ -158,7 +160,8 @@ func _fit_one(panel: PanelContainer, lab: Label, pos: Vector2, wide: bool) -> vo
 	var h: float = ms.y + 24.0
 	if wide:
 		w = minf(w, rw.x - 240.0)
-		panel.position = Vector2((rw.x - w) * 0.5, pos.y)
+		var top := pos.y if pos.y >= 0.0 else rw.y + pos.y - h
+		panel.position = Vector2((rw.x - w) * 0.5, top)
 	elif pos.y < 0.0:
 		panel.position = Vector2(pos.x, rw.y + pos.y - h)
 	else:
