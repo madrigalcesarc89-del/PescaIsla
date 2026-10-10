@@ -115,17 +115,11 @@ custom_minimum_size = Vector2(160, 132)
 text = "EN"
 script = ExtResource("3_press")
 
-[node name="CreditsTitle" type="Label" parent="Center/Panel/VBox"]
-theme_override_fonts/font = ExtResource("4_baloo")
-theme_override_font_sizes/font_size = 44
-horizontal_alignment = 1
-text = "Créditos"
-
 [node name="CreditsBody" type="Label" parent="Center/Panel/VBox"]
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 autowrap_mode = 2
-text = "..."
+text = "Cesar Madrigal Castro"
 
 [node name="BtnCenter" type="CenterContainer" parent="Center/Panel/VBox"]
 

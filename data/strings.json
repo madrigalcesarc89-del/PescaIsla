@@ -6,6 +6,7 @@
     "legendary": { "es": "Legendario", "en": "Legendary" }
   },
   "ui": {
+    "game_name": { "es": "Purrfect Catch", "en": "Purrfect Catch" },
     "hint_idle": { "es": "Toca para lanzar el anzuelo", "en": "Tap to cast the line" },
     "hint_cast": { "es": "Lanzando...", "en": "Casting..." },
     "hint_wait": { "es": "Espera... atento al flotador", "en": "Wait... watch the bobber" },

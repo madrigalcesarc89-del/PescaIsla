@@ -16,7 +16,6 @@ signal lang_changed
 @onready var _lang_label: Label = $Center/Panel/VBox/LangRow/LangLabel
 @onready var _btn_es: Button = $Center/Panel/VBox/LangRow/LangBtns/BtnES
 @onready var _btn_en: Button = $Center/Panel/VBox/LangRow/LangBtns/BtnEN
-@onready var _credits_t: Label = $Center/Panel/VBox/CreditsTitle
 @onready var _credits_b: Label = $Center/Panel/VBox/CreditsBody
 @onready var _close_btn: Button = $Center/Panel/VBox/BtnCenter/CloseBtn
 
@@ -51,8 +50,7 @@ func refresh_texts() -> void:
 	_sfx_label.text = SettingsData.t("sfx")
 	_vib_label.text = SettingsData.t("vibration")
 	_lang_label.text = SettingsData.t("language")
-	_credits_t.text = SettingsData.t("credits_t")
-	_credits_b.text = SettingsData.t("credits_body")
+	_credits_b.text = "Cesar Madrigal Castro"
 	_close_btn.text = SettingsData.t("close")
 	_paint_lang()
 	UiFit.fit_label(_title, 460.0, 1, 36, 56)
@@ -60,8 +58,7 @@ func refresh_texts() -> void:
 	UiFit.fit_label(_sfx_label, 200.0, 1, 28, 40)
 	UiFit.fit_label(_vib_label, 200.0, 1, 28, 40)
 	UiFit.fit_label(_lang_label, 200.0, 1, 28, 40)
-	UiFit.fit_label(_credits_t, 460.0, 1, 30, 44)
-	UiFit.fit_label(_credits_b, 460.0, 4, 24, 30)
+	UiFit.fit_label(_credits_b, 460.0, 1, 22, 26)
 	UiFit.fit_label(_close_btn, 340.0, 1, 32, 44)
 
 
