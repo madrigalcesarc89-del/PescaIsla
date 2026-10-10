@@ -87,8 +87,6 @@ var _line_layer: CanvasLayer
 var _line: Line2D
 ## Punto de caida del lanzamiento actual (mundo, calculado por rayo).
 var _cast_target: Vector3
-## Pildoras del HUD: {panel, label, pos, wide}.
-var _pills: Array = []
 
 @onready var _cat: Node3D = $"../Cat"
 @onready var _cam: Camera3D = $"../Camera3D"
@@ -434,138 +432,59 @@ func _save_game() -> void:
 # ------------------------------------------------------------------
 
 var _ui_layer: CanvasLayer
-var _ui_root: Control
-var _coins_label: Label
-var _hint_label: Label
-var _action_btn: Button
-var _hold_btn: Button
-var _reel_bar: Control
-var _reel_label: Label
+var _hud: Control
 var _card_box: CenterContainer
 var _card_icon: TextureRect
 var _card_title: Label
 var _card_info: Label
-var _bite_label: Label
 var _escape_label: Label
-var _bite_pulse: float = 0.0
-
-
-class ReelBar:
-	extends Control
-	var game: Node = null
-
-	func _draw() -> void:
-		if game == null:
-			return
-		var r := Rect2(Vector2.ZERO, size)
-		draw_rect(r, Color(0.1, 0.1, 0.12, 0.85))
-		var zc: float = game.zone_center
-		var zh: float = game.zone_half
-		var zy0 := (1.0 - (zc + zh)) * size.y
-		var zy1 := (1.0 - (zc - zh)) * size.y
-		draw_rect(Rect2(0, zy0, size.x, zy1 - zy0), Color(0.25, 0.8, 0.35, 0.9))
-		var my: float = (1.0 - float(game.marker)) * size.y
-		draw_rect(Rect2(-6, my - 5, size.x + 12, 10), Color.WHITE)
-
-
-## Pildora redondeada con texto de contraste (18d): Panel marron
-## translucido detras del Label, ajustado al texto en _layout_pills().
-## Letra mayor, contorno marron oscuro de 4 px y sombra suave.
-## pos: esquina sup-izq del panel; si y<0, distancia al borde inferior.
-## wide: centra el panel en el ancho disponible.
-func _pill(anchor_pos: Vector2, wide: bool, font_size: int, align: HorizontalAlignment) -> Label:
-	var panel := Panel.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.2, 0.12, 0.07, 0.55)
-	sb.set_corner_radius_all(30)
-	panel.add_theme_stylebox_override("panel", sb)
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(panel)
-	var lab := Label.new()
-	lab.add_theme_font_size_override("font_size", font_size)
-	lab.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
-	lab.add_theme_color_override("font_outline_color", Color(0.25, 0.15, 0.08))
-	lab.add_theme_constant_override("outline_size", 4)
-	lab.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
-	lab.add_theme_constant_override("shadow_offset_x", 2)
-	lab.add_theme_constant_override("shadow_offset_y", 3)
-	lab.horizontal_alignment = align
-	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(lab)
-	_pills.append({"panel": panel, "label": lab, "pos": anchor_pos, "wide": wide})
-	return lab
-
-
-## Ajusta cada pildora al tamano real de su texto (18d).
-func _layout_pills() -> void:
-	if _ui_root == null:
-		return
-	var rw: Vector2 = _ui_root.size
-	if rw.x <= 0.0:
-		return
-	for p in _pills:
-		var panel: Panel = p["panel"]
-		var lab: Label = p["label"]
-		panel.visible = lab.visible and lab.text != ""
-		lab.visible = panel.visible
-		if not panel.visible:
-			continue
-		var ms := lab.get_combined_minimum_size()
-		var pos: Vector2 = p["pos"]
-		var w: float = ms.x + 60.0
-		var h: float = ms.y + 24.0
-		if bool(p["wide"]):
-			w = minf(w, rw.x - pos.x * 2.0)
-			panel.position = Vector2((rw.x - w) * 0.5, pos.y)
-		elif pos.y < 0.0:
-			panel.position = Vector2(pos.x, rw.y + pos.y - h)
-		else:
-			panel.position = pos
-		panel.size = Vector2(w, h)
-		lab.position = panel.position + Vector2(30.0, 12.0)
-		lab.size = Vector2(w - 60.0, ms.y)
 
 
 func _build_ui() -> void:
 	_ui_layer = CanvasLayer.new()
 	_ui_layer.layer = 20
 	add_child(_ui_layer)
-	_ui_root = Control.new()
-	_ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_layer.add_child(_ui_root)
-	_apply_safe_area(_ui_root)
-	_coins_label = _pill(Vector2(24, 24), false, 42, HORIZONTAL_ALIGNMENT_LEFT)
-	_hint_label = _pill(Vector2(120, 110), true, 40, HORIZONTAL_ALIGNMENT_CENTER)
-	_action_btn = Button.new()
-	_action_btn.add_theme_font_size_override("font_size", 40)
-	_action_btn.custom_minimum_size = Vector2(280, 110)
-	_action_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_action_btn.position = Vector2(-140, -250)
-	_action_btn.size = Vector2(280, 110)
-	_action_btn.pressed.connect(_on_action_pressed)
-	_ui_root.add_child(_action_btn)
-	_hold_btn = Button.new()
-	_hold_btn.add_theme_font_size_override("font_size", 36)
-	_hold_btn.custom_minimum_size = Vector2(280, 128)
-	_hold_btn.text = "MANTÉN"
-	_hold_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_hold_btn.position = Vector2(-140, -268)
-	_hold_btn.size = Vector2(280, 128)
-	_hold_btn.button_down.connect(_on_hold_down)
-	_hold_btn.button_up.connect(_on_hold_up)
-	_ui_root.add_child(_hold_btn)
-	_reel_bar = ReelBar.new()
-	_reel_bar.game = self
-	_reel_bar.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_reel_bar.position = Vector2(-110, -230)
-	_reel_bar.size = Vector2(60, 420)
-	_reel_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(_reel_bar)
-	_reel_label = _pill(Vector2(120, -340), true, 40, HORIZONTAL_ALIGNMENT_CENTER)
+	_hud = load("res://scenes/ui/hud.tscn").instantiate()
+	_ui_layer.add_child(_hud)
+	_apply_safe_area(_hud)
+	_hud.action_pressed.connect(_on_action_pressed)
+	_hud.hold_down.connect(_on_hold_down)
+	_hud.hold_up.connect(_on_hold_up)
+	_hud.album_pressed.connect(_on_album_stub)
+	_hud.shop_pressed.connect(_on_shop_stub)
+	_hud.settings_pressed.connect(_on_settings_stub)
+	_build_card()
+	_escape_label = Label.new()
+	_escape_label.add_theme_font_size_override("font_size", 90)
+	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	_escape_label.add_theme_color_override("font_outline_color", Color(0.1, 0.2, 0.3))
+	_escape_label.add_theme_constant_override("outline_size", 10)
+	_escape_label.text = "?"
+	_escape_label.size = Vector2(120, 120)
+	_escape_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_escape_label.visible = false
+	_hud.add_child(_escape_label)
+	_refresh_ui()
+
+
+## Panel "Proximamente" para album/tienda/ajustes hasta 19d/19f.
+func _on_album_stub() -> void:
+	pass
+
+
+func _on_shop_stub() -> void:
+	pass
+
+
+func _on_settings_stub() -> void:
+	_hud.show_soon("Ajustes")
+
+
+func _build_card() -> void:
 	_card_box = CenterContainer.new()
 	_card_box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_ui_root.add_child(_card_box)
+	_hud.add_child(_card_box)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(440, 0)
 	_card_box.add_child(panel)
@@ -594,28 +513,6 @@ func _build_ui() -> void:
 	var ccenter := CenterContainer.new()
 	ccenter.add_child(cont_btn)
 	vbox.add_child(ccenter)
-	_bite_label = Label.new()
-	_bite_label.add_theme_font_size_override("font_size", 110)
-	_bite_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	_bite_label.add_theme_color_override("font_outline_color", Color(0.35, 0.2, 0.05))
-	_bite_label.add_theme_constant_override("outline_size", 12)
-	_bite_label.text = "!"
-	_bite_label.size = Vector2(120, 140)
-	_bite_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bite_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bite_label.visible = false
-	_ui_root.add_child(_bite_label)
-	_escape_label = Label.new()
-	_escape_label.add_theme_font_size_override("font_size", 90)
-	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
-	_escape_label.add_theme_color_override("font_outline_color", Color(0.1, 0.2, 0.3))
-	_escape_label.add_theme_constant_override("outline_size", 10)
-	_escape_label.text = "?"
-	_escape_label.size = Vector2(120, 120)
-	_escape_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_escape_label.visible = false
-	_ui_root.add_child(_escape_label)
 	_refresh_ui()
 
 
@@ -651,28 +548,29 @@ func _fish_texture(fish: Dictionary) -> Texture2D:
 
 
 func _refresh_ui() -> void:
-	if _ui_root == null:
+	if _hud == null:
 		return
-	_coins_label.text = "Monedas: %d" % coins
-	_action_btn.visible = state == State.IDLE or state == State.BITE
-	_action_btn.disabled = state != State.IDLE and state != State.BITE
+	_hud.set_coins(coins)
 	if state == State.IDLE:
-		_action_btn.text = "¡PESCAR!"
-		_hint_label.text = "Toca para lanzar el anzuelo"
+		_hud.show_action("¡PESCAR!")
+		_hud.set_hint("Toca para lanzar el anzuelo")
 	elif state == State.CAST:
-		_hint_label.text = "Lanzando..."
+		_hud.show_action("")
+		_hud.set_hint("Lanzando...")
 	elif state == State.WAIT:
-		_hint_label.text = "Espera... atento al flotador"
+		_hud.show_action("")
+		_hud.set_hint("Espera... atento al flotador")
 	elif state == State.BITE:
-		_action_btn.text = "¡TIRAR!"
-		_hint_label.text = "¡PICÓ! ¡Tira ahora!"
+		_hud.show_action("¡TIRAR!")
+		_hud.set_hint("¡PICÓ! ¡Tira ahora!")
 	elif state == State.REEL:
-		_hint_label.text = "Mantén el marcador en verde"
+		_hud.show_action("")
+		_hud.set_hint("Mantén el marcador en verde")
 	else:
-		_hint_label.text = ""
-	_hold_btn.visible = state == State.REEL
-	_reel_bar.visible = state == State.REEL
-	_reel_label.visible = state == State.REEL
+		_hud.show_action("")
+		_hud.set_hint("")
+	_hud.show_hold(state == State.REEL)
+	_hud.show_reel(state == State.REEL)
 	_card_box.visible = state == State.CATCH or state == State.ESCAPE
 	if state == State.CATCH and not current_fish.is_empty():
 		_card_icon.texture = _fish_texture(current_fish)
@@ -683,31 +581,19 @@ func _refresh_ui() -> void:
 		_card_icon.texture = _make_circle_texture("556070")
 		_card_title.text = "Se escapó..."
 		_card_info.text = "Sin penalización.\n¡Prueba otra vez!"
-	_layout_pills()
 
 
-func _process_ui(delta: float) -> void:
-	if _ui_root == null:
+func _process_ui(_delta: float) -> void:
+	if _hud == null:
 		return
-	if state == State.BITE:
-		_bite_pulse += delta * 6.0
-		var k := 0.75 + 0.25 * sin(_bite_pulse)
-		_action_btn.modulate = Color(1, k, k)
-		_bite_label.visible = _bobber != null and _line.points.size() >= 1
-		if _bite_label.visible:
-			# El final de la línea ya está en coords de canvas correctas
-			# (unproject_position no coincide con el stretch en este caso).
-			var bend := _line.points[_line.points.size() - 1]
-			_bite_label.position = bend + Vector2(-60, -200)
-			var s := 1.0 + 0.15 * sin(_bite_pulse * 1.5)
-			_bite_label.scale = Vector2(s, s)
-	elif _bite_label != null:
-		_bite_label.visible = false
-		_action_btn.modulate = Color.WHITE
+	if state == State.BITE and _bobber != null and _line.points.size() >= 1:
+		# El final de la línea ya está en coords de canvas correctas
+		# (unproject_position no coincide con el stretch en este caso).
+		_hud.set_bubble(_line.points[_line.points.size() - 1])
+	else:
+		_hud.set_bubble(Vector2(-9999.0, 0.0))
 	if state == State.REEL:
-		_reel_bar.queue_redraw()
-		_reel_label.text = "%.1f / %d s" % [reel_progress, int(reel_need)]
-		_layout_pills()
+		_hud.set_meter(zone_center, zone_half, marker, "%.1f / %d s" % [reel_progress, int(reel_need)])
 	if state == State.ESCAPE and _line.points.size() >= 1:
 		_escape_label.visible = true
 		_escape_label.position = _line.points[0] + Vector2(30, -160)
@@ -717,7 +603,7 @@ func _process_ui(delta: float) -> void:
 
 ## Contador temporal de monedas: "+N" que sube y se desvanece en 2 s.
 func _spawn_float_gain(amount: int) -> void:
-	if _ui_root == null or amount <= 0:
+	if _hud == null or amount <= 0:
 		return
 	var lab := Label.new()
 	lab.add_theme_font_size_override("font_size", 44)
@@ -727,7 +613,7 @@ func _spawn_float_gain(amount: int) -> void:
 	lab.text = "+%d" % amount
 	lab.position = Vector2(150, 110)
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_root.add_child(lab)
+	_hud.add_child(lab)
 	var tw := lab.create_tween().set_parallel(true)
 	tw.tween_property(lab, "position:y", 30.0, 2.0)
 	tw.tween_property(lab, "modulate:a", 0.0, 2.0)

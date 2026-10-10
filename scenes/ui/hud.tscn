@@ -1,0 +1,192 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
+[ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://ui/pressable.gd" id="3_press"]
+[ext_resource type="Script" path="res://ui/meter_fill.gd" id="4_meter"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.png" id="5_coin"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_settings.png" id="6_settings"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_album.png" id="7_album"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_shop.png" id="8_shop"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/meter_frame.png" id="9_meter"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bubble_alert.png" id="10_bubble"]
+[ext_resource type="FontFile" path="res://assets/fonts/Baloo2-SemiBold.ttf" id="11_baloo"]
+
+[node name="HUD" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_hud")
+
+[node name="CoinsPill" type="PanelContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 374.0
+offset_bottom = 100.0
+
+[node name="HBox" type="HBoxContainer" parent="CoinsPill"]
+theme_override_constants/separation = 12
+
+[node name="CoinIcon" type="TextureRect" parent="CoinsPill/HBox"]
+custom_minimum_size = Vector2(56, 56)
+texture = ExtResource("5_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinsLabel" type="Label" parent="CoinsPill/HBox"]
+theme_override_fonts/font = ExtResource("11_baloo")
+theme_override_font_sizes/font_size = 44
+text = "Monedas: 199"
+
+[node name="SettingsBtn" type="Button" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("6_settings")
+expand_icon = true
+script = ExtResource("3_press")
+
+[node name="HintPill" type="PanelContainer" parent="."]
+offset_left = 220.0
+offset_top = 110.0
+offset_right = 860.0
+offset_bottom = 186.0
+
+[node name="HintLabel" type="Label" parent="HintPill"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Toca para lanzar el anzuelo"
+
+[node name="ActionBtn" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -280.0
+offset_right = 210.0
+offset_bottom = -130.0
+text = "¡PESCAR!"
+script = ExtResource("3_press")
+
+[node name="HoldBtn" type="Button" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -280.0
+offset_right = 210.0
+offset_bottom = -130.0
+text = "MANTÉN"
+script = ExtResource("3_press")
+
+[node name="AlbumBtn" type="Button" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -120.0
+offset_right = 120.0
+offset_bottom = -24.0
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("7_album")
+expand_icon = true
+script = ExtResource("3_press")
+
+[node name="ShopBtn" type="Button" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -120.0
+offset_right = -24.0
+offset_bottom = -24.0
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("8_shop")
+expand_icon = true
+script = ExtResource("3_press")
+
+[node name="ReelBox" type="Control" parent="."]
+visible = false
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -224.0
+offset_top = -249.0
+offset_right = -24.0
+offset_bottom = 249.0
+
+[node name="MeterFrame" type="TextureRect" parent="ReelBox"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("9_meter")
+expand_mode = 1
+
+[node name="MeterFill" type="Control" parent="ReelBox"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("4_meter")
+
+[node name="ReelPill" type="PanelContainer" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -380.0
+offset_right = 150.0
+offset_bottom = -310.0
+
+[node name="ReelLabel" type="Label" parent="ReelPill"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "0.0 / 3 s"
+
+[node name="BubbleAlert" type="TextureRect" parent="."]
+visible = false
+offset_right = 190.0
+offset_bottom = 184.0
+texture = ExtResource("10_bubble")
+expand_mode = 1
+
+[node name="SoonPanel" type="PanelContainer" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -240.0
+offset_right = 280.0
+offset_bottom = 240.0
+
+[node name="VBox" type="VBoxContainer" parent="SoonPanel"]
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="SoonTitle" type="Label" parent="SoonPanel/VBox"]
+theme_override_fonts/font = ExtResource("11_baloo")
+theme_override_font_sizes/font_size = 52
+horizontal_alignment = 1
+text = "Próximamente"
+
+[node name="SoonText" type="Label" parent="SoonPanel/VBox"]
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "Contenido en camino."
+
+[node name="SoonClose" type="Button" parent="SoonPanel/VBox"]
+custom_minimum_size = Vector2(300, 120)
+text = "Cerrar"
+script = ExtResource("3_press")
