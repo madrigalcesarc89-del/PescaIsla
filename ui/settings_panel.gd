@@ -55,6 +55,14 @@ func refresh_texts() -> void:
 	_credits_b.text = SettingsData.t("credits_body")
 	_close_btn.text = SettingsData.t("close")
 	_paint_lang()
+	UiFit.fit_label(_title, 460.0, 1, 36, 56)
+	UiFit.fit_label(_music_label, 200.0, 1, 28, 40)
+	UiFit.fit_label(_sfx_label, 200.0, 1, 28, 40)
+	UiFit.fit_label(_vib_label, 200.0, 1, 28, 40)
+	UiFit.fit_label(_lang_label, 200.0, 1, 28, 40)
+	UiFit.fit_label(_credits_t, 460.0, 1, 30, 44)
+	UiFit.fit_label(_credits_b, 460.0, 4, 24, 30)
+	UiFit.fit_label(_close_btn, 340.0, 1, 32, 44)
 
 
 func _on_music(v: float) -> void:

@@ -62,6 +62,8 @@ func show_soon(title: String, body: String) -> void:
 	_soon_title.text = title
 	$SoonPanel/VBox/SoonText.text = body
 	$SoonPanel/VBox/BtnCenter/SoonClose.text = SettingsData.t("close")
+	UiFit.fit_label(_soon_title, 460.0, 1, 36, 52)
+	UiFit.fit_label($SoonPanel/VBox/SoonText, 460.0, 3, 26, 40)
 	_soon.visible = true
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null:
@@ -118,6 +120,7 @@ func set_bubble(p: Vector2) -> void:
 func show_toast(t: String) -> void:
 	_toast_label.text = t
 	var rw := size
+	UiFit.fit_label(_toast_label, rw.x - 300.0, 1, 28, 40)
 	var ms := _toast_label.get_combined_minimum_size()
 	var w := minf(ms.x + 60.0, rw.x - 240.0)
 	_toast_pill.position = Vector2((rw.x - w) * 0.5, rw.y * 0.42)
@@ -145,6 +148,9 @@ func _fit_one(panel: PanelContainer, lab: Label, pos: Vector2, wide: bool) -> vo
 	if not panel.visible:
 		return
 	var rw := size
+	var allowed := rw.x - 300.0 if wide else rw.x - 176.0
+	var start_px := 44 if panel == _coins_pill else 40
+	UiFit.fit_label(lab, allowed, 1, 28, start_px)
 	var ms := lab.get_combined_minimum_size()
 	var w: float = ms.x + 60.0
 	if panel == _coins_pill:

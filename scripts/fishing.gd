@@ -637,11 +637,12 @@ func _spawn_float_gain(amount: int) -> void:
 	lab.add_theme_color_override("font_outline_color", Color(0.3, 0.2, 0.05))
 	lab.add_theme_constant_override("outline_size", 8)
 	lab.text = "+%d" % amount
-	lab.position = Vector2(150, 110)
+	lab.position = Vector2(150, 210)
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud.add_child(lab)
+	UiFit.fit_label(lab, 300.0, 1, 32, 44)
 	var tw := lab.create_tween().set_parallel(true)
-	tw.tween_property(lab, "position:y", 30.0, 2.0)
+	tw.tween_property(lab, "position:y", 130.0, 2.0)
 	tw.tween_property(lab, "modulate:a", 0.0, 2.0)
 	tw.chain().tween_callback(lab.queue_free)
 

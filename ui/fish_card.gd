@@ -88,6 +88,10 @@ func _setup(frame_key: String, tex: Texture2D, name_text: String, badge_text: St
 	var br: Array = fr.get("backing_rect", [])
 	_backing.position = Vector2(float(br[0]), float(br[1])) * DS
 	_backing.size = Vector2(float(br[2]), float(br[3])) * DS
+	var win_cx := (float(fr.get("window", [0, 0, 425, 815])[0]) + float(fr.get("window", [0, 0, 425, 815])[2]) * 0.5) * DS
+	UiFit.fit_label(_name_label, float(fr.get("name_rect", [0, 0, 290, 60])[2]) * DS, 1, 26, 48)
+	UiFit.fit_label(_value_label, float(fr.get("value_rect", [0, 0, 290, 52])[2]) * DS, 1, 26, 40)
+	_grow_badge(fr, win_cx)
 	_halo.visible = halo
 	if halo:
 		_halo.modulate = HALO_MOD.get(frame_key, Color.WHITE)
@@ -107,6 +111,17 @@ func _enter_fx() -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_box, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_dim, "modulate:a", 1.0, 0.2)
+
+
+func _grow_badge(fr: Dictionary, win_cx: float) -> void:
+	var font := _badge_label.get_theme_font("font")
+	var tw := 84.0
+	if font != null:
+		tw = font.get_string_size(_badge_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 34).x + 56.0
+	var bw := maxf(132.0 * DS, tw)
+	_badge_panel.size = Vector2(bw, 44.0 * DS)
+	_badge_panel.position = Vector2(win_cx - bw * 0.5, float(fr.get("badge_rect", [0, 80, 140, 44])[1]) * DS)
+	UiFit.fit_label(_badge_label, bw - 48.0, 1, 20, 34)
 
 
 func _pulse_halo(on: bool) -> void:
