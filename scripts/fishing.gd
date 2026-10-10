@@ -158,6 +158,9 @@ func _splash_at() -> void:
 		return
 	_splash.global_position = _bobber.global_position
 	_splash.restart()
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("splash")
 
 
 func _process(delta: float) -> void:
@@ -241,8 +244,30 @@ func _enter(s: int) -> void:
 		_splash_at()
 	if s == State.BITE or s == State.CATCH:
 		_splash_at()
+	_audio_state(s)
 	_refresh_ui()
 	state_changed.emit(state)
+
+
+## Sonido del estado (19e); sin AudioManager no falla.
+func _audio_state(s: int) -> void:
+	var am := get_node_or_null("/root/AudioManager")
+	if am == null:
+		return
+	if s == State.CAST:
+		am.play_sfx("cast")
+	elif s == State.BITE:
+		am.play_sfx("bite")
+	elif s == State.ESCAPE:
+		am.play_sfx("fail")
+	elif s == State.CATCH and not current_fish.is_empty():
+		am.play_sfx("out_of_water")
+		am.play_sfx("coin")
+		am.play_jingle(str(current_fish.get("rarity", "common")))
+	if s == State.REEL:
+		am.reel_start()
+	else:
+		am.reel_stop()
 
 
 func _update_visuals(delta: float) -> void:
