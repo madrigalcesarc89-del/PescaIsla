@@ -77,6 +77,9 @@ var caught: Dictionary = {}
 var _first_caught: Dictionary = {}
 ## Premios de rareza ya cobrados. Ausente en guardados viejos = false.
 var _claimed: Dictionary = {}
+## Conteos ya vistos en el álbum. seen_missing: el JSON viejo no tenía la clave.
+var _album_seen: Dictionary = {}
+var _seen_missing: bool = true
 ## Rachas de mala suerte. Ausentes en guardados viejos: se leen como 0.
 var _dry_rare: int = 0
 var _dry_legend: int = 0
@@ -472,6 +475,8 @@ func _load_game() -> void:
 	caught = {}
 	_first_caught = {}
 	_claimed = AlbumSave.empty_claimed()
+	_album_seen = {}
+	_seen_missing = true
 	_dry_rare = 0
 	_dry_legend = 0
 	_save_rest = {}
@@ -485,6 +490,8 @@ func _load_game() -> void:
 	caught = parsed.get("caught", {})
 	_first_caught = parsed.get("first_caught", {})
 	_claimed = parsed.get("claimed", AlbumSave.empty_claimed())
+	_album_seen = parsed.get("album_seen", {})
+	_seen_missing = bool(parsed.get("seen_missing", true))
 	var pity: Dictionary = parsed.get("pity", {})
 	_dry_rare = maxi(0, int(pity.get("dry_rare", 0)))
 	_dry_legend = maxi(0, int(pity.get("dry_legend", 0)))
@@ -497,7 +504,7 @@ func _save_game() -> void:
 		push_warning("Fishing: no se pudo guardar")
 		return
 	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
-	var body := AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest)
+	var body := AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen)
 	f.store_string(JSON.stringify(body))
 
 
@@ -534,6 +541,7 @@ func _build_ui() -> void:
 	_album.claim_requested.connect(_on_album_claim)
 	_album.reset_requested.connect(_on_album_reset)
 	_album.unlock_requested.connect(_on_album_unlock)
+	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
 	_settings.lang_changed.connect(_on_lang_changed)
@@ -554,8 +562,18 @@ func _build_ui() -> void:
 	_refresh_ui()
 
 
+func _bind_album() -> void:
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
+
+
+func _on_album_seen(seen: Dictionary) -> void:
+	_album_seen = seen
+	_seen_missing = false
+	_save_game()
+
+
 func _on_album() -> void:
-	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_bind_album()
 	_album.open_album()
 
 
@@ -569,7 +587,7 @@ func _on_album_claim(rarity: String) -> void:
 	coins += amount
 	_save_game()
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
 	_album.play_reward(amount)
 
 
@@ -580,11 +598,13 @@ func _on_album_reset() -> void:
 	caught = {}
 	_first_caught = {}
 	_claimed = AlbumSave.empty_claimed()
+	_album_seen = {}
+	_seen_missing = false
 	_dry_rare = 0
 	_dry_legend = 0
 	_save_game()
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
 	_album.open_album()
 
 
@@ -600,7 +620,7 @@ func _on_album_unlock() -> void:
 			caught[id] = 1
 	_save_game()
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
 	_album.open_album()
 
 
@@ -649,7 +669,7 @@ func _on_settings_stub() -> void:
 func _on_lang_changed() -> void:
 	_refresh_ui()
 	if _album != null and _album.visible:
-		_album.setup(fishes, caught, _first_caught, _claimed, _db)
+		_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
 
 
 func _apply_safe_area(c: Control) -> void:

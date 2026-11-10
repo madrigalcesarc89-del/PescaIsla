@@ -44,8 +44,13 @@ static func read(data: Dictionary) -> Dictionary:
 		pity["dry_rare"] = maxi(0, int(pity_in.get("dry_rare", 0)))
 		pity["dry_legend"] = maxi(0, int(pity_in.get("dry_legend", 0)))
 	var rest := data.duplicate(true)
-	for key in ["coins", "caught", "album", "claimed", "pity"]:
+	for key in ["coins", "caught", "album", "claimed", "pity", "album_seen"]:
 		rest.erase(key)
+	var seen := {}
+	var seen_src = data.get("album_seen", {})
+	if typeof(seen_src) == TYPE_DICTIONARY:
+		for k in seen_src.keys():
+			seen[str(k)] = maxi(0, int(seen_src[k]))
 	return {
 		"coins": int(data.get("coins", 0)),
 		"caught": caught,
@@ -53,6 +58,8 @@ static func read(data: Dictionary) -> Dictionary:
 		"claimed": claimed,
 		"pity": pity,
 		"rest": rest,
+		"album_seen": seen,
+		"seen_missing": not data.has("album_seen"),
 	}
 
 
@@ -74,7 +81,7 @@ static func stamp_first(first: Dictionary, id: String, count_before: int) -> voi
 	first[id] = Time.get_date_string_from_system()
 
 
-static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: Dictionary, pity: Dictionary, rest: Dictionary) -> Dictionary:
+static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: Dictionary, pity: Dictionary, rest: Dictionary, seen: Dictionary = {}) -> Dictionary:
 	var body: Dictionary = rest.duplicate(true)
 	body["coins"] = int(coins)
 	var flat := {}
@@ -98,6 +105,10 @@ static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: 
 		"dry_rare": maxi(0, int(pity.get("dry_rare", 0))),
 		"dry_legend": maxi(0, int(pity.get("dry_legend", 0))),
 	}
+	var seen_out := {}
+	for id in seen.keys():
+		seen_out[str(id)] = maxi(0, int(seen[id]))
+	body["album_seen"] = seen_out
 	return body
 
 
@@ -108,7 +119,21 @@ static func reward_amount(db: Dictionary, rarity: String) -> int:
 	return int(DEFAULT_REWARDS.get(rarity, 0))
 
 
-static func rarity_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
+## Punto "Nuevo": capturado y todavía no visto en una apertura anterior.
+## Si el guardado viejo no tenía album_seen, no se marcan todos como nuevos.
+static func news_and_next(seen: Dictionary, caught: Dictionary, seen_missing: bool) -> Dictionary:
+	var news := {}
+	if not seen_missing:
+		for id in caught.keys():
+			if int(caught[id]) > 0 and int(seen.get(id, 0)) <= 0:
+				news[str(id)] = true
+	var next := {}
+	for id in caught.keys():
+		next[str(id)] = maxi(0, int(caught[id]))
+	return {"news": news, "seen": next}
+
+
+static func rarity_count(fishes: Array, caught: Dictionary, rarity: String) -> Dictionary:
 	var total := 0
 	var have := 0
 	for fish in fishes:
@@ -119,7 +144,12 @@ static func rarity_complete(fishes: Array, caught: Dictionary, rarity: String) -
 		total += 1
 		if int(caught.get(str(fish.get("id", "")), 0)) > 0:
 			have += 1
-	return total > 0 and have == total
+	return {"total": total, "have": have}
+
+
+static func rarity_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
+	var info := rarity_count(fishes, caught, rarity)
+	return int(info["total"]) > 0 and int(info["have"]) == int(info["total"])
 
 
 ## Tarjeta de captura > ficha > álbum > otros paneles. La tarjeta no se cierra.

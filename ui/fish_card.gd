@@ -19,6 +19,8 @@ var _layout: Dictionary = {}
 var _frame_key: String = "frame_common"
 var _art_aspect: float = 1.45
 var _backing_style: StyleBoxFlat
+var _extra: Label = null
+var _value_center: Control = null
 var _pulse: Tween = null
 var _aspects: Dictionary = {}
 
@@ -78,6 +80,15 @@ func _ready() -> void:
 	_paint_text(_value_label)
 	_badge_label.add_theme_font_size_override("font_size", 34)
 	UiFit.paint_light(_badge_label, 34)
+	_extra = Label.new()
+	_extra.name = "ExtraLabel"
+	_extra.visible = false
+	_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_extra.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_extra.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_blurb.get_parent().add_child(_extra)
+	_blurb.get_parent().move_child(_extra, _blurb.get_index() + 1)
+	_value_center = _value_label.get_parent().get_parent().get_parent()
 	_apply_metrics()
 
 
@@ -97,7 +108,7 @@ func _paint_text(lab: Label) -> void:
 	UiFit.paint_light(lab, 40)
 
 
-func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String, blurb: String = "") -> void:
+func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String, blurb: String = "", extra: String = "") -> void:
 	_frame_key = frame_key
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(frame_key, {})
 	if fr.is_empty():
@@ -107,12 +118,18 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	if _backing.material is ShaderMaterial:
 		(_backing.material as ShaderMaterial).set_shader_parameter("frame_tex", frame_tex)
 	_fish.texture = tex
+	_fish.modulate = Color.WHITE
 	_art_aspect = _read_art_aspect(tex)
 	_name_label.text = name_text
 	_blurb.text = blurb
 	_blurb.visible = blurb != ""
-	_rule.visible = blurb != ""
+	_rule.visible = blurb != "" or extra != ""
+	if _extra != null:
+		_extra.text = extra
+		_extra.visible = extra != ""
 	_value_label.text = value_text
+	if _value_center != null:
+		_value_center.visible = value_text != ""
 	_fun_btn.text = SettingsData.t("continue")
 	_badge_panel.visible = badge_text != ""
 	_badge_label.text = badge_text
@@ -231,6 +248,11 @@ func _apply_metrics() -> void:
 	_blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_blurb.clip_text = false
 	UiFit.fit_label(_blurb, safe_w, 2, 18, 30)
+	if _extra != null and _extra.visible:
+		_extra.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiFit.fit_label(_extra, safe_w, 3, 18, 28)
+		_paint_text(_extra)
 	var value_room := maxf(80.0, safe_w - coin - 36.0)
 	_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_value_label.clip_text = false
