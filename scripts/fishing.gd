@@ -9,6 +9,7 @@ enum State { IDLE, CAST, WAIT, BITE, REEL, CATCH, ESCAPE }
 const SAVE_PATH := "user://save.json"
 const DB_PATH := "res://data/fish_db.json"
 const STRINGS_PATH := "res://data/strings.json"
+const FishRoll = preload("res://scripts/fish_roll.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
 const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
@@ -66,10 +67,16 @@ signal state_changed(new_state: int)
 
 var state: int = State.IDLE
 var fishes: Array = []
+var _db: Dictionary = {}
 var strings: Dictionary = {}
 var current_fish: Dictionary = {}
 var coins: int = 0
 var caught: Dictionary = {}
+## Rachas de mala suerte. Ausentes en guardados viejos: se leen como 0.
+var _dry_rare: int = 0
+var _dry_legend: int = 0
+## Claves ajenas del JSON de guardado, para no borrarlas al reescribir.
+var _save_rest: Dictionary = {}
 
 var marker: float = 0.0
 var holding: bool = false
@@ -380,18 +387,7 @@ func _apply_pose() -> void:
 
 
 func _pick_fish() -> void:
-	current_fish = {}
-	var total := 0.0
-	for f in fishes:
-		total += float(f.get("weight", 1))
-	var roll := randf() * total
-	for f in fishes:
-		roll -= float(f.get("weight", 1))
-		if roll <= 0.0:
-			current_fish = f
-			return
-	if not fishes.is_empty():
-		current_fish = fishes[0]
+	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf())
 
 
 func _setup_zone() -> void:
@@ -426,14 +422,18 @@ func rarity_name(rarity: String) -> String:
 func _register_catch() -> void:
 	if current_fish.is_empty():
 		return
-	var fid := str(current_fish.get("id", "sardina"))
+	var fid := str(current_fish.get("id", ""))
 	caught[fid] = int(caught.get(fid, 0)) + 1
 	coins += int(current_fish.get("value", 0))
+	var nxt: Dictionary = FishRoll.note_catch(str(current_fish.get("rarity", "common")), _dry_rare, _dry_legend)
+	_dry_rare = int(nxt.get("dry_rare", 0))
+	_dry_legend = int(nxt.get("dry_legend", 0))
 	_save_game()
 
 
 func _load_db() -> void:
 	fishes = []
+	_db = {}
 	if not FileAccess.file_exists(DB_PATH):
 		push_warning("Fishing: falta %s" % DB_PATH)
 		return
@@ -445,6 +445,7 @@ func _load_db() -> void:
 	var arr = data.get("fishes", [])
 	if typeof(arr) == TYPE_ARRAY:
 		fishes = arr
+	_db = data
 
 
 func _load_strings() -> void:
@@ -462,6 +463,9 @@ func _load_strings() -> void:
 func _load_game() -> void:
 	coins = 0
 	caught = {}
+	_dry_rare = 0
+	_dry_legend = 0
+	_save_rest = {}
 	if not FileAccess.file_exists(SAVE_PATH):
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
@@ -472,6 +476,14 @@ func _load_game() -> void:
 	if typeof(c) == TYPE_DICTIONARY:
 		for k in c.keys():
 			caught[str(k)] = int(c[k])
+	var pity = data.get("pity", {})
+	if typeof(pity) == TYPE_DICTIONARY:
+		_dry_rare = maxi(0, int(pity.get("dry_rare", 0)))
+		_dry_legend = maxi(0, int(pity.get("dry_legend", 0)))
+	_save_rest = (data as Dictionary).duplicate(true)
+	_save_rest.erase("coins")
+	_save_rest.erase("caught")
+	_save_rest.erase("pity")
 
 
 func _save_game() -> void:
@@ -479,7 +491,11 @@ func _save_game() -> void:
 	if f == null:
 		push_warning("Fishing: no se pudo guardar")
 		return
-	f.store_string(JSON.stringify({"coins": coins, "caught": caught}))
+	var payload := _save_rest.duplicate(true)
+	payload["coins"] = coins
+	payload["caught"] = caught
+	payload["pity"] = {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	f.store_string(JSON.stringify(payload))
 
 
 # ------------------------------------------------------------------
