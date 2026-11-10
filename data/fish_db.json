@@ -2,6 +2,7 @@
   "weight_mode": "within_rarity",
   "rarity_weights": { "common": 55, "uncommon": 28, "rare": 13, "legendary": 4 },
   "pity": { "rare_after": 25, "legend_after": 80, "legend_mult": 3, "discovery_mult": 2 },
+  "album_rewards": { "common": 50, "uncommon": 120, "rare": 300, "legendary": 800 },
   "fishes": [
     {"id": "fish_pink_sardine", "name_es": "Sardina rosa", "name_en": "Pink sardine", "rarity": "common", "value": 5, "texture": "res://assets/art/fish/fish_pink_sardine.png", "weight": 25.0, "difficulty": 1.0, "description_es": "Pequeña y rápida. La más fácil de ver."},
     {"id": "fish_moon", "name_es": "Pez luna", "name_en": "Moon fish", "rarity": "common", "value": 6, "texture": "res://assets/art/fish/fish_moon.png", "weight": 20.0, "difficulty": 1.0, "description_es": "Brilla un poco de noche. Común pero bonito."},

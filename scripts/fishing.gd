@@ -72,6 +72,10 @@ var strings: Dictionary = {}
 var current_fish: Dictionary = {}
 var coins: int = 0
 var caught: Dictionary = {}
+## Primera fecha (YYYY-MM-DD) por id. Vacía si el guardado viejo no la traía.
+var _first_caught: Dictionary = {}
+## Premios de rareza ya cobrados. Ausente en guardados viejos = false.
+var _claimed: Dictionary = {}
 ## Rachas de mala suerte. Ausentes en guardados viejos: se leen como 0.
 var _dry_rare: int = 0
 var _dry_legend: int = 0
@@ -423,7 +427,9 @@ func _register_catch() -> void:
 	if current_fish.is_empty():
 		return
 	var fid := str(current_fish.get("id", ""))
-	caught[fid] = int(caught.get(fid, 0)) + 1
+	var before := int(caught.get(fid, 0))
+	AlbumSave.stamp_first(_first_caught, fid, before)
+	caught[fid] = before + 1
 	coins += int(current_fish.get("value", 0))
 	var nxt: Dictionary = FishRoll.note_catch(str(current_fish.get("rarity", "common")), _dry_rare, _dry_legend)
 	_dry_rare = int(nxt.get("dry_rare", 0))
@@ -463,6 +469,8 @@ func _load_strings() -> void:
 func _load_game() -> void:
 	coins = 0
 	caught = {}
+	_first_caught = {}
+	_claimed = AlbumSave.empty_claimed()
 	_dry_rare = 0
 	_dry_legend = 0
 	_save_rest = {}
@@ -471,19 +479,15 @@ func _load_game() -> void:
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
 	if typeof(data) != TYPE_DICTIONARY:
 		return
-	coins = int(data.get("coins", 0))
-	var c = data.get("caught", {})
-	if typeof(c) == TYPE_DICTIONARY:
-		for k in c.keys():
-			caught[str(k)] = int(c[k])
-	var pity = data.get("pity", {})
-	if typeof(pity) == TYPE_DICTIONARY:
-		_dry_rare = maxi(0, int(pity.get("dry_rare", 0)))
-		_dry_legend = maxi(0, int(pity.get("dry_legend", 0)))
-	_save_rest = (data as Dictionary).duplicate(true)
-	_save_rest.erase("coins")
-	_save_rest.erase("caught")
-	_save_rest.erase("pity")
+	var parsed := AlbumSave.read(data)
+	coins = int(parsed.get("coins", 0))
+	caught = parsed.get("caught", {})
+	_first_caught = parsed.get("first_caught", {})
+	_claimed = parsed.get("claimed", AlbumSave.empty_claimed())
+	var pity: Dictionary = parsed.get("pity", {})
+	_dry_rare = maxi(0, int(pity.get("dry_rare", 0)))
+	_dry_legend = maxi(0, int(pity.get("dry_legend", 0)))
+	_save_rest = parsed.get("rest", {})
 
 
 func _save_game() -> void:
@@ -491,11 +495,9 @@ func _save_game() -> void:
 	if f == null:
 		push_warning("Fishing: no se pudo guardar")
 		return
-	var payload := _save_rest.duplicate(true)
-	payload["coins"] = coins
-	payload["caught"] = caught
-	payload["pity"] = {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
-	f.store_string(JSON.stringify(payload))
+	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	var body := AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest)
+	f.store_string(JSON.stringify(body))
 
 
 # ------------------------------------------------------------------
