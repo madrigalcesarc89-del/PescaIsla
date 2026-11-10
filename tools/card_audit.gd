@@ -21,6 +21,7 @@ var _fail := 0
 
 
 func _init() -> void:
+	OS.set_environment("CARD_AUDIT", "1")
 	print("CARD_AUDIT start")
 	SettingsData.load_all()
 	var db = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish_db.json"))
@@ -140,6 +141,17 @@ func _check(m: Dictionary, aspect: String, id: String, lang: String, value_text:
 		_bad(tag + " hay contorno")
 	if float(m.gap) < 23.5:
 		_bad(tag + " aire hasta Continuar = %.1f" % float(m.gap))
+	var vp: Vector2i = ASPECTS[aspect]
+	var btn: Rect2 = m.button
+	var limit := float(vp.y) - 640.0
+	if btn.size.y > 1.0 and btn.end.y > limit + 0.5:
+		_bad(tag + " Continuar entra en la zona de Mantén (%.1f > %.1f)" % [btn.end.y, limit])
+	var hold := Rect2(float(vp.x) * 0.5 - 210.0, float(vp.y) - 540.0, 420.0, 150.0)
+	if btn.intersects(hold):
+		_bad(tag + " Continuar pisa Mantén")
+	var frame_c: Rect2 = m.frame
+	if absf(frame_c.position.x - (float(vp.x) - frame_c.end.x)) > 2.0:
+		_bad(tag + " marco no centrado L %.1f R %.1f" % [frame_c.position.x, float(vp.x) - frame_c.end.x])
 	var ratio := _contrast(m.name_color, Color(1.0, 0.945, 0.839))
 	if ratio < 4.5:
 		_bad(tag + " contraste %.2f" % ratio)

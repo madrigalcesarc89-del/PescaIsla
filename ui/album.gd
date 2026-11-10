@@ -57,6 +57,9 @@ var _scroll_vel := 0.0
 
 
 func _ready() -> void:
+	_fill_rect(self)
+	_fill_rect(_inspect)
+	_inspect.mouse_filter = Control.MOUSE_FILTER_STOP
 	_load_strings()
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = CREAM
@@ -177,6 +180,7 @@ func open_album() -> void:
 	visible = true
 	_hide_detail()
 	_rebuild()
+	call_deferred("_relayout_open")
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null and am.has_method("play_sfx"):
 		am.play_sfx("open")
@@ -216,6 +220,45 @@ func play_reward(amount: int) -> void:
 		am.play_sfx("coin")
 
 
+func _relayout_open() -> void:
+	if not visible or not is_node_ready():
+		return
+	var prev := _card_w
+	_apply_margin()
+	if absf(_card_w - prev) >= 0.5 or _sections.get_child_count() == 0:
+		_rebuild()
+
+
+func _view_size() -> Vector2:
+	var vp := get_viewport().get_visible_rect().size
+	var s := size
+	if s.x < 64.0 or s.y < 64.0:
+		s = vp
+	if vp.x >= 64.0 and s.x > vp.x + 1.0:
+		s.x = vp.x
+	if vp.y >= 64.0 and s.y > vp.y + 1.0:
+		s.y = vp.y
+	if s.x < 64.0 or s.y < 64.0:
+		s = Vector2(1080, 1920)
+	return s
+
+
+func _fill_rect(c: Control) -> void:
+	if c == null:
+		return
+	c.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.anchor_left = 0.0
+	c.anchor_top = 0.0
+	c.anchor_right = 1.0
+	c.anchor_bottom = 1.0
+	c.offset_left = 0.0
+	c.offset_top = 0.0
+	c.offset_right = 0.0
+	c.offset_bottom = 0.0
+	c.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	c.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+
 func _on_resized() -> void:
 	if _laying or not visible or not is_node_ready():
 		return
@@ -233,9 +276,10 @@ func _margins() -> Vector4:
 	var bottom := MARGIN
 	var sa := DisplayServer.get_display_safe_area()
 	var win := DisplayServer.window_get_size()
-	if win.x > 1 and win.y > 1 and size.x > 1.0:
-		var sx := size.x / float(win.x)
-		var sy := size.y / float(win.y)
+	var view := _view_size()
+	if win.x > 1 and win.y > 1 and view.x > 1.0:
+		var sx := view.x / float(win.x)
+		var sy := view.y / float(win.y)
 		var safe_left := maxf(0.0, float(sa.position.x)) * sx
 		var safe_right := maxf(0.0, float(win.x) - float(sa.end.x)) * sx
 		var side := maxf(safe_left, safe_right)
@@ -257,9 +301,11 @@ func _apply_margin() -> void:
 	_panel.offset_right = -m.z
 	_panel.offset_bottom = -m.w
 	_panel.custom_minimum_size = Vector2.ZERO
-	var available := maxf(240.0, size.x - m.x - m.z)
-	if size.x < 64.0:
-		available = 1080.0 - MARGIN * 2.0
+	var view := _view_size()
+	var available := maxf(240.0, view.x - m.x - m.z)
+	if _panel.size.x >= 64.0:
+		available = minf(available, _panel.size.x)
+	available = minf(available, maxf(240.0, view.x - MARGIN * 2.0))
 	var cap := minf(available, CARD_W * 3.0 + GAP * 2.0)
 	var card := floorf((cap - GAP * 2.0) / 3.0)
 	_card_w = clampf(card, 96.0, CARD_W)
@@ -276,6 +322,8 @@ func _apply_margin() -> void:
 	_vbox.offset_top = 8.0
 	_vbox.offset_bottom = -8.0
 	_vbox.custom_minimum_size = Vector2.ZERO
+	_sections.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_sections.custom_minimum_size = Vector2(col, 0)
 
 
 func _content_width() -> float:
@@ -318,6 +366,8 @@ func _measure_cards() -> void:
 func _make_section(rarity: String) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.clip_contents = true
 	box.add_child(_make_section_head(rarity))
 	var grid := GridContainer.new()
 	grid.columns = 3

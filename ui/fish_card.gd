@@ -23,8 +23,14 @@ var _extra: Label = null
 var _value_center: Control = null
 var _pulse: Tween = null
 var _aspects: Dictionary = {}
+## El pulgar sigue en Mantén (anclado abajo, ~540 px). Continuar no entra ahí.
+const THUMB_CLEAR := 640.0
+const ARM_SEC := 0.85
+var _continue_ready := false
+var _arm_token := 0
 
 @onready var _dim: ColorRect = $Dim
+@onready var _center: Control = $Center
 @onready var _box: VBoxContainer = $Center/CardBox
 @onready var _frame_box: Control = $Center/CardBox/FrameCenter/FrameBox
 @onready var _frame_rect: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FrameRect
@@ -74,8 +80,13 @@ func _ready() -> void:
 	_shadow.modulate = Color(0.45, 0.28, 0.16, 0.32)
 	_box.add_theme_constant_override("separation", int(_layout.get("continue_gap", 24)))
 	_box.resized.connect(func() -> void: _box.pivot_offset = _box.size * 0.5)
-	_fun_btn.pressed.connect(func() -> void: continued.emit())
+	_fun_btn.pressed.connect(_on_continue_pressed)
+	_fun_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_dim.gui_input.connect(_on_dim_tap)
+	_fill(self)
+	_fill(_dim)
+	_fill(_center)
+	_center.mouse_filter = Control.MOUSE_FILTER_STOP
 	_paint_text(_name_label)
 	_paint_text(_value_label)
 	_badge_label.add_theme_font_size_override("font_size", 34)
@@ -90,6 +101,7 @@ func _ready() -> void:
 	_blurb.get_parent().move_child(_extra, _blurb.get_index() + 1)
 	_value_center = _value_label.get_parent().get_parent().get_parent()
 	_apply_metrics()
+	call_deferred("_apply_metrics")
 
 
 func _notification(what: int) -> void:
@@ -98,10 +110,50 @@ func _notification(what: int) -> void:
 
 
 func _on_dim_tap(event: InputEvent) -> void:
+	var press := false
 	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
-		continued.emit()
+		press = true
 	elif event is InputEventScreenTouch and (event as InputEventScreenTouch).pressed:
-		continued.emit()
+		press = true
+	if not press:
+		return
+	# El fondo no cierra. Si el pulgar sigue en Mantén, no se come la ficha.
+	get_viewport().set_input_as_handled()
+
+
+func _on_continue_pressed() -> void:
+	if not _continue_ready:
+		return
+	continued.emit()
+
+
+## El dedo que todavía está en Mantén no cierra la tarjeta.
+func _arm_continue() -> void:
+	_arm_token += 1
+	var token := _arm_token
+	_continue_ready = false
+	_fun_btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fun_btn.modulate.a = 0.45
+	if _center != null:
+		_center.mouse_filter = Control.MOUSE_FILTER_STOP
+	if OS.get_environment("CARD_AUDIT") == "1":
+		_continue_ready = true
+		_fun_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		_fun_btn.modulate.a = 1.0
+		if _center != null:
+			_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return
+	var tw := create_tween()
+	tw.tween_interval(ARM_SEC)
+	tw.tween_callback(func() -> void:
+		if token != _arm_token or not visible:
+			return
+		_continue_ready = true
+		_fun_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		_fun_btn.modulate.a = 1.0
+		if _center != null:
+			_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	)
 
 
 func _paint_text(lab: Label) -> void:
@@ -146,6 +198,7 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 		_halo.modulate = HALO_MOD[frame_key]
 	visible = true
 	_apply_metrics()
+	_arm_continue()
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null:
 		am.play_sfx("open")
@@ -154,6 +207,11 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 
 
 func hide_card() -> void:
+	_arm_token += 1
+	_continue_ready = false
+	if _fun_btn != null:
+		_fun_btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fun_btn.modulate.a = 1.0
 	_kill_pulse()
 	visible = false
 
@@ -171,6 +229,50 @@ func _screen_size() -> Vector2:
 	return s
 
 
+func _fill(c: Control) -> void:
+	c.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.anchor_left = 0.0
+	c.anchor_top = 0.0
+	c.anchor_right = 1.0
+	c.anchor_bottom = 1.0
+	c.offset_left = 0.0
+	c.offset_top = 0.0
+	c.offset_right = 0.0
+	c.offset_bottom = 0.0
+	c.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	c.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+
+## Centra la ficha en la franja que queda por encima de Mantén.
+## Continuar sigue debajo del marco, con el aire de continue_gap.
+func _place_box() -> void:
+	if _box == null or _frame_box == null or _fun_btn == null:
+		return
+	var vp := _screen_size()
+	if _center != null and _center.size.x >= 64.0 and _center.size.y >= 64.0:
+		vp = _center.size
+	var fz := _frame_box.custom_minimum_size
+	var btn_s := _fun_btn.custom_minimum_size
+	var gap := float(_layout.get("continue_gap", 24))
+	var box_w := maxf(fz.x, btn_s.x)
+	var box_h := fz.y + gap + btn_s.y
+	var x := (vp.x - box_w) * 0.5
+	var band_top := 48.0
+	var band_bot := vp.y - THUMB_CLEAR
+	var y := band_top
+	if band_bot - band_top > box_h:
+		y = band_top + (band_bot - band_top - box_h) * 0.5
+	_box.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_box.anchor_right = 0.0
+	_box.anchor_bottom = 0.0
+	_box.grow_horizontal = Control.GROW_DIRECTION_END
+	_box.grow_vertical = Control.GROW_DIRECTION_END
+	_box.custom_minimum_size = Vector2(box_w, box_h)
+	_box.position = Vector2(x, y)
+	_box.size = Vector2(box_w, box_h)
+	_box.pivot_offset = _box.size * 0.5
+
+
 func _frame_pixel_size() -> Vector2:
 	var vp := _screen_size()
 	var fp: Array = _layout.get("frame_px", [425, 815])
@@ -178,9 +280,10 @@ func _frame_pixel_size() -> Vector2:
 	var width_frac := float(_layout.get("card_screen_width", 0.70))
 	var gap := float(_layout.get("continue_gap", 24))
 	var btn_h := float((_layout.get("button", {}) as Dictionary).get("h", 150))
-	var margin := 32.0
-	var max_w := vp.x * width_frac
-	var max_h := maxf(240.0, vp.y - btn_h - gap - margin)
+	var top := 48.0
+	var max_w := minf(vp.x * width_frac, vp.x - 64.0)
+	# Toda la ficha, botón incluido, queda por encima de Mantén.
+	var max_h := maxf(280.0, vp.y - THUMB_CLEAR - top - btn_h - gap)
 	var w := max_w
 	var h := w / aspect
 	if h > max_h:
@@ -209,6 +312,7 @@ func _apply_metrics() -> void:
 		_backing_style.set_corner_radius_all(int(clampf(fz.x * 0.12, 28.0, 90.0)))
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(_frame_key, {})
 	if fr.is_empty():
+		_place_box()
 		return
 	var win: Array = fr.get("window", [0.1, 0.1, 0.8, 0.8])
 	var win_w := fz.x * float(win[2])
@@ -269,6 +373,7 @@ func _apply_metrics() -> void:
 	_fun_btn.add_theme_color_override("font_hover_color", brown)
 	_fun_btn.add_theme_color_override("font_pressed_color", brown)
 	_fun_btn.add_theme_constant_override("outline_size", 0)
+	_place_box()
 	call_deferred("_refit_name", safe_w, max_lines, min_px, start)
 
 
