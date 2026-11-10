@@ -105,10 +105,21 @@ func hide_card() -> void:
 	visible = false
 
 
+func _screen_size() -> Vector2:
+	# El control ya está anclado a toda la pantalla: su size está en las
+	# mismas unidades que el layout. get_viewport_rect() con stretch
+	# canvas_items a veces devuelve los píxeles de la ventana y la
+	# tarjeta se quedaba al tamaño nativo del marco (~36 %).
+	var s := size
+	if s.x < 64.0 or s.y < 64.0:
+		s = get_viewport_rect().size
+	if s.x < 64.0 or s.y < 64.0:
+		s = Vector2(1080, 1920)
+	return s
+
+
 func _frame_pixel_size() -> Vector2:
-	var vp := get_viewport_rect().size
-	if vp.x < 8.0 or vp.y < 8.0:
-		vp = Vector2(1080, 1920)
+	var vp := _screen_size()
 	var fp: Array = _layout.get("frame_px", [425, 815])
 	var aspect := float(fp[0]) / float(fp[1])
 	var width_frac := float(_layout.get("card_screen_width", 0.70))
@@ -130,8 +141,17 @@ func _apply_metrics() -> void:
 		return
 	var fz := _frame_pixel_size()
 	_frame_box.custom_minimum_size = fz
+	_frame_box.size = fz
 	var gap := int(_layout.get("continue_gap", 24))
 	_box.add_theme_constant_override("separation", gap)
+	var btn: Dictionary = _layout.get("button", {})
+	var btn_w := float(btn.get("w", 420))
+	var btn_h := float(btn.get("h", 150))
+	if btn_w > fz.x * 0.86:
+		var k := (fz.x * 0.86) / btn_w
+		btn_w *= k
+		btn_h *= k
+	_fun_btn.custom_minimum_size = Vector2(btn_w, btn_h)
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(_frame_key, {})
 	if fr.is_empty():
 		return
@@ -144,15 +164,44 @@ func _apply_metrics() -> void:
 	side = minf(side, win_h * band * 0.96)
 	_fish.custom_minimum_size = Vector2(side, side)
 	_halo.custom_minimum_size = Vector2(side, side) * 1.35
+	# El hueco útil del marco es más estrecho que la ventana (las ondas
+	# se comen los bordes). El texto vive en el 62 % central.
+	var inset := maxf(16.0, fz.x * 0.08)
+	_text_block.add_theme_constant_override("margin_left", int(inset))
+	_text_block.add_theme_constant_override("margin_right", int(inset))
+	var safe_w := maxf(40.0, win_w - inset * 2.0)
+	_window.clip_contents = true
+	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_name_label.clip_text = true
+	_name_label.custom_minimum_size = Vector2(0, 0)
 	var min_px := int(_layout.get("name_min_px", 22))
 	var max_lines := int(_layout.get("name_max_lines", 2))
-	var start := clampi(int(win_w * 0.072), min_px + 6, 48)
-	UiFit.fit_label(_name_label, win_w - 16.0, max_lines, min_px, start)
-	var value_room := win_w - 16.0 - 58.0
+	var start := clampi(int(safe_w * 0.12), min_px + 4, 48)
+	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
+	var value_room := maxf(40.0, safe_w - 58.0)
+	_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_value_label.clip_text = true
 	UiFit.fit_label(_value_label, value_room, 1, min_px, mini(start, 40))
-	_place_badge(fr, fz, win_w)
+	_place_badge(fr, fz, safe_w)
 	_paint_text(_name_label)
 	_paint_text(_value_label)
+	call_deferred("_refit_name", safe_w, max_lines, min_px, start)
+
+
+## Segunda pasada cuando el contenedor ya tiene ancho real.
+func _refit_name(safe_w: float, max_lines: int, min_px: int, start: int) -> void:
+	if _name_label == null:
+		return
+	var w := _name_label.size.x
+	# Ignora un ancho colapsado (aún sin layout): encogería la fuente al mínimo.
+	if w > safe_w * 0.55:
+		safe_w = minf(safe_w, w)
+	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_name_label.clip_text = true
+	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
+	_paint_text(_name_label)
 
 
 func _place_badge(fr: Dictionary, fz: Vector2, win_w: float) -> void:
@@ -230,6 +279,11 @@ func measure() -> Dictionary:
 	var frame_r := _frame_box.get_global_rect()
 	var btn_r := _fun_btn.get_global_rect()
 	var fish_r := _fish.get_global_rect()
+	var name_used := name_r.size.x
+	var font := _name_label.get_theme_font("font")
+	if font != null:
+		var px := _name_label.get_theme_font_size("font_size")
+		name_used = font.get_multiline_string_size(_name_label.text, HORIZONTAL_ALIGNMENT_CENTER, maxf(_name_label.size.x, 1.0), px).x
 	return {
 		"window": win,
 		"name": name_r,
@@ -244,6 +298,7 @@ func measure() -> Dictionary:
 		"name_outline": _name_label.get_theme_constant("outline_size"),
 		"value_outline": _value_label.get_theme_constant("outline_size"),
 		"name_color": _name_label.get_theme_color("font_color"),
+		"name_used_w": name_used,
 		"card_width_frac": frame_r.size.x / maxf(get_viewport_rect().size.x, 1.0),
 		"fish_of_window": fish_r.size.x / maxf(win.size.x, 1.0),
 	}

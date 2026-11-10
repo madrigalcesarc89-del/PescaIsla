@@ -110,6 +110,11 @@ func _inside(inner: Rect2, outer: Rect2) -> bool:
 		and inner.end.y <= outer.end.y + EPS
 
 
+func _inside_x(inner: Rect2, outer: Rect2) -> bool:
+	const EPS := 1.5
+	return inner.position.x >= outer.position.x - EPS and inner.end.x <= outer.end.x + EPS
+
+
 func _check(m: Dictionary, aspect: String, id: String, lang: String, value_text: String) -> void:
 	var win: Rect2 = m.window
 	var tag := "%s %s %s %s" % [aspect, id, lang, value_text]
@@ -118,6 +123,12 @@ func _check(m: Dictionary, aspect: String, id: String, lang: String, value_text:
 		return
 	if not _inside(m.name, win):
 		_bad(tag + " nombre fuera de la ventana " + str(m.name) + " win " + str(win))
+	var frame: Rect2 = m.frame
+	var safe := Rect2(frame.position.x + frame.size.x * 0.145, frame.position.y, frame.size.x * 0.71, frame.size.y)
+	if not _inside_x(m.name, safe):
+		_bad(tag + " nombre sobre el marco " + str(m.name) + " safe " + str(safe))
+	if float(m.get("name_used_w", 0.0)) > m.name.size.x + 2.0:
+		_bad(tag + " el texto del nombre no cabe (%.0f > %.0f)" % [float(m.name_used_w), m.name.size.x])
 	if not _inside(m.value, win):
 		_bad(tag + " valor fuera de la ventana " + str(m.value))
 	if not _inside(m.badge, win):
