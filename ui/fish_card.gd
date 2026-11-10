@@ -23,11 +23,13 @@ var _extra: Label = null
 var _value_center: Control = null
 var _pulse: Tween = null
 var _aspects: Dictionary = {}
-## El pulgar sigue en Mantén (anclado abajo, ~540 px). Continuar no entra ahí.
-const THUMB_CLEAR := 640.0
+## El pulgar sigue en Mantén (anclado abajo, ~540 px). Continuar queda
+## bastante más arriba, también si hay barra de gestos.
+const THUMB_CLEAR := 860.0
 const ARM_SEC := 0.85
 var _continue_ready := false
 var _arm_token := 0
+var _forcing := false
 
 @onready var _dim: ColorRect = $Dim
 @onready var _center: Control = $Center
@@ -104,8 +106,17 @@ func _ready() -> void:
 	call_deferred("_apply_metrics")
 
 
+func _process(_delta: float) -> void:
+	if _forcing or not visible or _box == null:
+		return
+	var vp := _viewport_canvas_size()
+	var mid := _box.get_global_rect().get_center().x
+	if absf(mid - vp.x * 0.5) > 8.0 or size.x < vp.x * 0.92:
+		_apply_metrics()
+
+
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED and is_node_ready():
+	if what == NOTIFICATION_RESIZED and is_node_ready() and not _forcing:
 		_apply_metrics()
 
 
@@ -197,6 +208,7 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	if _halo.visible:
 		_halo.modulate = HALO_MOD[frame_key]
 	visible = true
+	_force_screen()
 	_apply_metrics()
 	_arm_continue()
 	var am := get_node_or_null("/root/AudioManager")
@@ -217,16 +229,7 @@ func hide_card() -> void:
 
 
 func _screen_size() -> Vector2:
-	# El control ya está anclado a toda la pantalla: su size está en las
-	# mismas unidades que el layout. get_viewport_rect() con stretch
-	# canvas_items a veces devuelve los píxeles de la ventana y la
-	# tarjeta se quedaba al tamaño nativo del marco (~36 %).
-	var s := size
-	if s.x < 64.0 or s.y < 64.0:
-		s = get_viewport_rect().size
-	if s.x < 64.0 or s.y < 64.0:
-		s = Vector2(1080, 1920)
-	return s
+	return _viewport_canvas_size()
 
 
 func _fill(c: Control) -> void:
@@ -243,14 +246,77 @@ func _fill(c: Control) -> void:
 	c.grow_vertical = Control.GROW_DIRECTION_BOTH
 
 
+## Tamaño del canvas, no el ancho del propio control (si la ficha no
+## se estiró, size es el del marco y todo queda pegado a la izquierda).
+func _viewport_canvas_size() -> Vector2:
+	var vr := get_viewport().get_visible_rect().size
+	var s := size
+	if s.x >= 1000.0 and s.y >= 1400.0 and vr.x > s.x * 1.15:
+		return s
+	if vr.x >= 64.0 and vr.y >= 64.0:
+		return vr
+	if s.x >= 64.0 and s.y >= 64.0:
+		return s
+	return Vector2(1080, 1920)
+
+
+func _thumb_clear() -> float:
+	var extra := 0.0
+	var sa := DisplayServer.get_display_safe_area()
+	var win := DisplayServer.window_get_size()
+	var vp := _viewport_canvas_size()
+	if win.y > 8 and vp.y > 8.0 and sa.size.y > win.y * 0.5 and sa.end.y <= win.y:
+		var sy := vp.y / float(win.y)
+		extra = maxf(0.0, float(win.y) - float(sa.end.y)) * sy
+	return THUMB_CLEAR + extra
+
+
+## Cubre el viewport aunque el padre (álbum o CanvasLayer) no estire anclajes.
+func _force_screen() -> void:
+	if _forcing:
+		return
+	_forcing = true
+	var vp := _viewport_canvas_size()
+	top_level = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	clip_contents = false
+	anchor_left = 0.0
+	anchor_top = 0.0
+	anchor_right = 0.0
+	anchor_bottom = 0.0
+	grow_horizontal = Control.GROW_DIRECTION_END
+	grow_vertical = Control.GROW_DIRECTION_END
+	if global_position.distance_to(Vector2.ZERO) > 0.5 or absf(size.x - vp.x) > 1.0 or absf(size.y - vp.y) > 1.0:
+		global_position = Vector2.ZERO
+		size = vp
+	_cover(_dim, vp)
+	_cover(_center, vp)
+	if _center != null:
+		_center.mouse_filter = Control.MOUSE_FILTER_STOP
+	_forcing = false
+
+
+func _cover(c: Control, vp: Vector2) -> void:
+	if c == null:
+		return
+	c.anchor_left = 0.0
+	c.anchor_top = 0.0
+	c.anchor_right = 0.0
+	c.anchor_bottom = 0.0
+	c.offset_left = 0.0
+	c.offset_top = 0.0
+	c.offset_right = vp.x
+	c.offset_bottom = vp.y
+	c.position = Vector2.ZERO
+	c.size = vp
+
+
 ## Centra la ficha en la franja que queda por encima de Mantén.
 ## Continuar sigue debajo del marco, con el aire de continue_gap.
 func _place_box() -> void:
 	if _box == null or _frame_box == null or _fun_btn == null:
 		return
-	var vp := _screen_size()
-	if _center != null and _center.size.x >= 64.0 and _center.size.y >= 64.0:
-		vp = _center.size
+	var vp := _viewport_canvas_size()
 	var fz := _frame_box.custom_minimum_size
 	var btn_s := _fun_btn.custom_minimum_size
 	var gap := float(_layout.get("continue_gap", 24))
@@ -258,11 +324,12 @@ func _place_box() -> void:
 	var box_h := fz.y + gap + btn_s.y
 	var x := (vp.x - box_w) * 0.5
 	var band_top := 48.0
-	var band_bot := vp.y - THUMB_CLEAR
+	var band_bot := vp.y - _thumb_clear()
 	var y := band_top
 	if band_bot - band_top > box_h:
 		y = band_top + (band_bot - band_top - box_h) * 0.5
-	_box.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_box.anchor_left = 0.0
+	_box.anchor_top = 0.0
 	_box.anchor_right = 0.0
 	_box.anchor_bottom = 0.0
 	_box.grow_horizontal = Control.GROW_DIRECTION_END
@@ -281,9 +348,10 @@ func _frame_pixel_size() -> Vector2:
 	var gap := float(_layout.get("continue_gap", 24))
 	var btn_h := float((_layout.get("button", {}) as Dictionary).get("h", 150))
 	var top := 48.0
+	var clear := _thumb_clear()
 	var max_w := minf(vp.x * width_frac, vp.x - 64.0)
 	# Toda la ficha, botón incluido, queda por encima de Mantén.
-	var max_h := maxf(280.0, vp.y - THUMB_CLEAR - top - btn_h - gap)
+	var max_h := maxf(280.0, vp.y - clear - top - btn_h - gap)
 	var w := max_w
 	var h := w / aspect
 	if h > max_h:
@@ -295,6 +363,7 @@ func _frame_pixel_size() -> Vector2:
 func _apply_metrics() -> void:
 	if _layout.is_empty() or _frame_box == null:
 		return
+	_force_screen()
 	var fz := _frame_pixel_size()
 	_frame_box.custom_minimum_size = fz
 	_frame_box.size = fz

@@ -172,6 +172,7 @@ func refresh_deferred() -> void:
 
 
 func open_album() -> void:
+	_force_full()
 	var step: Dictionary = AlbumSave.news_and_next(_seen, _caught, _seen_missing)
 	_news = step.get("news", {})
 	_seen = step.get("seen", {})
@@ -223,10 +224,21 @@ func play_reward(amount: int) -> void:
 func _relayout_open() -> void:
 	if not visible or not is_node_ready():
 		return
+	_force_full()
 	var prev := _card_w
 	_apply_margin()
 	if absf(_card_w - prev) >= 0.5 or _sections.get_child_count() == 0:
 		_rebuild()
+
+
+func _force_full() -> void:
+	var vr := get_viewport().get_visible_rect().size
+	if vr.x < 64.0 or vr.y < 64.0:
+		return
+	_fill_rect(self)
+	if size.x < vr.x * 0.92 or size.y < vr.y * 0.92:
+		global_position = Vector2.ZERO
+		size = vr
 
 
 func _view_size() -> Vector2:
