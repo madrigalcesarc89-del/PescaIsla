@@ -622,7 +622,8 @@ func _refresh_ui() -> void:
 		var rarity := str(current_fish.get("rarity", "common"))
 		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
 			fish_text(current_fish, "name"), rarity_name(rarity),
-			"+%d %s" % [int(current_fish.get("value", 0)), SettingsData.t("coins").to_lower()])
+			"+%d %s" % [int(current_fish.get("value", 0)), SettingsData.t("coins").to_lower()],
+			fish_text(current_fish, "description"))
 		_spawn_float_gain(int(current_fish.get("value", 0)))
 	elif state == State.ESCAPE:
 		_hud.show_toast(SettingsData.t("almost"))

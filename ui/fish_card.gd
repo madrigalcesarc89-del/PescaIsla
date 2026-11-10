@@ -17,7 +17,10 @@ const PILL := Color(1.0, 0.945, 0.88)
 
 var _layout: Dictionary = {}
 var _frame_key: String = "frame_common"
+var _art_aspect: float = 1.45
+var _backing_style: StyleBoxFlat
 var _pulse: Tween = null
+var _aspects: Dictionary = {}
 
 @onready var _dim: ColorRect = $Dim
 @onready var _box: VBoxContainer = $Center/CardBox
@@ -33,6 +36,8 @@ var _pulse: Tween = null
 @onready var _badge_panel: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/BadgePanel
 @onready var _badge_label: Label = $Center/CardBox/FrameCenter/FrameBox/BadgePanel/BadgeLabel
 @onready var _name_label: Label = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/NameLabel
+@onready var _rule: ColorRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/RuleCenter/Rule
+@onready var _blurb: Label = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/BlurbLabel
 @onready var _value_pill: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill
 @onready var _value_box: HBoxContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox
 @onready var _coin_icon: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox/CoinIcon
@@ -45,7 +50,8 @@ func _ready() -> void:
 	_layout = parsed if typeof(parsed) == TYPE_DICTIONARY else {}
 	var bs := StyleBoxFlat.new()
 	bs.bg_color = BACKING
-	bs.set_corner_radius_all(54)
+	bs.set_corner_radius_all(80)
+	_backing_style = bs
 	_backing.add_theme_stylebox_override("panel", bs)
 	var pill := StyleBoxFlat.new()
 	pill.bg_color = PILL
@@ -88,14 +94,18 @@ func _paint_text(lab: Label) -> void:
 	UiFit.paint_light(lab, 40)
 
 
-func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String) -> void:
+func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String, blurb: String = "") -> void:
 	_frame_key = frame_key
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(frame_key, {})
 	if fr.is_empty():
 		return
 	_frame_rect.texture = load("res://assets/art/ui/" + frame_key + ".png")
 	_fish.texture = tex
+	_art_aspect = _read_art_aspect(tex)
 	_name_label.text = name_text
+	_blurb.text = blurb
+	_blurb.visible = blurb != ""
+	_rule.visible = blurb != ""
 	_value_label.text = value_text
 	_fun_btn.text = SettingsData.t("continue")
 	_badge_panel.visible = badge_text != ""
@@ -105,7 +115,8 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + slice):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
-	_anchor_frac(_backing, fr.get("backing_rect", [0.1, 0.1, 0.8, 0.8]))
+	# El crema entra debajo del marco para que no se vea el escenario en el borde.
+	_anchor_frac(_backing, [0.03, 0.02, 0.94, 0.96])
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
 	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
 	if _halo.visible:
@@ -171,15 +182,22 @@ func _apply_metrics() -> void:
 		btn_w *= k
 		btn_h *= k
 	_fun_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	if _backing_style != null:
+		_backing_style.set_corner_radius_all(int(clampf(fz.y * 0.05, 40.0, 110.0)))
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(_frame_key, {})
 	if fr.is_empty():
 		return
 	var win: Array = fr.get("window", [0.1, 0.1, 0.8, 0.8])
 	var win_w := fz.x * float(win[2])
 	var win_h := fz.y * float(win[3])
-	var side := minf(win_w * 0.74, win_h * 0.48)
-	side = maxf(side, 96.0)
-	_stage.custom_minimum_size = Vector2(side, side)
+	var aspect := maxf(_art_aspect, 0.45)
+	var fw := win_w * 0.92
+	var fh := fw / aspect
+	var max_h := win_h * 0.46
+	if fh > max_h:
+		fh = max_h
+		fw = fh * aspect
+	_stage.custom_minimum_size = Vector2(maxf(fw, 120.0), maxf(fh, 80.0))
 	_fit_fish_art()
 	var coin := clampf(fz.x * 0.09, 44.0, 76.0)
 	_coin_icon.custom_minimum_size = Vector2(coin, coin)
@@ -189,7 +207,7 @@ func _apply_metrics() -> void:
 	_text_block.add_theme_constant_override("margin_left", int(inset))
 	_text_block.add_theme_constant_override("margin_right", int(inset))
 	var safe_w := maxf(40.0, win_w - inset * 2.0)
-	_window.clip_contents = true
+	_window.clip_contents = false
 	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -197,15 +215,26 @@ func _apply_metrics() -> void:
 	_name_label.custom_minimum_size = Vector2(0, 0)
 	var min_px := int(_layout.get("name_min_px", 22))
 	var max_lines := int(_layout.get("name_max_lines", 2))
-	var start := clampi(int(safe_w * 0.12), min_px + 4, 48)
+	var start := clampi(int(safe_w * 0.11), min_px + 4, 52)
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
-	var value_room := maxf(40.0, safe_w - 58.0)
+	_rule.custom_minimum_size = Vector2(maxf(72.0, safe_w * 0.34), 3.0)
+	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiFit.fit_label(_blurb, safe_w, 2, 18, 30)
+	var value_room := maxf(40.0, safe_w - coin - 28.0)
 	_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_value_label.clip_text = true
 	UiFit.fit_label(_value_label, value_room, 1, min_px, mini(start, 40))
 	_place_badge(fr, fz, safe_w)
 	_paint_text(_name_label)
 	_paint_text(_value_label)
+	_paint_text(_blurb)
+	_blurb.add_theme_color_override("font_color", Color(0.48, 0.34, 0.26))
+	var brown := Color(0.353, 0.239, 0.169)
+	_fun_btn.add_theme_color_override("font_color", brown)
+	_fun_btn.add_theme_color_override("font_hover_color", brown)
+	_fun_btn.add_theme_color_override("font_pressed_color", brown)
+	_fun_btn.add_theme_constant_override("outline_size", 0)
 	call_deferred("_refit_name", safe_w, max_lines, min_px, start)
 
 
@@ -221,6 +250,26 @@ func _refit_name(safe_w: float, max_lines: int, min_px: int, start: int) -> void
 	_name_label.clip_text = true
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
 	_paint_text(_name_label)
+
+
+func _read_art_aspect(tex: Texture2D) -> float:
+	if tex == null:
+		return 1.45
+	var key := tex.resource_path
+	if key != "" and _aspects.has(key):
+		return float(_aspects[key])
+	var img: Image = tex.get_image()
+	if img == null or img.is_empty():
+		if key.begins_with("res://"):
+			img = Image.load_from_file(ProjectSettings.globalize_path(key))
+	var aspect := 1.45
+	if img != null and not img.is_empty():
+		var used := img.get_used_rect()
+		if used.size.x >= 2 and used.size.y >= 2:
+			aspect = used.size.x / float(used.size.y)
+	if key != "":
+		_aspects[key] = aspect
+	return aspect
 
 
 func _fit_fish_art() -> void:

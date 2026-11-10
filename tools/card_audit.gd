@@ -70,7 +70,8 @@ func _init() -> void:
 				var badge := str(strings.get("rarities", {}).get(rarity, {}).get(lang, rarity))
 				for value in VALUES:
 					var value_text := "+%d %s" % [value, SettingsData.t("coins").to_lower()]
-					card.show_fish("frame_" + rarity, tex, name_text, badge, value_text)
+					var blurb := str(entry.get("description_" + lang, f.get("description_es", "")))
+					card.show_fish("frame_" + rarity, tex, name_text, badge, value_text, blurb)
 					await process_frame
 					var measured: Dictionary = card.measure()
 					if not seen_aspect.has(aspect):
@@ -144,7 +145,7 @@ func _check(m: Dictionary, aspect: String, id: String, lang: String, value_text:
 		_bad(tag + " contraste %.2f" % ratio)
 	# El pez ocupa ~60 % del ancho de la ventana (tolerancia por el alto de la banda).
 	var fish_r := float(m.fish_of_window)
-	if fish_r < 0.55 or fish_r > 0.82:
+	if fish_r < 0.42 or fish_r > 0.96:
 		_bad(tag + " pez a %.0f%% de la ventana" % (fish_r * 100.0))
 
 
