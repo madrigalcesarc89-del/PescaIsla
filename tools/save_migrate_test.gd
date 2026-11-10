@@ -69,6 +69,17 @@ func _init() -> void:
 	var already: Dictionary = parsed["claimed"].duplicate()
 	already["common"] = true
 	_expect(not AlbumSave.can_claim(fishes, commons, already, "common"), "ya cobrado no")
+	var dirty := {"coins": 500, "caught": {"fish_pink_sardine": 3, "fish_moon": 1}, "claimed": {"common": true}, "rod": "bamboo"}
+	var fresh: Dictionary = AlbumSave.apply_fresh_run(dirty)
+	_expect(int(fresh["coins"]) == 0, "reinicio monedas")
+	_expect(fresh["caught"].is_empty(), "reinicio sin peces")
+	_expect(fresh["claimed"]["common"] == false, "reinicio sin premios")
+	_expect(int(fresh["run_epoch"]) == 1, "marca la partida nueva")
+	_expect(str(fresh["rod"]) == "bamboo", "no borra la caña")
+	fresh["caught"] = {"fish_moon": 1}
+	fresh["coins"] = 9
+	var kept: Dictionary = AlbumSave.apply_fresh_run(fresh)
+	_expect(int(kept["caught"]["fish_moon"]) == 1 and int(kept["coins"]) == 9, "no vuelve a borrar")
 	_expect(AlbumSave.back_action(true, true, true, true, true) == "ignore", "la tarjeta no se cierra")
 	_expect(AlbumSave.back_action(false, true, true, false, false) == "close_detail", "primero la ficha")
 	_expect(AlbumSave.back_action(false, false, true, true, false) == "close_album", "luego el álbum")

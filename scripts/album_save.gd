@@ -4,6 +4,7 @@ extends RefCounted
 
 const RARITIES := ["common", "uncommon", "rare", "legendary"]
 const DEFAULT_REWARDS := {"common": 50, "uncommon": 120, "rare": 300, "legendary": 800}
+const RUN_EPOCH := 1
 
 
 static func empty_claimed() -> Dictionary:
@@ -109,6 +110,22 @@ static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: 
 	for id in seen.keys():
 		seen_out[str(id)] = maxi(0, int(seen[id]))
 	body["album_seen"] = seen_out
+	return body
+
+
+## La partida vieja no trae run_epoch. Solo esa se vacía una vez.
+static func stale_run(data: Dictionary) -> bool:
+	return int(data.get("run_epoch", 0)) < RUN_EPOCH
+
+
+static func apply_fresh_run(data: Dictionary) -> Dictionary:
+	if not stale_run(data):
+		return data
+	var parsed: Dictionary = read(data)
+	var rest: Dictionary = parsed.get("rest", {})
+	rest.erase("run_epoch")
+	var body := payload(0, {}, {}, empty_claimed(), {"dry_rare": 0, "dry_legend": 0}, rest, {})
+	body["run_epoch"] = RUN_EPOCH
 	return body
 
 

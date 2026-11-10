@@ -477,14 +477,23 @@ func _load_game() -> void:
 	_first_caught = {}
 	_claimed = AlbumSave.empty_claimed()
 	_album_seen = {}
-	_seen_missing = true
+	_seen_missing = false
 	_dry_rare = 0
 	_dry_legend = 0
 	_save_rest = {}
-	if not FileAccess.file_exists(SAVE_PATH):
-		return
-	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
-	if typeof(data) != TYPE_DICTIONARY:
+	var data: Dictionary = {}
+	if FileAccess.file_exists(SAVE_PATH):
+		var raw = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+		if typeof(raw) == TYPE_DICTIONARY:
+			data = raw
+	if AlbumSave.stale_run(data):
+		var fresh: Dictionary = AlbumSave.apply_fresh_run(data)
+		var err := AlbumSave.atomic_write(SAVE_PATH, JSON.stringify(fresh))
+		if err != OK:
+			push_warning("Fishing: no se pudo reiniciar la partida (%s)" % err)
+		data = fresh
+		print("RUN_RESET peces 0")
+	if data.is_empty():
 		return
 	var parsed := AlbumSave.read(data)
 	coins = int(parsed.get("coins", 0))
