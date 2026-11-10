@@ -10,6 +10,7 @@ const SAVE_PATH := "user://save.json"
 const DB_PATH := "res://data/fish_db.json"
 const STRINGS_PATH := "res://data/strings.json"
 const FishRoll = preload("res://scripts/fish_roll.gd")
+const AlbumSave = preload("res://scripts/album_save.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
 const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}

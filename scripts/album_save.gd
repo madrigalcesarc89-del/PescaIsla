@@ -1,4 +1,3 @@
-class_name AlbumSave
 extends RefCounted
 ## Guardado del álbum. Los JSON viejos solo traen caught como enteros:
 ## se rellenan first_caught y claimed sin perder monedas ni otras claves.
