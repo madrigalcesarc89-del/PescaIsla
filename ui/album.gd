@@ -281,13 +281,22 @@ func _rebuild_rewards() -> void:
 		any = true
 		var amount := AlbumSave.reward_amount(_db, rarity)
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(126, 126)
+		btn.custom_minimum_size = Vector2(168, 126)
 		btn.text = "%s\n%s" % [_rarity_name(rarity), SettingsData.t("album_claim") % amount]
-		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_paint(btn)
 		btn.pressed.connect(_on_claim.bind(rarity))
 		_rewards.add_child(btn)
 	_rewards.visible = any
+	call_deferred("_fit_rewards")
+
+
+func _fit_rewards() -> void:
+	for btn in _rewards.get_children():
+		if not btn is Button:
+			continue
+		_paint(btn)
+		UiFit.fit_label(btn, btn.custom_minimum_size.x - 16.0, 3, 14, 22)
 
 
 func _fit_chrome() -> void:

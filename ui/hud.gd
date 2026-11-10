@@ -58,6 +58,17 @@ func _on_shop() -> void:
 	shop_pressed.emit()
 
 
+func close_soon() -> bool:
+	if not _soon.visible:
+		return false
+	_soon.visible = false
+	return true
+
+
+func is_soon_open() -> bool:
+	return _soon.visible
+
+
 func _on_soon_close() -> void:
 	_soon.visible = false
 

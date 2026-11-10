@@ -508,6 +508,7 @@ func _save_game() -> void:
 var _ui_layer: CanvasLayer
 var _hud: Control
 var _fishcard: Control
+var _album: Control
 var _settings: Control
 var _escape_label: Label
 
@@ -522,12 +523,17 @@ func _build_ui() -> void:
 	_hud.action_pressed.connect(_on_action_pressed)
 	_hud.hold_down.connect(_on_hold_down)
 	_hud.hold_up.connect(_on_hold_up)
-	_hud.album_pressed.connect(_on_album_stub)
+	_hud.album_pressed.connect(_on_album)
 	_hud.shop_pressed.connect(_on_shop_stub)
 	_hud.settings_pressed.connect(_on_settings_stub)
 	_fishcard = load("res://scenes/ui/fish_card.tscn").instantiate()
 	_ui_layer.add_child(_fishcard)
 	_fishcard.continued.connect(_on_continue)
+	_album = load("res://scenes/ui/album.tscn").instantiate()
+	_ui_layer.add_child(_album)
+	_album.claim_requested.connect(_on_album_claim)
+	_album.reset_requested.connect(_on_album_reset)
+	_album.unlock_requested.connect(_on_album_unlock)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
 	_settings.lang_changed.connect(_on_lang_changed)
@@ -542,12 +548,91 @@ func _build_ui() -> void:
 	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_escape_label.visible = false
 	_hud.add_child(_escape_label)
+	var root := get_tree().root
+	if root.has_signal("go_back_requested"):
+		root.go_back_requested.connect(_on_go_back)
 	_refresh_ui()
 
 
-## Panel "Proximamente" para album/tienda hasta su fase.
-func _on_album_stub() -> void:
-	_hud.show_soon(SettingsData.t("album"), SettingsData.t("soon_body"))
+func _on_album() -> void:
+	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.open_album()
+
+
+func _on_album_claim(rarity: String) -> void:
+	if bool(_claimed.get(rarity, false)):
+		return
+	if not AlbumSave.rarity_complete(fishes, caught, rarity):
+		return
+	var amount := AlbumSave.reward_amount(_db, rarity)
+	_claimed[rarity] = true
+	coins += amount
+	_save_game()
+	_refresh_ui()
+	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.play_reward(amount)
+
+
+func _on_album_reset() -> void:
+	if not OS.is_debug_build():
+		return
+	coins = 0
+	caught = {}
+	_first_caught = {}
+	_claimed = AlbumSave.empty_claimed()
+	_dry_rare = 0
+	_dry_legend = 0
+	_save_game()
+	_refresh_ui()
+	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.open_album()
+
+
+func _on_album_unlock() -> void:
+	if not OS.is_debug_build():
+		return
+	for fish in fishes:
+		var id := str(fish.get("id", ""))
+		if id == "":
+			continue
+		if int(caught.get(id, 0)) <= 0:
+			AlbumSave.stamp_first(_first_caught, id, 0)
+			caught[id] = 1
+	_save_game()
+	_refresh_ui()
+	_album.setup(fishes, caught, _first_caught, _claimed, _db)
+	_album.open_album()
+
+
+func _on_go_back() -> void:
+	var card_open := _fishcard != null and _fishcard.visible
+	var detail_open := false
+	if _album != null and _album.has_method("is_detail_open"):
+		detail_open = bool(_album.is_detail_open())
+	var album_open := _album != null and _album.visible
+	var settings_open := _settings != null and _settings.visible
+	var soon_open := false
+	if _hud != null and _hud.has_method("is_soon_open"):
+		soon_open = bool(_hud.is_soon_open())
+	var action := AlbumSave.back_action(card_open, detail_open, album_open, settings_open, soon_open)
+	if action == "ignore":
+		return
+	if action == "close_detail" or action == "close_album":
+		_album.consumes_back()
+		return
+	if action == "close_settings":
+		_settings.visible = false
+		return
+	if action == "close_soon":
+		_hud.close_soon()
+		return
+	get_tree().quit()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_on_go_back()
+		get_viewport().set_input_as_handled()
 
 
 func _on_shop_stub() -> void:
@@ -563,6 +648,8 @@ func _on_settings_stub() -> void:
 
 func _on_lang_changed() -> void:
 	_refresh_ui()
+	if _album != null and _album.visible:
+		_album.setup(fishes, caught, _first_caught, _claimed, _db)
 
 
 func _apply_safe_area(c: Control) -> void:
