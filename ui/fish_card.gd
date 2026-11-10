@@ -53,6 +53,9 @@ func _ready() -> void:
 	bs.set_corner_radius_all(80)
 	_backing_style = bs
 	_backing.add_theme_stylebox_override("panel", bs)
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://ui/card_backing.gdshader")
+	_backing.material = mat
 	var pill := StyleBoxFlat.new()
 	pill.bg_color = PILL
 	pill.set_corner_radius_all(40)
@@ -99,7 +102,10 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(frame_key, {})
 	if fr.is_empty():
 		return
-	_frame_rect.texture = load("res://assets/art/ui/" + frame_key + ".png")
+	var frame_tex: Texture2D = load("res://assets/art/ui/" + frame_key + ".png")
+	_frame_rect.texture = frame_tex
+	if _backing.material is ShaderMaterial:
+		(_backing.material as ShaderMaterial).set_shader_parameter("frame_tex", frame_tex)
 	_fish.texture = tex
 	_art_aspect = _read_art_aspect(tex)
 	_name_label.text = name_text
@@ -115,9 +121,8 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + slice):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
-	# El borde superior del marco empieza ~4 % abajo. El crema nace ahí,
-	# debajo de la pintura, para que no asome por encima del marco.
-	_anchor_frac(_backing, [0.02, 0.046, 0.96, 0.91])
+	# Cubre el marco entero. El shader borra el crema del margen transparente.
+	_anchor_frac(_backing, [0.0, 0.0, 1.0, 1.0])
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
 	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
 	if _halo.visible:
