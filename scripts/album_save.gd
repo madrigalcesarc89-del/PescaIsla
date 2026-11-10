@@ -279,14 +279,18 @@ static func rarity_count(fishes: Array, caught: Dictionary, rarity: String) -> D
 	return {"total": total, "have": have}
 
 
-## Tarjeta de captura > ficha > álbum > otros paneles. La tarjeta no se cierra.
-static func back_action(card_open: bool, detail_open: bool, album_open: bool, settings_open: bool, soon_open: bool) -> String:
+## Tarjeta de captura > ficha > álbum > confirmación > tienda > otros paneles.
+static func back_action(card_open: bool, detail_open: bool, album_open: bool, settings_open: bool, soon_open: bool, shop_confirm_open: bool = false, shop_open: bool = false) -> String:
 	if card_open:
 		return "ignore"
 	if detail_open:
 		return "close_detail"
 	if album_open:
 		return "close_album"
+	if shop_confirm_open:
+		return "close_shop_confirm"
+	if shop_open:
+		return "close_shop"
 	if settings_open:
 		return "close_settings"
 	if soon_open:

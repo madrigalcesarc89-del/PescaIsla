@@ -1,8 +1,8 @@
 extends RefCounted
 ## Sorteo único de peces. Lo usan scripts/fishing.gd y tools/fish_audit.gd.
-## No recibe cebo, hora ni caña: ningún filtro saca a un id de la bolsa.
-## Los pesos de rareza viven en data/fish_db.json (rarity_weights) y se
-## reparten dentro de la rareza según el campo weight de cada pez.
+## Un diccionario opcional solo escala el cubo de cada rareza, después
+## del bonus de descubrimiento y de la protección contra mala suerte.
+## Ningún filtro saca a un id de la bolsa.
 
 const RARITIES := ["common", "uncommon", "rare", "legendary"]
 const RARE_PLUS := ["rare", "legendary"]
@@ -40,11 +40,15 @@ static func legend_boosted(dry_legend: int, db: Dictionary) -> bool:
 
 ## Pesos efectivos. Un pez que el jugador aún no tiene pesa el doble
 ## dentro de su rareza (el total de la rareza no cambia).
-static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary) -> Array:
+static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, gear: Dictionary = {}) -> Array:
 	var rules := pity_rules(db)
 	var rw := rarity_weights(db)
 	if legend_boosted(dry_legend, db):
 		rw["legendary"] = float(rw["legendary"]) * float(rules.legend_mult)
+	var gear_w: Dictionary = {}
+	var raw_w = gear.get("weight_mult", {})
+	if typeof(raw_w) == TYPE_DICTIONARY:
+		gear_w = raw_w
 	var allowed: Array = RARE_PLUS if forces_rare(dry_rare, db) else RARITIES
 	var groups := {}
 	for f in fishes:
@@ -69,15 +73,15 @@ static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_lege
 			sum_w += w
 		if sum_w <= 0.0:
 			continue
-		var bucket := float(rw.get(rarity, 0.0))
+		var bucket := float(rw.get(rarity, 0.0)) * float(gear_w.get(rarity, 1.0))
 		for pair in scaled:
 			out.append({"fish": pair[0], "w": bucket * float(pair[1]) / sum_w})
 	return out
 
 
 ## roll en [0, 1). Devuelve el diccionario del pez, o {} si no hay bolsa.
-static func pick(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, roll: float) -> Dictionary:
-	return _pick_entries(effective(fishes, caught, dry_rare, dry_legend, db), roll)
+static func pick(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, roll: float, gear: Dictionary = {}) -> Dictionary:
+	return _pick_entries(effective(fishes, caught, dry_rare, dry_legend, db, gear), roll)
 
 
 ## Sorteo anterior al paso 23: weight absoluto, sin rareza ni pity.

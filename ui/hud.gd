@@ -85,7 +85,37 @@ func show_soon(title: String, body: String) -> void:
 		am.play_sfx("open")
 
 
+var _coin_tween: Tween = null
+var _coin_target := -1
+
+
 func set_coins(n: int) -> void:
+	if _coin_tween != null and _coin_tween.is_valid() and _coin_tween.is_running() and _coin_target == n:
+		return
+	_coin_target = n
+	if _coin_tween != null and _coin_tween.is_valid():
+		_coin_tween.kill()
+	_coin_tween = null
+	_apply_coin_text(n)
+
+
+func animate_coins(from_n: int, to_n: int) -> void:
+	_coin_target = to_n
+	if _coin_tween != null and _coin_tween.is_valid():
+		_coin_tween.kill()
+	if from_n == to_n:
+		_apply_coin_text(to_n)
+		_coin_tween = null
+		return
+	_coin_tween = create_tween()
+	_coin_tween.tween_method(_tween_coins, float(from_n), float(to_n), 0.6)
+
+
+func _tween_coins(v: float) -> void:
+	_apply_coin_text(int(round(v)))
+
+
+func _apply_coin_text(n: int) -> void:
 	_coins_label.text = "%s: %d" % [SettingsData.t("coins"), n]
 	_fit_pills()
 

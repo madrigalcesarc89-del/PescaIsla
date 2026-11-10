@@ -11,6 +11,7 @@ const DB_PATH := "res://data/fish_db.json"
 const STRINGS_PATH := "res://data/strings.json"
 const FishRoll = preload("res://scripts/fish_roll.gd")
 const AlbumSave = preload("res://scripts/album_save.gd")
+const ShopSave = preload("res://scripts/shop_save.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
 const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
@@ -86,6 +87,9 @@ var _dry_rare: int = 0
 var _dry_legend: int = 0
 ## Claves ajenas del JSON de guardado, para no borrarlas al reescribir.
 var _save_rest: Dictionary = {}
+var _shop_state: Dictionary = {}
+var _cast_gear: Dictionary = {}
+var _gained: int = 0
 
 var marker: float = 0.0
 var holding: bool = false
@@ -116,6 +120,7 @@ func _ready() -> void:
 	_load_strings()
 	_load_game()
 	_build_visuals()
+	_apply_tackle_colors()
 	_build_ui()
 	_enter(State.IDLE)
 
@@ -172,6 +177,54 @@ func _build_visuals() -> void:
 	_line_layer.add_child(_line)
 
 
+func _apply_tackle_colors() -> void:
+	if _line == null:
+		return
+	var rod := str(_shop_state.get("equipped_rod", "rod_bamboo"))
+	var bait := str(_shop_state.get("equipped_bait", "bait_pink_worm"))
+	if rod == "rod_rainbow":
+		var rainbow := Gradient.new()
+		rainbow.offsets = PackedFloat32Array([0.0, 0.25, 0.5, 0.75, 1.0])
+		rainbow.colors = PackedColorArray([
+			Color(0.969, 0.631, 0.769, 0.85),
+			Color(0.969, 0.718, 0.639, 0.85),
+			Color(0.561, 0.796, 0.353, 0.85),
+			Color(0.494, 0.714, 0.910, 0.85),
+			Color(0.910, 0.757, 0.290, 0.85),
+		])
+		_line.gradient = rainbow
+		_line.default_color = Color(1, 1, 1, 0.85)
+	else:
+		_line.gradient = null
+		var col := Color("5A3D2B")
+		if rod == "rod_coral":
+			col = Color("F4A4B8")
+		elif rod == "rod_cherry":
+			col = Color("E86A9A")
+		elif rod == "rod_moon":
+			col = Color("7EB6E8")
+		col.a = 0.85
+		_line.default_color = col
+	if _bobber == null:
+		return
+	var top := Color("F7A1C4")
+	var bottom := Color("E07A9A")
+	if bait == "bait_peach_shrimp":
+		top = Color("F7B7A3")
+		bottom = Color("E89A80")
+	elif bait == "bait_firefly_worm":
+		top = Color("D6F58A")
+		bottom = Color("7CB342")
+	elif bait == "bait_golden_pearl":
+		top = Color("F6E27A")
+		bottom = Color("C8962E")
+	var mat := _bobber.get_surface_override_material(0) as ShaderMaterial
+	if mat == null:
+		return
+	mat.set_shader_parameter("top_color", top)
+	mat.set_shader_parameter("bottom_color", bottom)
+
+
 func _splash_at() -> void:
 	if _splash == null or _bobber == null:
 		return
@@ -187,7 +240,8 @@ func _process(delta: float) -> void:
 	match state:
 		State.CAST:
 			if _t_state >= cast_time:
-				_wait_time = randf_range(wait_min, wait_max)
+				var wait_scale := float(_cast_gear.get("wait_mult", 1.0))
+				_wait_time = randf_range(wait_min, wait_max) * wait_scale
 				_enter(State.WAIT)
 		State.WAIT:
 			if _t_state >= _wait_time:
@@ -254,8 +308,19 @@ func _enter(s: int) -> void:
 	state = s
 	_t_state = 0.0
 	_apply_pose()
+	if s == State.IDLE:
+		_apply_tackle_colors()
 	if s == State.CAST:
 		_cast_target = _compute_cast_target()
+		_cast_gear = ShopSave.gear(_shop_state)
+		_apply_tackle_colors()
+		var spent: Dictionary = ShopSave.spend(_shop_state)
+		if bool(spent.get("changed", false)):
+			_shop_state = spent.get("state", _shop_state)
+			_sync_shop_rest()
+			_save_game()
+		if bool(spent.get("fallback", false)) and _hud != null:
+			_hud.show_toast(SettingsData.t("shop_bait_out"))
 	if _bobber != null:
 		_bobber.visible = s == State.WAIT or s == State.BITE or s == State.REEL
 		if _bobber.visible:
@@ -396,13 +461,14 @@ func _apply_pose() -> void:
 
 
 func _pick_fish() -> void:
-	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf())
+	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear)
 
 
 func _setup_zone() -> void:
 	var rarity := str(current_fish.get("rarity", "common"))
 	var idx := int(RARITY_INDEX.get(rarity, 0))
-	zone_half = 0.16 - float(idx) * 0.02
+	zone_half = (0.16 - float(idx) * 0.02) * float(_cast_gear.get("zone_mult", 1.0))
+	zone_half = clampf(zone_half, 0.04, 0.42)
 	zone_speed = ZONE_BASE_SPEED * float(current_fish.get("difficulty", 1.0))
 	zone_center = 0.5
 	_zone_phase = 0.0
@@ -435,7 +501,9 @@ func _register_catch() -> void:
 	var before := int(caught.get(fid, 0))
 	AlbumSave.stamp_first(_first_caught, fid, before)
 	caught[fid] = before + 1
-	coins += int(current_fish.get("value", 0))
+	var base_value := int(current_fish.get("value", 0))
+	_gained = ShopSave.payout(base_value, _cast_gear)
+	coins += _gained
 	var nxt: Dictionary = FishRoll.note_catch(str(current_fish.get("rarity", "common")), _dry_rare, _dry_legend)
 	_dry_rare = int(nxt.get("dry_rare", 0))
 	_dry_legend = int(nxt.get("dry_legend", 0))
@@ -481,6 +549,8 @@ func _load_game() -> void:
 	_dry_rare = 0
 	_dry_legend = 0
 	_save_rest = {}
+	_shop_state = ShopSave.fresh_state()
+	_cast_gear = ShopSave.gear(_shop_state)
 	var data: Dictionary = {}
 	if FileAccess.file_exists(SAVE_PATH):
 		var raw = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
@@ -494,6 +564,7 @@ func _load_game() -> void:
 		data = fresh
 		print("RUN_RESET peces 0")
 	if data.is_empty():
+		_sync_shop_rest()
 		return
 	var parsed := AlbumSave.read(data)
 	coins = int(parsed.get("coins", 0))
@@ -506,9 +577,23 @@ func _load_game() -> void:
 	_dry_rare = maxi(0, int(pity.get("dry_rare", 0)))
 	_dry_legend = maxi(0, int(pity.get("dry_legend", 0)))
 	_save_rest = parsed.get("rest", {})
+	_shop_state = ShopSave.normalize(_save_rest)
+	_cast_gear = ShopSave.gear(_shop_state)
+	_sync_shop_rest()
+
+
+func _sync_shop_rest() -> void:
+	ShopSave.write_into(_save_rest, _shop_state)
+
+
+func _snapshot_body() -> Dictionary:
+	_sync_shop_rest()
+	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	return AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen)
 
 
 func _save_game() -> void:
+	_sync_shop_rest()
 	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
 	var body := AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen)
 	var err := AlbumSave.atomic_write(SAVE_PATH, JSON.stringify(body))
@@ -525,6 +610,7 @@ var _hud: Control
 var _fishcard: Control
 var _album: Control
 var _settings: Control
+var _shop: Control
 var _escape_label: Label
 
 
@@ -539,7 +625,7 @@ func _build_ui() -> void:
 	_hud.hold_down.connect(_on_hold_down)
 	_hud.hold_up.connect(_on_hold_up)
 	_hud.album_pressed.connect(_on_album)
-	_hud.shop_pressed.connect(_on_shop_stub)
+	_hud.shop_pressed.connect(_on_shop_open)
 	_hud.settings_pressed.connect(_on_settings_stub)
 	_fishcard = load("res://scenes/ui/fish_card.tscn").instantiate()
 	_ui_layer.add_child(_fishcard)
@@ -550,10 +636,17 @@ func _build_ui() -> void:
 	_album.reset_requested.connect(_on_album_reset)
 	_album.unlock_requested.connect(_on_album_unlock)
 	_album.repair_requested.connect(_on_album_repair)
+	_album.grant_requested.connect(_on_debug_coins)
+	_album.shop_reset_requested.connect(_on_debug_shop_reset)
 	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
 	_settings.lang_changed.connect(_on_lang_changed)
+	_shop = load("res://scenes/ui/shop.tscn").instantiate()
+	_ui_layer.add_child(_shop)
+	_shop.purchase_requested.connect(_on_shop_buy)
+	_shop.equip_requested.connect(_on_shop_equip)
+	_shop.place_requested.connect(_on_shop_place)
 	_escape_label = Label.new()
 	_escape_label.add_theme_font_size_override("font_size", 90)
 	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -664,11 +757,20 @@ func _on_go_back() -> void:
 	var soon_open := false
 	if _hud != null and _hud.has_method("is_soon_open"):
 		soon_open = bool(_hud.is_soon_open())
-	var action := AlbumSave.back_action(card_open, detail_open, album_open, settings_open, soon_open)
+	var shop_confirm := false
+	var shop_open := false
+	if _shop != null and _shop.visible:
+		shop_open = true
+		if _shop.has_method("is_confirm_open"):
+			shop_confirm = bool(_shop.is_confirm_open())
+	var action := AlbumSave.back_action(card_open, detail_open, album_open, settings_open, soon_open, shop_confirm, shop_open)
 	if action == "ignore":
 		return
 	if action == "close_detail" or action == "close_album":
 		_album.consumes_back()
+		return
+	if action == "close_shop_confirm" or action == "close_shop":
+		_shop.consumes_back()
 		return
 	if action == "close_settings":
 		_settings.visible = false
@@ -685,8 +787,77 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _on_shop_stub() -> void:
-	_hud.show_soon(SettingsData.t("shop"), SettingsData.t("soon_body"))
+func _on_shop_open() -> void:
+	if _shop == null:
+		return
+	_shop.open_shop(coins, _shop_state)
+
+
+func _on_shop_buy(id: String) -> void:
+	var before := coins
+	var result: Dictionary = ShopSave.buy(SAVE_PATH, _snapshot_body(), id)
+	if not bool(result.get("ok", false)):
+		_play_ui("deny")
+		if _shop != null:
+			_shop.notify(false, id, coins, _shop_state)
+		return
+	coins = int(result.get("coins", coins))
+	_shop_state = result.get("state", _shop_state)
+	_sync_shop_rest()
+	_play_ui("buy")
+	if _hud != null:
+		_hud.animate_coins(before, coins)
+	if _shop != null:
+		_shop.notify(true, id, coins, _shop_state)
+
+
+func _on_shop_equip(id: String) -> void:
+	_shop_state = ShopSave.equip(_shop_state, id)
+	_sync_shop_rest()
+	_save_game()
+	if state == State.IDLE:
+		_apply_tackle_colors()
+	if _shop != null:
+		_shop.notify(true, id, coins, _shop_state)
+
+
+func _on_shop_place(id: String) -> void:
+	_shop_state = ShopSave.place(_shop_state, id)
+	_sync_shop_rest()
+	_save_game()
+	if _shop != null:
+		_shop.notify(true, id, coins, _shop_state)
+
+
+func _on_debug_coins() -> void:
+	if not OS.is_debug_build():
+		return
+	var before := coins
+	coins += 1000
+	_save_game()
+	if _hud != null:
+		_hud.animate_coins(before, coins)
+	if _shop != null and _shop.visible:
+		_shop.sync_state(coins, _shop_state)
+
+
+func _on_debug_shop_reset() -> void:
+	if not OS.is_debug_build():
+		return
+	_shop_state = ShopSave.fresh_state()
+	_cast_gear = ShopSave.gear(_shop_state)
+	_sync_shop_rest()
+	_save_game()
+	if state == State.IDLE:
+		_apply_tackle_colors()
+	if _shop != null and _shop.visible:
+		_shop.sync_state(coins, _shop_state)
+
+
+func _play_ui(key: String) -> void:
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("play_sfx"):
+		am.play_sfx(key)
 
 
 func _on_settings_stub() -> void:
@@ -701,6 +872,8 @@ func _on_lang_changed() -> void:
 	if _album != null and _album.visible:
 		_bind_album()
 		_album.reload_visible()
+	if _shop != null and _shop.visible and _shop.has_method("reload_locale"):
+		_shop.reload_locale()
 
 
 func _apply_safe_area(c: Control) -> void:
@@ -763,9 +936,9 @@ func _refresh_ui() -> void:
 		var rarity := str(current_fish.get("rarity", "common"))
 		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
 			fish_text(current_fish, "name"), rarity_name(rarity),
-			"+%d %s" % [int(current_fish.get("value", 0)), SettingsData.t("coins").to_lower()],
+			"+%d %s" % [_gained, SettingsData.t("coins").to_lower()],
 			fish_text(current_fish, "description"))
-		_spawn_float_gain(int(current_fish.get("value", 0)))
+		_spawn_float_gain(_gained)
 	elif state == State.ESCAPE:
 		_hud.show_toast(SettingsData.t("almost"))
 	else:

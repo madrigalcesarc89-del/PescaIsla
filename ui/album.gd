@@ -9,6 +9,8 @@ signal claim_requested(rarity: String)
 signal reset_requested
 signal unlock_requested
 signal repair_requested
+signal grant_requested
+signal shop_reset_requested
 signal seen_committed(seen: Dictionary)
 
 const CREAM := Color("FFF1D6")
@@ -579,7 +581,7 @@ func _build_debug() -> void:
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -240.0
 	panel.offset_right = 240.0
-	panel.offset_top = -340.0
+	panel.offset_top = -620.0
 	panel.offset_bottom = -48.0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -600,12 +602,24 @@ func _build_debug() -> void:
 	_paint(reset)
 	_paint(unlock)
 	_paint(repair)
+	var grant := Button.new()
+	grant.text = SettingsData.t("shop_debug_coins")
+	grant.custom_minimum_size = Vector2(416, 80)
+	grant.pressed.connect(func() -> void: grant_requested.emit())
+	var shop_reset := Button.new()
+	shop_reset.text = SettingsData.t("shop_debug_reset")
+	shop_reset.custom_minimum_size = Vector2(416, 80)
+	shop_reset.pressed.connect(func() -> void: shop_reset_requested.emit())
+	_paint(grant)
+	_paint(shop_reset)
 	row.add_child(reset)
 	row.add_child(unlock)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
 	col.add_child(row)
 	col.add_child(repair)
+	col.add_child(grant)
+	col.add_child(shop_reset)
 	panel.add_child(col)
 	add_child(panel)
 	_debug = panel

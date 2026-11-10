@@ -18,6 +18,8 @@ const FILES := {
 	"out_of_water": A + "sfx/sfx_fish_out.wav",
 	"fail": A + "sfx/sfx_fail.wav",
 	"coin": A + "ui/ui_coin.wav",
+	"buy": A + "ui/ui_buy.wav",
+	"deny": A + "ui/ui_deny.wav",
 	"tap": A + "ui/ui_tap.wav",
 	"open": A + "ui/ui_open.wav",
 	"close": A + "ui/ui_close.wav",

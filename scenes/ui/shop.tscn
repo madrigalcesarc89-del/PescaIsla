@@ -1,0 +1,100 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://ui/shop.gd" id="1_shop"]
+[ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="FontFile" path="res://assets/fonts/Baloo2-SemiBold.ttf" id="3_baloo"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_close.png" id="4_close"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.png" id="5_coin"]
+
+[node name="Shop" type="Control"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+script = ExtResource("1_shop")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = 48.0
+offset_right = -48.0
+offset_bottom = -48.0
+mouse_filter = 0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_baloo")
+theme_override_font_sizes/font_size = 64
+text = "Tienda"
+vertical_alignment = 1
+
+[node name="CoinPill" type="PanelContainer" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(220, 88)
+size_flags_vertical = 4
+
+[node name="CoinBox" type="HBoxContainer" parent="Panel/VBox/Header/CoinPill"]
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="Panel/VBox/Header/CoinPill/CoinBox"]
+custom_minimum_size = Vector2(40, 40)
+mouse_filter = 2
+texture = ExtResource("5_coin")
+expand_mode = 1
+stretch_mode = 5
+size_flags_vertical = 4
+
+[node name="Coins" type="Label" parent="Panel/VBox/Header/CoinPill/CoinBox"]
+size_flags_vertical = 4
+text = "0"
+vertical_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(132, 132)
+focus_mode = 0
+
+[node name="CloseIcon" type="TextureRect" parent="Panel/VBox/Header/CloseBtn"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = -36.0
+offset_right = 36.0
+offset_bottom = 36.0
+mouse_filter = 2
+texture = ExtResource("4_close")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Tabs" type="HBoxContainer" parent="Panel/VBox"]
+theme_override_constants/separation = 12
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/VBox"]
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+mouse_filter = 0
+
+[node name="List" type="VBoxContainer" parent="Panel/VBox/Scroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 16

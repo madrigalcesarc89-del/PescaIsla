@@ -1,0 +1,195 @@
+{
+  "economy_mult": 1.0,
+  "items": [
+    {
+      "id": "rod_bamboo",
+      "category": "rod",
+      "price": 0,
+      "name": "shop_rod_bamboo",
+      "desc": "shop_rod_bamboo_desc",
+      "icon": "res://assets/art/shop/rod_bamboo.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "rod_coral",
+      "category": "rod",
+      "price": 220,
+      "name": "shop_rod_coral",
+      "desc": "shop_rod_coral_desc",
+      "icon": "res://assets/art/shop/rod_coral.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 0.85,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "rod_cherry",
+      "category": "rod",
+      "price": 660,
+      "name": "shop_rod_cherry",
+      "desc": "shop_rod_cherry_desc",
+      "icon": "res://assets/art/shop/rod_cherry.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.25,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "rod_moon",
+      "category": "rod",
+      "price": 1650,
+      "name": "shop_rod_moon",
+      "desc": "shop_rod_moon_desc",
+      "icon": "res://assets/art/shop/rod_moon.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.6, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "rod_rainbow",
+      "category": "rod",
+      "price": 3850,
+      "name": "shop_rod_rainbow",
+      "desc": "shop_rod_rainbow_desc",
+      "icon": "res://assets/art/shop/rod_rainbow.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.35
+      }
+    },
+    {
+      "id": "bait_pink_worm",
+      "category": "bait",
+      "price": 0,
+      "pack_size": 0,
+      "name": "shop_bait_pink_worm",
+      "desc": "shop_bait_pink_worm_desc",
+      "icon": "res://assets/art/shop/bait_pink_worm.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "bait_peach_shrimp",
+      "category": "bait",
+      "price": 20,
+      "pack_size": 10,
+      "name": "shop_bait_peach_shrimp",
+      "desc": "shop_bait_peach_shrimp_desc",
+      "icon": "res://assets/art/shop/bait_peach_shrimp.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.15
+      }
+    },
+    {
+      "id": "bait_firefly_worm",
+      "category": "bait",
+      "price": 32,
+      "pack_size": 8,
+      "name": "shop_bait_firefly_worm",
+      "desc": "shop_bait_firefly_worm_desc",
+      "icon": "res://assets/art/shop/bait_firefly_worm.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.35, "legendary": 1.7 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "bait_golden_pearl",
+      "category": "bait",
+      "price": 96,
+      "pack_size": 3,
+      "name": "shop_bait_golden_pearl",
+      "desc": "shop_bait_golden_pearl_desc",
+      "icon": "res://assets/art/shop/bait_golden_pearl.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 2.6 },
+        "value_mult": 1.15
+      }
+    },
+    {
+      "id": "deco_plant",
+      "category": "decor",
+      "price": 160,
+      "model": "res://assets/models/deco_plant.glb",
+      "slot_types": ["shore"],
+      "name": "shop_deco_plant",
+      "desc": "shop_deco_plant_desc",
+      "icon": "res://assets/art/shop/deco_plant.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_chair",
+      "category": "decor",
+      "price": 420,
+      "model": "res://assets/models/deco_chair.glb",
+      "slot_types": ["dock"],
+      "name": "shop_deco_chair",
+      "desc": "shop_deco_chair_desc",
+      "icon": "res://assets/art/shop/deco_chair.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_campfire",
+      "category": "decor",
+      "price": 880,
+      "model": "res://assets/models/deco_campfire.glb",
+      "slot_types": ["camp"],
+      "name": "shop_deco_campfire",
+      "desc": "shop_deco_campfire_desc",
+      "icon": "res://assets/art/shop/deco_campfire.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    }
+  ]
+}
