@@ -8,11 +8,10 @@ signal closed
 signal claim_requested(rarity: String)
 signal reset_requested
 signal unlock_requested
+signal repair_requested
 signal seen_committed(seen: Dictionary)
 
 const CREAM := Color("FFF1D6")
-const INK := Color("5A3D2B")
-const SILHOUETTE := Color(0.353, 0.239, 0.169, 0.85)
 const RARITY_COLOR := {
 	"common": Color("E3B792"),
 	"uncommon": Color("5CC8C2"),
@@ -45,6 +44,7 @@ var _last_drag_ms := 0
 var _scroll_vel := 0.0
 
 @onready var _panel: Panel = $Panel
+@onready var _vbox: VBoxContainer = $Panel/VBox
 @onready var _title: Label = $Panel/VBox/Header/Title
 @onready var _count_btn: Button = $Panel/VBox/Header/CountBtn
 @onready var _count: Label = $Panel/VBox/Header/CountBtn/CountBox/Count
@@ -76,6 +76,14 @@ func _ready() -> void:
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_scroll.scroll_deadzone = 8
+	var vbar := _scroll.get_v_scroll_bar()
+	vbar.custom_minimum_size = Vector2.ZERO
+	vbar.modulate.a = 0.0
+	vbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hbar := _scroll.get_h_scroll_bar()
+	hbar.custom_minimum_size = Vector2.ZERO
+	hbar.modulate.a = 0.0
+	hbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(_on_resized)
 	_apply_margin()
 	if OS.is_debug_build():
@@ -147,8 +155,15 @@ func setup(fishes: Array, caught: Dictionary, first: Dictionary, claimed: Dictio
 	_seen = seen
 	_seen_missing = seen_missing
 	_load_strings()
+
+
+func reload_visible() -> void:
 	if is_node_ready() and visible:
 		_rebuild()
+
+
+func refresh_deferred() -> void:
+	call_deferred("_rebuild")
 
 
 func open_album() -> void:
@@ -190,7 +205,10 @@ func play_reward(amount: int) -> void:
 	var tw := lab.create_tween().set_parallel(true)
 	tw.tween_property(lab, "position:y", 80.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(lab, "modulate:a", 0.0, 0.7)
-	tw.chain().tween_callback(lab.queue_free)
+	tw.chain().tween_callback(func() -> void:
+		if is_instance_valid(lab):
+			lab.queue_free()
+	)
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null and am.has_method("play_sfx"):
 		am.play_sfx("coin")
@@ -200,7 +218,7 @@ func _on_resized() -> void:
 	if _laying or not visible or not is_node_ready():
 		return
 	var prev := _card_w
-	_measure_cards()
+	_apply_margin()
 	if absf(_card_w - prev) < 0.5 and _sections.get_child_count() > 0:
 		return
 	_rebuild()
@@ -213,12 +231,15 @@ func _margins() -> Vector4:
 	var bottom := MARGIN
 	var sa := DisplayServer.get_display_safe_area()
 	var win := DisplayServer.window_get_size()
-	if win.x > 1 and win.y > 1 and sa.size.x > 1 and size.x > 1.0:
+	if win.x > 1 and win.y > 1 and size.x > 1.0:
 		var sx := size.x / float(win.x)
 		var sy := size.y / float(win.y)
-		left += maxf(0.0, float(sa.position.x)) * sx
+		var safe_left := maxf(0.0, float(sa.position.x)) * sx
+		var safe_right := maxf(0.0, float(win.x) - float(sa.end.x)) * sx
+		var side := maxf(safe_left, safe_right)
+		left += side
+		right += side
 		top += maxf(0.0, float(sa.position.y)) * sy
-		right += maxf(0.0, float(win.x) - float(sa.end.x)) * sx
 		bottom += maxf(0.0, float(win.y) - float(sa.end.y)) * sy
 	return Vector4(left, top, right, bottom)
 
@@ -234,16 +255,29 @@ func _apply_margin() -> void:
 	_panel.offset_right = -m.z
 	_panel.offset_bottom = -m.w
 	_panel.custom_minimum_size = Vector2.ZERO
+	var available := maxf(240.0, size.x - m.x - m.z)
+	if size.x < 64.0:
+		available = 1080.0 - MARGIN * 2.0
+	var cap := minf(available, CARD_W * 3.0 + GAP * 2.0)
+	var card := floorf((cap - GAP * 2.0) / 3.0)
+	_card_w = clampf(card, 96.0, CARD_W)
+	_card_h = _card_w * CARD_H / CARD_W
+	var col := _card_w * 3.0 + GAP * 2.0
+	var half_l := floorf(col * 0.5)
+	var half_r := col - half_l
+	_vbox.anchor_left = 0.5
+	_vbox.anchor_right = 0.5
+	_vbox.anchor_top = 0.0
+	_vbox.anchor_bottom = 1.0
+	_vbox.offset_left = -half_l
+	_vbox.offset_right = half_r
+	_vbox.offset_top = 8.0
+	_vbox.offset_bottom = -8.0
+	_vbox.custom_minimum_size = Vector2.ZERO
 
 
 func _content_width() -> float:
-	var w := size.x
-	if w < 64.0:
-		w = get_viewport_rect().size.x
-	if w < 64.0:
-		w = 1080.0
-	var m := _margins()
-	return maxf(240.0, w - m.x - m.z - 16.0)
+	return _card_w * 3.0 + GAP * 2.0
 
 
 func _rebuild() -> void:
@@ -287,7 +321,7 @@ func _make_section(rarity: String) -> Control:
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", int(GAP))
 	grid.add_theme_constant_override("v_separation", int(GAP))
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for fish in _fishes:
 		if typeof(fish) != TYPE_DICTIONARY:
 			continue
@@ -342,8 +376,7 @@ func _make_section_head(rarity: String) -> Control:
 	_paint(prog)
 	prog.add_theme_font_size_override("font_size", 28)
 	row.add_child(prog)
-	var complete := int(info["have"]) == int(info["total"]) and int(info["total"]) > 0
-	row.add_child(_make_reward(rarity, complete))
+	row.add_child(_make_reward(rarity))
 	return row
 
 
@@ -351,9 +384,9 @@ func rarity_count_safe(rarity: String) -> Dictionary:
 	return AlbumSave.rarity_count(_fishes, _caught, rarity)
 
 
-func _make_reward(rarity: String, complete: bool) -> Control:
+func _make_reward(rarity: String) -> Control:
 	var amount := AlbumSave.reward_amount(_db, rarity)
-	if complete and not bool(_claimed.get(rarity, false)):
+	if AlbumSave.can_claim(_fishes, _caught, _claimed, rarity):
 		var btn := Button.new()
 		btn.name = "Claim"
 		btn.text = SettingsData.t("album_claim") % amount
@@ -377,11 +410,11 @@ func _make_reward(rarity: String, complete: bool) -> Control:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var claimed := complete and bool(_claimed.get(rarity, false))
-	var path := "res://assets/art/ui/icon_check.png" if claimed else "res://assets/art/ui/icon_lock.png"
+	var done := AlbumSave.group_complete(_fishes, _caught, rarity) and bool(_claimed.get(rarity, false))
+	var path := "res://assets/art/ui/icon_check.png" if done else "res://assets/art/ui/icon_lock.png"
 	icon.texture = load(path)
 	box.add_child(icon)
-	if not complete:
+	if not done:
 		var lab := Label.new()
 		lab.name = "RewardAmount"
 		lab.text = "+%d" % amount
@@ -427,33 +460,28 @@ func _make_card(fish: Dictionary) -> Button:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.texture = load(str(fish.get("texture", "")))
-	icon.modulate = Color.WHITE if owned else SILHOUETTE
+	icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
 	_place(icon, 0.08, 0.06, 0.92, 0.06 + 170.0 / CARD_H)
 	btn.add_child(icon)
+	if owned and bool(_news.get(id, false)):
+		icon.modulate = Color(0, 0, 0, 1)
+		var tw := icon.create_tween()
+		tw.tween_property(icon, "modulate", Color(1.75, 1.7, 1.35, 1.0), 0.14)
+		tw.tween_property(icon, "modulate", Color.WHITE, 0.24)
+	var name_lab := Label.new()
+	name_lab.name = "Name"
+	name_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_place(name_lab, 0.06, 0.56, 0.94, 0.78)
+	btn.add_child(name_lab)
+	_paint(name_lab)
 	if not owned:
-		var mark := Label.new()
-		mark.name = "Mark"
-		mark.text = "?"
-		mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		mark.add_theme_font_size_override("font_size", int(clampf(_card_w * 0.22, 28, 64)))
-		mark.add_theme_color_override("font_color", CREAM)
-		mark.add_theme_constant_override("outline_size", 0)
-		mark.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
-		_place(mark, 0.28, 0.16, 0.72, 0.42)
-		btn.add_child(mark)
+		name_lab.text = "???"
+		UiFit.fit_label(name_lab, _card_w * 0.86, 1, 26, 32)
 	else:
-		var name_lab := Label.new()
-		name_lab.name = "Name"
 		name_lab.text = _fish_field(id, "name")
-		name_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		name_lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_place(name_lab, 0.06, 0.56, 0.94, 0.78)
-		btn.add_child(name_lab)
-		_paint(name_lab)
 		UiFit.fit_label(name_lab, _card_w * 0.86, 2, 26, 32)
 		var meta := HBoxContainer.new()
 		meta.name = "Meta"
@@ -521,7 +549,7 @@ func _on_card(id: String) -> void:
 		)
 	var icon := _inspect.find_child("FishIcon", true, false) as CanvasItem
 	if icon != null:
-		icon.modulate = Color.WHITE if owned else SILHOUETTE
+		icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
 
 
 func _on_claim(rarity: String) -> void:
@@ -549,9 +577,9 @@ func _build_debug() -> void:
 	panel.anchor_right = 0.5
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = -280.0
-	panel.offset_right = 280.0
-	panel.offset_top = -220.0
+	panel.offset_left = -240.0
+	panel.offset_right = 240.0
+	panel.offset_top = -340.0
 	panel.offset_bottom = -48.0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -564,11 +592,21 @@ func _build_debug() -> void:
 	unlock.text = SettingsData.t("album_unlock")
 	unlock.custom_minimum_size = Vector2(200, 88)
 	unlock.pressed.connect(func() -> void: unlock_requested.emit())
+	var repair := Button.new()
+	repair.name = "Repair"
+	repair.text = SettingsData.t("album_repair")
+	repair.custom_minimum_size = Vector2(416, 80)
+	repair.pressed.connect(func() -> void: repair_requested.emit())
 	_paint(reset)
 	_paint(unlock)
+	_paint(repair)
 	row.add_child(reset)
 	row.add_child(unlock)
-	panel.add_child(row)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	col.add_child(row)
+	col.add_child(repair)
+	panel.add_child(col)
 	add_child(panel)
 	_debug = panel
 

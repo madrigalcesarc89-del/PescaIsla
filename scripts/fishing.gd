@@ -80,6 +80,7 @@ var _claimed: Dictionary = {}
 ## Conteos ya vistos en el álbum. seen_missing: el JSON viejo no tenía la clave.
 var _album_seen: Dictionary = {}
 var _seen_missing: bool = true
+var _claim_busy := false
 ## Rachas de mala suerte. Ausentes en guardados viejos: se leen como 0.
 var _dry_rare: int = 0
 var _dry_legend: int = 0
@@ -499,13 +500,11 @@ func _load_game() -> void:
 
 
 func _save_game() -> void:
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if f == null:
-		push_warning("Fishing: no se pudo guardar")
-		return
 	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
 	var body := AlbumSave.payload(coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen)
-	f.store_string(JSON.stringify(body))
+	var err := AlbumSave.atomic_write(SAVE_PATH, JSON.stringify(body))
+	if err != OK:
+		push_warning("Fishing: no se pudo guardar (%s)" % err)
 
 
 # ------------------------------------------------------------------
@@ -541,6 +540,7 @@ func _build_ui() -> void:
 	_album.claim_requested.connect(_on_album_claim)
 	_album.reset_requested.connect(_on_album_reset)
 	_album.unlock_requested.connect(_on_album_unlock)
+	_album.repair_requested.connect(_on_album_repair)
 	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
@@ -578,17 +578,38 @@ func _on_album() -> void:
 
 
 func _on_album_claim(rarity: String) -> void:
-	if bool(_claimed.get(rarity, false)):
+	if _claim_busy:
 		return
-	if not AlbumSave.rarity_complete(fishes, caught, rarity):
+	_claim_busy = true
+	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	var result: Dictionary = AlbumSave.commit_claim(SAVE_PATH, coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen, fishes, _db, rarity)
+	if not bool(result.get("ok", false)):
+		_claim_busy = false
 		return
-	var amount := AlbumSave.reward_amount(_db, rarity)
-	_claimed[rarity] = true
-	coins += amount
-	_save_game()
+	coins = int(result["coins"])
+	_claimed = result["claimed"]
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
-	_album.play_reward(amount)
+	_bind_album()
+	_album.refresh_deferred()
+	_album.play_reward(int(result["added"]))
+	_claim_busy = false
+
+
+func _on_album_repair() -> void:
+	if not OS.is_debug_build():
+		return
+	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	var result: Dictionary = AlbumSave.commit_repair(SAVE_PATH, coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen, fishes, _db)
+	if not bool(result.get("ok", false)):
+		push_warning("Fishing: no se pudo reparar el álbum")
+		return
+	var extra := int(result.get("extra", 0))
+	coins = int(result["coins"])
+	_claimed = result["claimed"]
+	print("ALBUM_REPAIR extra_coins ", extra)
+	_refresh_ui()
+	_bind_album()
+	_album.refresh_deferred()
 
 
 func _on_album_reset() -> void:
@@ -669,7 +690,8 @@ func _on_settings_stub() -> void:
 func _on_lang_changed() -> void:
 	_refresh_ui()
 	if _album != null and _album.visible:
-		_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
+		_bind_album()
+		_album.reload_visible()
 
 
 func _apply_safe_area(c: Control) -> void:

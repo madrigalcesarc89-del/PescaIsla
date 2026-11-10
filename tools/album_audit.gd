@@ -24,31 +24,31 @@ func _init() -> void:
 	SettingsData.load_all()
 	var db = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish_db.json"))
 	var fishes: Array = db["fishes"]
+	var four := {}
+	var first_four := {}
+	for fish in fishes:
+		if str(fish["rarity"]) != "common":
+			continue
+		four[str(fish["id"])] = 1
+		first_four[str(fish["id"])] = "2026-11-10"
+	four["fish_peach_angelfish"] = 2
+	first_four["fish_peach_angelfish"] = "2026-11-10"
 	var six := {}
 	var first_six := {}
 	for i in range(6):
-		var id := str(fishes[i]["id"])
-		six[id] = 2 if i == 4 else 1
-		first_six[id] = "2026-11-10"
+		var id6 := str(fishes[i]["id"])
+		six[id6] = 2 if i == 4 else 1
+		first_six[id6] = "2026-11-10"
 	var all := {}
 	var first_all := {}
 	for fish in fishes:
 		all[str(fish["id"])] = 1
 		first_all[str(fish["id"])] = "2026-11-10"
-	var common_only := {}
-	var first_common := {}
-	for fish in fishes:
-		if str(fish["rarity"]) == "common":
-			common_only[str(fish["id"])] = 1
-			first_common[str(fish["id"])] = "2026-11-10"
 	var open_claimed := {"common": false, "uncommon": false, "rare": false, "legendary": false}
-	var common_claimed := {"common": true, "uncommon": false, "rare": false, "legendary": false}
 	var states := {
 		"empty": [{}, {}, open_claimed],
-		"six": [six, first_six, open_claimed],
+		"four": [four, first_four, open_claimed],
 		"full": [all, first_all, open_claimed],
-		"claimable": [common_only, first_common, open_claimed],
-		"claimed": [common_only, first_common, common_claimed],
 	}
 	var sv := SubViewport.new()
 	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -68,9 +68,9 @@ func _init() -> void:
 		await process_frame
 		for lang in ["es", "en"]:
 			SettingsData.lang = lang
-			for state_name in ["empty", "six", "full", "claimable", "claimed"]:
+			for state_name in ["empty", "four", "full"]:
 				var pack: Array = states[state_name]
-				album.setup(fishes, pack[0], pack[1], pack[2], db, {}, false)
+				album.setup(fishes, pack[0], pack[1], pack[2], db, {}, true)
 				album.open_album()
 				await process_frame
 				await process_frame
@@ -107,6 +107,31 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 	print("  viewport ", vp, " album ", album.size)
 	print("  panel ", prect, " end ", prect.position + prect.size)
 	print("  panel_right_overflow ", (prect.position.x + prect.size.x) - float(vp.x))
+	var panel_l := prect.position.x
+	var panel_r := float(vp.x) - prect.end.x
+	print("  margin_panel L ", panel_l, " R ", panel_r)
+	if absf(panel_l - panel_r) > 1.0:
+		_bad(tag + " margen del panel L %.1f R %.1f" % [panel_l, panel_r])
+	var safe_top := 0.0
+	var win := DisplayServer.window_get_size()
+	var sa := DisplayServer.get_display_safe_area()
+	if win.y > 1 and album.size.y > 1.0:
+		safe_top = maxf(0.0, float(sa.position.y)) * album.size.y / float(win.y)
+	print("  safe_top ", safe_top, " panel_top ", prect.position.y)
+	if prect.position.y + 1.0 < safe_top:
+		_bad(tag + " el panel invade el área segura")
+	if prect.position.y + 1.0 < 48.0:
+		_bad(tag + " el panel no respeta el margen superior")
+	var header: Control = album.get_node("Panel/VBox/Header")
+	var scroll: ScrollContainer = album.get_node("Panel/VBox/Scroll")
+	var bar := scroll.get_v_scroll_bar()
+	print("  vbar visible ", bar.visible, " w ", bar.size.x, " mode ", scroll.vertical_scroll_mode)
+	if bar.visible and bar.size.x > 1.0:
+		_bad(tag + " la barra vertical reserva ancho")
+	var head_r := header.get_global_rect()
+	var head_l := head_r.position.x
+	var head_right := float(vp.x) - head_r.end.x
+	print("  margin_header L ", head_l, " R ", head_right)
 	print("  panel anchors ", panel.anchor_left, panel.anchor_top, panel.anchor_right, panel.anchor_bottom)
 	if prect.position.x < 47.0 or prect.position.y < 47.0:
 		_bad(tag + " margen del panel")
@@ -114,12 +139,10 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 		_bad(tag + " panel fuera del viewport")
 	if not view.encloses(prect.grow(-1.0)):
 		_bad(tag + " panel no cabe")
-	var scroll: ScrollContainer = album.get_node("Panel/VBox/Scroll")
 	if scroll.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
 		_bad(tag + " scroll horizontal activo")
 	if scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
 		_bad(tag + " scroll vertical apagado")
-	var header: Control = album.get_node("Panel/VBox/Header")
 	_inside(header.get_global_rect(), view, tag + " encabezado")
 	var close: Control = album.get_node("Panel/VBox/Header/CloseBtn")
 	_inside(close.get_global_rect(), view, tag + " cerrar")
@@ -143,6 +166,21 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 					_bad(tag + " la cuadrícula no tiene 3 columnas")
 				if grid.get_child_count() != 3:
 					_bad(tag + " una sección no tiene 3 tarjetas")
+				var block_l := 100000.0
+				var block_end := 0.0
+				for card in grid.get_children():
+					var cr: Rect2 = (card as Control).get_global_rect()
+					block_l = minf(block_l, cr.position.x)
+					block_end = maxf(block_end, cr.end.x)
+				var block_r := float(vp.x) - block_end
+				print("  margin_grid L ", block_l, " R ", block_r)
+				if absf(block_l - block_r) > 1.0:
+					_bad(tag + " margen de la cuadrícula L %.1f R %.1f" % [block_l, block_r])
+				var title_row: Control = section.get_child(0)
+				if absf(title_row.get_global_rect().position.x - head_l) > 1.0:
+					_bad(tag + " el título del grupo no comparte el margen")
+				if absf(block_l - head_l) > 1.0:
+					_bad(tag + " la cuadrícula no comparte el margen del encabezado")
 				var xs := {}
 				for card in grid.get_children():
 					var r: Rect2 = card.get_global_rect()
@@ -154,6 +192,13 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 					if absf(r.size.y / maxf(r.size.x, 1.0) - (372.0 / 288.0)) > 0.08:
 						_bad(tag + " proporción de tarjeta")
 					_check_card_text(card, tag)
+					var icon := card.get_node_or_null("Icon") as CanvasItem
+					var hidden := card.get_node_or_null("Name") as Label
+					if hidden != null and hidden.text == "???":
+						if card.get_node_or_null("Badge") != null:
+							_bad(tag + " un pez cerrado muestra la insignia")
+						if icon == null or icon.modulate.r > 0.02 or icon.modulate.g > 0.02 or icon.modulate.b > 0.02 or icon.modulate.a < 0.99:
+							_bad(tag + " la silueta no es negra")
 				if xs.size() != 3:
 					_bad(tag + " las tarjetas no quedan en 3 columnas (" + str(xs.size()) + ")")
 	if grids != 4:
@@ -212,7 +257,7 @@ func _text_inside(lab: Label, host: Control, tag: String) -> void:
 
 func _check_state(album: Control, state_name: String, lang: String, tag: String) -> void:
 	var count: Label = album.get_node("Panel/VBox/Header/CountBtn/CountBox/Count")
-	var expect := {"empty": "0/12", "six": "6/12", "full": "12/12", "claimable": "3/12", "claimed": "3/12"}
+	var expect := {"empty": "0/12", "four": "4/12", "full": "12/12"}
 	if count.text != expect[state_name]:
 		_bad(tag + " contador " + count.text)
 	var claims := 0
@@ -236,15 +281,11 @@ func _check_state(album: Control, state_name: String, lang: String, tag: String)
 				checks += 1
 	if state_name == "empty" and (claims != 0 or locks != 4):
 		_bad(tag + " vacío debería tener 4 candados")
-	if state_name == "claimable" and (claims != 1 or locks != 3):
-		_bad(tag + " reclamable claims=%d locks=%d" % [claims, locks])
-	if state_name == "claimed" and (claims != 0 or checks != 1 or locks != 3):
-		_bad(tag + " cobrado checks=%d locks=%d claims=%d" % [checks, locks, claims])
-	if state_name == "six" and claims != 2:
-		_bad(tag + " seis descubiertos, grupos reclamables " + str(claims))
-	if state_name == "full" and claims != 4:
+	if state_name == "four" and (claims != 1 or locks != 3):
+		_bad(tag + " cuatro peces claims=%d locks=%d" % [claims, locks])
+	if state_name == "full" and (claims != 4 or checks != 0):
 		_bad(tag + " completo, grupos reclamables " + str(claims))
-	if state_name == "six" or state_name == "full":
+	if state_name == "four" or state_name == "full":
 		var long_name := "Pez ángel durazno" if lang == "es" else "Peach angelfish"
 		var found := false
 		for lab in _labels(album.get_node("Panel")):

@@ -56,6 +56,19 @@ func _init() -> void:
 	for fish in fishes:
 		all[str(fish["id"])] = 1
 	_expect(AlbumSave.rarity_complete(fishes, all, "legendary"), "legendario completo")
+	_expect(not AlbumSave.can_claim(fishes, none, parsed["claimed"], "common"), "nuevo no reclama común")
+	var one := {"fish_lanternfish": 1}
+	_expect(not AlbumSave.can_claim(fishes, one, parsed["claimed"], "rare"), "un raro no reclama")
+	var only: Array = [fishes[6]]
+	_expect(not AlbumSave.can_claim(only, one, parsed["claimed"], "rare"), "lista de un pez no reclama")
+	var common_ids := ["fish_pink_sardine", "fish_moon", "fish_cream_carp"]
+	var commons := {}
+	for id in common_ids:
+		commons[id] = 1
+	_expect(AlbumSave.can_claim(fishes, commons, parsed["claimed"], "common"), "tres comunes sí")
+	var already: Dictionary = parsed["claimed"].duplicate()
+	already["common"] = true
+	_expect(not AlbumSave.can_claim(fishes, commons, already, "common"), "ya cobrado no")
 	_expect(AlbumSave.back_action(true, true, true, true, true) == "ignore", "la tarjeta no se cierra")
 	_expect(AlbumSave.back_action(false, true, true, false, false) == "close_detail", "primero la ficha")
 	_expect(AlbumSave.back_action(false, false, true, true, false) == "close_album", "luego el álbum")

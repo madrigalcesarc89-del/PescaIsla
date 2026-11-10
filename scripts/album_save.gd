@@ -119,6 +119,121 @@ static func reward_amount(db: Dictionary, rarity: String) -> int:
 	return int(DEFAULT_REWARDS.get(rarity, 0))
 
 
+static func group_ids(fishes: Array, rarity: String) -> Array:
+	var ids: Array = []
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		if str(fish.get("rarity", "")) != rarity:
+			continue
+		var id := str(fish.get("id", ""))
+		if id == "" or ids.has(id):
+			continue
+		ids.append(id)
+	return ids
+
+
+## Un grupo está completo solo si el catálogo trae sus 3 peces y cada uno tiene caught > 0.
+static func group_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
+	var ids: Array = group_ids(fishes, rarity)
+	if ids.size() != 3:
+		return false
+	for id in ids:
+		if int(caught.get(str(id), 0)) <= 0:
+			return false
+	return true
+
+
+## Única fuente de verdad del botón Reclamar.
+static func can_claim(fishes: Array, caught: Dictionary, claimed: Dictionary, rarity: String) -> bool:
+	if bool(claimed.get(rarity, false)):
+		return false
+	return group_complete(fishes, caught, rarity)
+
+
+static func rarity_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
+	return group_complete(fishes, caught, rarity)
+
+
+## Comprueba, suma, marca y escribe. Si el renombre falla, no cambia el estado que devuelve.
+static func commit_claim(path: String, coins: int, caught: Dictionary, first: Dictionary, claimed: Dictionary, pity: Dictionary, rest: Dictionary, seen: Dictionary, fishes: Array, db: Dictionary, rarity: String) -> Dictionary:
+	var same := {"ok": false, "coins": coins, "claimed": claimed, "added": 0}
+	if not can_claim(fishes, caught, claimed, rarity):
+		return same
+	var amount := reward_amount(db, rarity)
+	var new_coins := int(coins) + amount
+	var new_claimed: Dictionary = claimed.duplicate(true)
+	new_claimed[rarity] = true
+	var body := payload(new_coins, caught, first, new_claimed, pity, rest, seen)
+	var err := atomic_write(path, JSON.stringify(body))
+	if err != OK:
+		return same
+	return {"ok": true, "coins": new_coins, "claimed": new_claimed, "added": amount}
+
+
+static func extra_claim_coins(fishes: Array, caught: Dictionary, claimed: Dictionary, db: Dictionary) -> int:
+	var extra := 0
+	for rarity in RARITIES:
+		if bool(claimed.get(rarity, false)) and not group_complete(fishes, caught, rarity):
+			extra += reward_amount(db, rarity)
+	return extra
+
+
+static func commit_repair(path: String, coins: int, caught: Dictionary, first: Dictionary, claimed: Dictionary, pity: Dictionary, rest: Dictionary, seen: Dictionary, fishes: Array, db: Dictionary) -> Dictionary:
+	var extra := extra_claim_coins(fishes, caught, claimed, db)
+	if extra <= 0:
+		return {"ok": true, "coins": coins, "claimed": claimed, "extra": 0}
+	var new_claimed: Dictionary = claimed.duplicate(true)
+	for rarity in RARITIES:
+		if bool(new_claimed.get(rarity, false)) and not group_complete(fishes, caught, rarity):
+			new_claimed[rarity] = false
+	var new_coins := maxi(0, int(coins) - extra)
+	var body := payload(new_coins, caught, first, new_claimed, pity, rest, seen)
+	var err := atomic_write(path, JSON.stringify(body))
+	if err != OK:
+		return {"ok": false, "coins": coins, "claimed": claimed, "extra": 0}
+	return {"ok": true, "coins": new_coins, "claimed": new_claimed, "extra": extra}
+
+
+static func atomic_write(path: String, text: String) -> int:
+	var tmp := path + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		return ERR_CANT_CREATE
+	f.store_string(text)
+	f.flush()
+	var write_err := f.get_error()
+	f.close()
+	if write_err != OK:
+		return write_err
+	var base := path.get_base_dir()
+	if base == "":
+		base = "user://"
+	var da := DirAccess.open(base)
+	if da == null:
+		return ERR_CANT_OPEN
+	var dest := path.get_file()
+	var tmp_name := tmp.get_file()
+	if not da.file_exists(tmp_name):
+		return ERR_FILE_NOT_FOUND
+	if da.file_exists(dest):
+		var bak := dest + ".bak"
+		if da.file_exists(bak):
+			var rm_bak := da.remove(bak)
+			if rm_bak != OK:
+				return rm_bak
+		var moved := da.rename(dest, bak)
+		if moved != OK:
+			return moved
+		var swapped := da.rename(tmp_name, dest)
+		if swapped != OK:
+			da.rename(bak, dest)
+			return swapped
+		da.remove(bak)
+		return OK
+	return da.rename(tmp_name, dest)
+
+
 ## Punto "Nuevo": capturado y todavía no visto en una apertura anterior.
 ## Si el guardado viejo no tenía album_seen, no se marcan todos como nuevos.
 static func news_and_next(seen: Dictionary, caught: Dictionary, seen_missing: bool) -> Dictionary:
@@ -145,11 +260,6 @@ static func rarity_count(fishes: Array, caught: Dictionary, rarity: String) -> D
 		if int(caught.get(str(fish.get("id", "")), 0)) > 0:
 			have += 1
 	return {"total": total, "have": have}
-
-
-static func rarity_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
-	var info := rarity_count(fishes, caught, rarity)
-	return int(info["total"]) > 0 and int(info["have"]) == int(info["total"])
 
 
 ## Tarjeta de captura > ficha > álbum > otros paneles. La tarjeta no se cierra.

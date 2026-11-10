@@ -33,6 +33,7 @@
     "album_back": { "es": "Volver", "en": "Back" },
     "album_reset": { "es": "Reiniciar", "en": "Reset" },
     "album_unlock": { "es": "Desbloquear", "en": "Unlock all" },
+    "album_repair": { "es": "Reparar premios", "en": "Fix rewards" },
     "shop": { "es": "Tienda", "en": "Shop" },
     "escaped": { "es": "Se escapó...", "en": "It got away..." },
     "no_penalty": { "es": "Sin penalización", "en": "No penalty" },
