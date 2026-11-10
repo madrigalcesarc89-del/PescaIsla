@@ -115,8 +115,8 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + slice):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
-	# El crema entra debajo del marco para que no se vea el escenario en el borde.
-	_anchor_frac(_backing, [0.03, 0.02, 0.94, 0.96])
+	# El crema cubre todo el PNG. El marco se dibuja encima y tapa el borde.
+	_anchor_frac(_backing, [0.0, 0.0, 1.0, 1.0])
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
 	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
 	if _halo.visible:
@@ -183,7 +183,7 @@ func _apply_metrics() -> void:
 		btn_h *= k
 	_fun_btn.custom_minimum_size = Vector2(btn_w, btn_h)
 	if _backing_style != null:
-		_backing_style.set_corner_radius_all(int(clampf(fz.y * 0.05, 40.0, 110.0)))
+		_backing_style.set_corner_radius_all(int(clampf(fz.x * 0.12, 28.0, 90.0)))
 	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(_frame_key, {})
 	if fr.is_empty():
 		return
@@ -191,9 +191,9 @@ func _apply_metrics() -> void:
 	var win_w := fz.x * float(win[2])
 	var win_h := fz.y * float(win[3])
 	var aspect := maxf(_art_aspect, 0.45)
-	var fw := win_w * 0.92
+	var fw := win_w * 0.84
 	var fh := fw / aspect
-	var max_h := win_h * 0.46
+	var max_h := win_h * 0.40
 	if fh > max_h:
 		fh = max_h
 		fw = fh * aspect
@@ -217,14 +217,20 @@ func _apply_metrics() -> void:
 	var max_lines := int(_layout.get("name_max_lines", 2))
 	var start := clampi(int(safe_w * 0.11), min_px + 4, 52)
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
+	var name_px := _name_label.get_theme_font_size("font_size")
+	_name_label.clip_text = false
+	_name_label.custom_minimum_size = Vector2(safe_w, name_px + 6)
 	_rule.custom_minimum_size = Vector2(maxf(72.0, safe_w * 0.34), 3.0)
 	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_blurb.clip_text = false
 	UiFit.fit_label(_blurb, safe_w, 2, 18, 30)
-	var value_room := maxf(40.0, safe_w - coin - 28.0)
+	var value_room := maxf(80.0, safe_w - coin - 36.0)
 	_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_value_label.clip_text = true
+	_value_label.clip_text = false
 	UiFit.fit_label(_value_label, value_room, 1, min_px, mini(start, 40))
+	var value_px := _value_label.get_theme_font_size("font_size")
+	_value_label.custom_minimum_size = Vector2(value_room * 0.45, value_px + 4)
 	_place_badge(fr, fz, safe_w)
 	_paint_text(_name_label)
 	_paint_text(_value_label)
@@ -247,8 +253,10 @@ func _refit_name(safe_w: float, max_lines: int, min_px: int, start: int) -> void
 	if w > safe_w * 0.55:
 		safe_w = minf(safe_w, w)
 	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_name_label.clip_text = true
+	_name_label.clip_text = false
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
+	var name_px := _name_label.get_theme_font_size("font_size")
+	_name_label.custom_minimum_size = Vector2(safe_w, name_px + 6)
 	_paint_text(_name_label)
 
 
