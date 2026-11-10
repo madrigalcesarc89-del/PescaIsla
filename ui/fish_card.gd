@@ -7,10 +7,13 @@ extends Control
 signal continued
 
 const HALO_MOD := {
-	"frame_rare": Color(0.7, 0.6, 1.0, 0.55),
-	"frame_legendary": Color(1.0, 0.85, 0.4, 0.6),
+	"frame_common": Color(1.0, 0.82, 0.62, 0.38),
+	"frame_uncommon": Color(0.55, 0.9, 0.82, 0.42),
+	"frame_rare": Color(0.72, 0.62, 1.0, 0.58),
+	"frame_legendary": Color(1.0, 0.84, 0.38, 0.7),
 }
 const BACKING := Color(1.0, 0.945, 0.839)
+const PILL := Color(1.0, 0.945, 0.88)
 
 var _layout: Dictionary = {}
 var _frame_key: String = "frame_common"
@@ -22,16 +25,18 @@ var _pulse: Tween = null
 @onready var _frame_rect: TextureRect = $Center/CardBox/FrameCenter/FrameBox/FrameRect
 @onready var _backing: Panel = $Center/CardBox/FrameCenter/FrameBox/Backing
 @onready var _window: MarginContainer = $Center/CardBox/FrameCenter/FrameBox/Window
-@onready var _fish_band: CenterContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand
-@onready var _halo: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/HaloGlow
-@onready var _fish: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishIcon
+@onready var _stage: Control = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage
+@onready var _shadow: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage/Shadow
+@onready var _halo: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage/HaloGlow
+@onready var _fish: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage/FishClip/FishIcon
 @onready var _text_block: MarginContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock
 @onready var _badge_panel: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/BadgePanel
 @onready var _badge_label: Label = $Center/CardBox/FrameCenter/FrameBox/BadgePanel/BadgeLabel
 @onready var _name_label: Label = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/NameLabel
-@onready var _value_box: HBoxContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValueBox
-@onready var _coin_icon: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValueBox/CoinIcon
-@onready var _value_label: Label = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValueBox/ValueLabel
+@onready var _value_pill: PanelContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill
+@onready var _value_box: HBoxContainer = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox
+@onready var _coin_icon: TextureRect = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox/CoinIcon
+@onready var _value_label: Label = $Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox/ValueLabel
 @onready var _fun_btn: Button = $Center/CardBox/FunButton
 
 
@@ -42,6 +47,20 @@ func _ready() -> void:
 	bs.bg_color = BACKING
 	bs.set_corner_radius_all(54)
 	_backing.add_theme_stylebox_override("panel", bs)
+	var pill := StyleBoxFlat.new()
+	pill.bg_color = PILL
+	pill.set_corner_radius_all(40)
+	pill.content_margin_left = 16
+	pill.content_margin_right = 22
+	pill.content_margin_top = 4
+	pill.content_margin_bottom = 4
+	pill.border_width_left = 3
+	pill.border_width_top = 3
+	pill.border_width_right = 3
+	pill.border_width_bottom = 3
+	pill.border_color = Color(0.93, 0.78, 0.62, 0.85)
+	_value_pill.add_theme_stylebox_override("panel", pill)
+	_shadow.modulate = Color(0.45, 0.28, 0.16, 0.32)
 	_box.add_theme_constant_override("separation", int(_layout.get("continue_gap", 24)))
 	_box.resized.connect(func() -> void: _box.pivot_offset = _box.size * 0.5)
 	_fun_btn.pressed.connect(func() -> void: continued.emit())
@@ -88,7 +107,7 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
 	_anchor_frac(_backing, fr.get("backing_rect", [0.1, 0.1, 0.8, 0.8]))
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
-	_halo.visible = HALO_MOD.has(frame_key)
+	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
 	if _halo.visible:
 		_halo.modulate = HALO_MOD[frame_key]
 	visible = true
@@ -158,12 +177,12 @@ func _apply_metrics() -> void:
 	var win: Array = fr.get("window", [0.1, 0.1, 0.8, 0.8])
 	var win_w := fz.x * float(win[2])
 	var win_h := fz.y * float(win[3])
-	var fish_of := float(_layout.get("fish_of_window", 0.60))
-	var band := float(_layout.get("fish_band", 0.60))
-	var side := win_w * fish_of
-	side = minf(side, win_h * band * 0.96)
-	_fish.custom_minimum_size = Vector2(side, side)
-	_halo.custom_minimum_size = Vector2(side, side) * 1.35
+	var side := minf(win_w * 0.74, win_h * 0.48)
+	side = maxf(side, 96.0)
+	_stage.custom_minimum_size = Vector2(side, side)
+	_fit_fish_art()
+	var coin := clampf(fz.x * 0.09, 44.0, 76.0)
+	_coin_icon.custom_minimum_size = Vector2(coin, coin)
 	# El hueco útil del marco es más estrecho que la ventana (las ondas
 	# se comen los bordes). El texto vive en el 62 % central.
 	var inset := maxf(16.0, fz.x * 0.08)
@@ -202,6 +221,37 @@ func _refit_name(safe_w: float, max_lines: int, min_px: int, start: int) -> void
 	_name_label.clip_text = true
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
 	_paint_text(_name_label)
+
+
+func _fit_fish_art() -> void:
+	_fish.anchor_left = 0.0
+	_fish.anchor_top = 0.0
+	_fish.anchor_right = 1.0
+	_fish.anchor_bottom = 1.0
+	_fish.offset_left = 0.0
+	_fish.offset_top = 0.0
+	_fish.offset_right = 0.0
+	_fish.offset_bottom = 0.0
+	var tex := _fish.texture
+	if tex == null:
+		return
+	var img := tex.get_image()
+	if img == null or img.is_empty():
+		return
+	var used := img.get_used_rect()
+	var tex_size := img.get_size()
+	if used.size.x < 2 or used.size.y < 2:
+		return
+	var content := Vector2(used.size) / Vector2(tex_size)
+	var origin := Vector2(used.position) / Vector2(tex_size)
+	var fill := 0.9
+	var zoom := minf(fill / content.x, fill / content.y)
+	var center := origin + content * 0.5
+	var pos := Vector2(0.5, 0.5) - center * zoom
+	_fish.anchor_left = pos.x
+	_fish.anchor_top = pos.y
+	_fish.anchor_right = pos.x + zoom
+	_fish.anchor_bottom = pos.y + zoom
 
 
 func _place_badge(fr: Dictionary, fz: Vector2, win_w: float) -> void:
@@ -278,7 +328,7 @@ func measure() -> Dictionary:
 	var badge_r := _badge_panel.get_global_rect()
 	var frame_r := _frame_box.get_global_rect()
 	var btn_r := _fun_btn.get_global_rect()
-	var fish_r := _fish.get_global_rect()
+	var fish_r := _stage.get_global_rect()
 	var name_used := name_r.size.x
 	var font := _name_label.get_theme_font("font")
 	if font != null:

@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://ui/fish_card.gd" id="1_card"]
 [ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" path="res://ui/pressable.gd" id="3_press"]
 [ext_resource type="Texture2D" path="res://assets/textures/glow_disc.png" id="4_glow"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.png" id="5_coin"]
+[ext_resource type="Texture2D" path="res://assets/textures/shadow_blob.png" id="6_shadow"]
 
 [sub_resource type="CanvasItemMaterial" id="HaloAdd"]
 blend_mode = 1
@@ -68,27 +69,53 @@ theme_override_constants/margin_bottom = 0
 
 [node name="WindowVBox" type="VBoxContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window"]
 layout_mode = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 10
+alignment = 1
 
 [node name="FishBand" type="CenterContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 1.5
+size_flags_vertical = 4
 
-[node name="HaloGlow" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand"]
-visible = false
+[node name="FishStage" type="Control" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand"]
 custom_minimum_size = Vector2(280, 280)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Shadow" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage"]
+layout_mode = 1
+anchor_left = 0.16
+anchor_top = 0.66
+anchor_right = 0.84
+anchor_bottom = 0.86
+mouse_filter = 2
+texture = ExtResource("6_shadow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HaloGlow" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage"]
+layout_mode = 1
+anchor_left = -0.08
+anchor_top = -0.06
+anchor_right = 1.08
+anchor_bottom = 1.06
 mouse_filter = 2
 material = SubResource("HaloAdd")
 texture = ExtResource("4_glow")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="FishIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand"]
-custom_minimum_size = Vector2(220, 220)
-layout_mode = 2
+[node name="FishClip" type="Control" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage"]
+clip_contents = true
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="FishIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/FishBand/FishStage/FishClip"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -96,21 +123,20 @@ stretch_mode = 5
 [node name="TextBlock" type="MarginContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 1.0
+size_flags_vertical = 4
 theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 0
+theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_bottom = 12
 
 [node name="TextVBox" type="VBoxContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 12
 
 [node name="NameLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 theme_override_constants/outline_size = 0
 autowrap_mode = 3
 horizontal_alignment = 1
@@ -121,19 +147,23 @@ text = "Pez"
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ValueBox" type="HBoxContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter"]
+[node name="ValuePill" type="PanelContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter"]
 layout_mode = 2
-theme_override_constants/separation = 10
+mouse_filter = 2
+
+[node name="ValueBox" type="HBoxContainer" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill"]
+layout_mode = 2
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="CoinIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValueBox"]
-custom_minimum_size = Vector2(48, 48)
+[node name="CoinIcon" type="TextureRect" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox"]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("5_coin")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ValueLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValueBox"]
+[node name="ValueLabel" type="Label" parent="Center/CardBox/FrameCenter/FrameBox/Window/WindowVBox/TextBlock/TextVBox/ValueCenter/ValuePill/ValueBox"]
 layout_mode = 2
 theme_override_constants/outline_size = 0
 horizontal_alignment = 1

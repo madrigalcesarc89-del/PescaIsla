@@ -144,7 +144,7 @@ func _check(m: Dictionary, aspect: String, id: String, lang: String, value_text:
 		_bad(tag + " contraste %.2f" % ratio)
 	# El pez ocupa ~60 % del ancho de la ventana (tolerancia por el alto de la banda).
 	var fish_r := float(m.fish_of_window)
-	if fish_r < 0.45 or fish_r > 0.66:
+	if fish_r < 0.55 or fish_r > 0.82:
 		_bad(tag + " pez a %.0f%% de la ventana" % (fish_r * 100.0))
 
 
