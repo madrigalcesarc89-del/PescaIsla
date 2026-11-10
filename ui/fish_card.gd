@@ -115,8 +115,9 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + slice):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
-	# El crema cubre todo el PNG. El marco se dibuja encima y tapa el borde.
-	_anchor_frac(_backing, [0.0, 0.0, 1.0, 1.0])
+	# El borde superior del marco empieza ~4 % abajo. El crema nace ahí,
+	# debajo de la pintura, para que no asome por encima del marco.
+	_anchor_frac(_backing, [0.02, 0.046, 0.96, 0.91])
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
 	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
 	if _halo.visible:
