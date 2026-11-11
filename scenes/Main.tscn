@@ -445,32 +445,32 @@ script = ExtResource("37_bgfit")
 script = ExtResource("35_fish")
 
 [node name="slot_back_left" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.78, 0.7, -1.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.58, 0.7, -0.98)
 metadata/slot_type = "esquina"
-metadata/max_size = 0.55
-
-[node name="slot_back_center" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0.7, -1.18)
-metadata/slot_type = "fondo"
-metadata/max_size = 0.5
+metadata/max_size = 0.85
 
 [node name="slot_back_right" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, 0.7, -1.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 0.7, -0.98)
 metadata/slot_type = "esquina"
-metadata/max_size = 0.55
+metadata/max_size = 0.85
 
 [node name="slot_side_left" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.82, 0.7, -0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.7, -0.22)
 metadata/slot_type = "lateral"
-metadata/max_size = 0.5
+metadata/max_size = 0.55
+
+[node name="slot_side_right" type="Marker3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.68, 0.7, -0.32)
+metadata/slot_type = "lateral"
+metadata/max_size = 0.4
 
 [node name="slot_side_front" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.7, 0.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.7, 0.48)
 metadata/slot_type = "lateral"
 metadata/max_size = 0.45
 
-[node name="slot_side_right" type="Marker3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.7, -0.4)
-metadata/slot_type = "lateral"
-metadata/max_size = 0.5
+[node name="slot_mid" type="Marker3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.02, 0.7, 0.38)
+metadata/slot_type = "fondo"
+metadata/max_size = 0.36
 
