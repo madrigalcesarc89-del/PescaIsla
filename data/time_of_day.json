@@ -41,6 +41,12 @@
       "fireflies": 0.0,
       "sparkle": 0.42,
       "decor_lights": 0.0,
+      "shallow_color": [0.246, 0.657, 0.636],
+      "deep_color": [0.55, 0.82, 0.9],
+      "sun_tint": [0.85, 0.93, 1.0],
+      "haze_start": 10.0,
+      "haze_end": 36.0,
+      "glint_far": 16.0,
       "music": "res://assets/audio/music/mus_sunset.ogg",
       "ambient": "res://assets/audio/ambient/amb_day.ogg"
     },
@@ -83,6 +89,12 @@
       "sparkle": 0.12,
       "decor_lights": 1.0,
       "horizon_bias": [-0.0357, -0.0584, -0.0376],
+      "shallow_color": [0.04, 0.13, 0.22],
+      "deep_color": [0.07, 0.11, 0.28],
+      "sun_tint": [0.55, 0.68, 1.0],
+      "haze_start": 4.0,
+      "haze_end": 18.0,
+      "glint_far": 12.0,
       "music": "res://assets/audio/music/mus_night.ogg",
       "ambient": "res://assets/audio/ambient/amb_night.ogg"
     }

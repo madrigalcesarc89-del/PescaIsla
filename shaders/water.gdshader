@@ -13,6 +13,10 @@ uniform float wave_speed = 1.2;
 uniform float wave_freq = 0.6;
 uniform float fresnel_power = 5.0;
 uniform float sun_glint = 0.15;
+uniform float haze_start = 12.0;
+uniform float haze_end = 40.0;
+// 0 deja el brillo como antes. Un valor bajo apaga el reflejo lejos, para que no pinte una franja bajo el cielo.
+uniform float glint_far = 80.0;
 
 varying vec2 w_xz;
 varying float crest;
@@ -33,25 +37,21 @@ void fragment() {
 	float d = distance(w_xz, vec2(0.0, 2.0));
 	float m1 = clamp((d - 3.0) / 22.0, 0.0, 1.0);
 	vec3 col = mix(shallow_color.rgb, deep_color.rgb, m1);
-	// 14c: bruma corta 12-40 m: a 40 m el agua ya es horizon_color plano.
-	float m2 = smoothstep(12.0, 40.0, d);
+	float m2 = smoothstep(haze_start, haze_end, d);
 	col = mix(col, horizon_color.rgb, m2);
 
 	float fres = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), fresnel_power);
-	col += fres * sun_tint * sun_glint * (1.0 - m2);
+	float glint_mask = (1.0 - m2) * (1.0 - smoothstep(glint_far * 0.5, glint_far, d));
+	col += fres * sun_tint * sun_glint * glint_mask;
 
-	// 11c: cáustica suave procedural que se desplaza lento (2 senos baratos).
-	// Solo cerca/medio: se apaga con m2 para no mover el tono del horizonte.
 	float ca = sin(w_xz.x * 1.35 + TIME * 0.5) * sin(w_xz.y * 1.7 - TIME * 0.42);
-	ca = smoothstep(0.55, 0.95, ca) * 0.05 * (1.0 - m2);
+	ca = smoothstep(0.55, 0.95, ca) * 0.05 * glint_mask;
 	col += sun_tint * ca;
 
-	// 11c: destellos pequeños en crestas de ola.
-	float gl = smoothstep(0.78, 1.0, crest) * 0.09 * (1.0 - m2);
+	float gl = smoothstep(0.78, 1.0, crest) * 0.09 * glint_mask;
 	col += sun_tint * gl;
 
-	// 14c: remate de bruma dentro del tramo corto (termina plano en 40 m).
-	float haze = smoothstep(30.0, 40.0, d);
+	float haze = smoothstep(haze_end - 10.0, haze_end, d);
 	col = mix(col, horizon_color.rgb, haze * 0.35);
 
 	ALBEDO = col;

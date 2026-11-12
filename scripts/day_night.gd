@@ -241,7 +241,13 @@ func _paint(v: Dictionary, a: Dictionary, b: Dictionary, t: float) -> void:
 		_env.adjustment_saturation = float(v["grade_saturation"])
 	if _water != null:
 		_water.set_shader_parameter("horizon_color", v["horizon_color"])
+		_water.set_shader_parameter("shallow_color", v["shallow_color"])
+		_water.set_shader_parameter("deep_color", v["deep_color"])
+		_water.set_shader_parameter("sun_tint", v["sun_tint"])
 		_water.set_shader_parameter("sun_glint", float(v["sparkle"]))
+		_water.set_shader_parameter("haze_start", float(v["haze_start"]))
+		_water.set_shader_parameter("haze_end", float(v["haze_end"]))
+		_water.set_shader_parameter("glint_far", float(v["glint_far"]))
 	if _veil != null:
 		_veil.set_shader_parameter("veil_color", v["vignette"])
 		_veil.set_shader_parameter("edge_amount", float(v["vignette_edge"]))
@@ -316,6 +322,12 @@ func _phase(id: String) -> Dictionary:
 		"seam_row": float(src.get("seam_row", 1397.3)),
 		"horizon_color": _col(src.get("horizon_color", [1, 1, 1])),
 		"horizon_bias": _vec(src.get("horizon_bias", [0, 0, 0])),
+		"shallow_color": _col(src.get("shallow_color", [0.246, 0.657, 0.636])),
+		"deep_color": _col(src.get("deep_color", [0.75, 0.62, 0.72])),
+		"sun_tint": _col(src.get("sun_tint", [1.0, 0.8, 0.62])),
+		"haze_start": float(src.get("haze_start", 12.0)),
+		"haze_end": float(src.get("haze_end", 40.0)),
+		"glint_far": float(src.get("glint_far", 80.0)),
 		"light_color": _col(src.get("light_color", [1, 1, 1])),
 		"light_energy": float(src.get("light_energy", 1.0)),
 		"ambient_energy": float(src.get("ambient_energy", 0.6)),
@@ -343,7 +355,10 @@ func _mix(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 	out["fog_color"] = _lift((a["fog_color"] as Color).lerp(b["fog_color"], t), bias, bump)
 	out["vignette"] = (a["vignette"] as Color).lerp(b["vignette"], t)
 	out["cat_tint"] = (a["cat_tint"] as Color).lerp(b["cat_tint"], t)
-	for key in ["light_energy", "ambient_energy", "grade_contrast", "grade_saturation", "vignette_edge", "lantern", "fireflies", "sparkle", "decor_lights"]:
+	out["shallow_color"] = (a["shallow_color"] as Color).lerp(b["shallow_color"], t)
+	out["deep_color"] = (a["deep_color"] as Color).lerp(b["deep_color"], t)
+	out["sun_tint"] = (a["sun_tint"] as Color).lerp(b["sun_tint"], t)
+	for key in ["light_energy", "ambient_energy", "grade_contrast", "grade_saturation", "vignette_edge", "lantern", "fireflies", "sparkle", "decor_lights", "haze_start", "haze_end", "glint_far"]:
 		out[key] = lerpf(float(a[key]), float(b[key]), t)
 	return out
 
