@@ -140,17 +140,49 @@ func ghost_begin(id: String, state: Dictionary) -> Dictionary:
 
 func ghost_move(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> Dictionary:
 	if _ghost == null:
-		return {"valid": false, "reason": "water", "y": _plane}
+		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0}
+	var snap := _ghost_snapshot()
 	_apply_ghost(x, z, yaw, prefer_y)
-	return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
+	if not _blocked(_ghost_reason):
+		return _ghost_state()
+	var why := _ghost_reason
+	var best := snap
+	var best_d := -1.0
+	_apply_ghost(x, float(snap["z"]), yaw, prefer_y)
+	if not _blocked(_ghost_reason):
+		var dx := absf(_ghost_x - float(snap["x"]))
+		if dx > 0.001:
+			best = _ghost_snapshot()
+			best_d = dx
+	_apply_ghost(float(snap["x"]), z, yaw, prefer_y)
+	if not _blocked(_ghost_reason):
+		var dz := absf(_ghost_z - float(snap["z"]))
+		if dz > 0.001 and dz > best_d:
+			best = _ghost_snapshot()
+			best_d = dz
+	if best_d < 0.0:
+		_restore_ghost(snap, why)
+	else:
+		_apply_ghost(float(best["x"]), float(best["z"]), float(best["yaw"]), float(best["y"]))
+	return _ghost_state()
 
 
 func ghost_step(dir: int) -> Dictionary:
 	if _ghost == null:
-		return {"valid": false, "reason": "water", "y": _plane}
+		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0}
+	var snap := _ghost_snapshot()
 	var target: float = _ghost_sit + LIFT_STEP * float(dir)
 	_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, target)
-	return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
+	if not _blocked(_ghost_reason):
+		return _ghost_state()
+	var why := _ghost_reason
+	var land := _step_land(float(snap["y"]), target, dir)
+	if land > -100.0:
+		_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, land)
+		if not _blocked(_ghost_reason):
+			return _ghost_state()
+	_restore_ghost(snap, why)
+	return _ghost_state()
 
 
 func ghost_pose() -> String:
@@ -160,6 +192,64 @@ func ghost_pose() -> String:
 func ghost_cancel() -> void:
 	_free_ghost()
 	_rebuild(_shown, "")
+
+
+func _ghost_snapshot() -> Dictionary:
+	return {
+		"x": _ghost_x,
+		"z": _ghost_z,
+		"yaw": _ghost_yaw,
+		"y": _ghost_sit,
+		"valid": _ghost_valid,
+		"reason": _ghost_reason,
+	}
+
+
+func _ghost_state() -> Dictionary:
+	return {
+		"valid": _ghost_valid,
+		"reason": _ghost_reason,
+		"y": _ghost_sit,
+		"x": _ghost_x,
+		"z": _ghost_z,
+		"yaw": _ghost_yaw,
+	}
+
+
+func _restore_ghost(snap: Dictionary, reason: String) -> void:
+	_apply_ghost(float(snap["x"]), float(snap["z"]), float(snap["yaw"]), float(snap["y"]))
+	_ghost_reason = reason
+	_ghost_valid = bool(snap["valid"])
+
+
+func _blocked(reason: String) -> bool:
+	return reason == "busy" or reason == "water" or reason == "clip"
+
+
+func _step_land(prev: float, target: float, dir: int) -> float:
+	var pts := _samples(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale)
+	var supports := _supports(_ghost_id, pts)
+	if dir > 0:
+		var low := 9999.0
+		var found := false
+		for s in supports:
+			var h := float(s)
+			if h > prev + 0.04 and h <= target + LIFT_SNAP and h < low:
+				low = h
+				found = true
+		if found:
+			return low
+		return -9999.0
+	var high := -9999.0
+	var found_down := false
+	for s2 in supports:
+		var h2 := float(s2)
+		if h2 < prev - 0.04 and h2 >= target - LIFT_SNAP and h2 > high:
+			high = h2
+			found_down = true
+	if found_down:
+		return high
+	return -9999.0
 
 
 func _apply_ghost(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> void:

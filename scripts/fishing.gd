@@ -938,6 +938,12 @@ func _take_place(packed) -> void:
 		return
 	var info: Dictionary = packed
 	_place_valid = bool(info.get("valid", false))
+	if info.has("x"):
+		_place_x = float(info["x"])
+	if info.has("z"):
+		_place_z = float(info["z"])
+	if info.has("yaw"):
+		_place_yaw = float(info["yaw"])
 	if info.has("y"):
 		_place_y = float(info["y"])
 	if _place != null:

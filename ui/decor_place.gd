@@ -89,13 +89,10 @@ func set_status(valid: bool, reason: String) -> void:
 	var key := "place_ok"
 	if reason == "air":
 		key = "place_air"
-	elif not valid:
-		if reason == "water":
-			key = "place_water"
-		elif reason == "clip":
-			key = "place_clip"
-		else:
-			key = "place_busy"
+	elif reason == "water":
+		key = "place_water"
+	elif reason == "clip":
+		key = "place_clip"
 	elif reason == "busy":
 		key = "place_busy"
 	_hint.text = SettingsData.t(key)
