@@ -6,6 +6,29 @@ const PATH := "res://data/time_of_day.json"
 const FIREFLY_MAX := 60
 const GLINT_BASE := 0.6
 const SPARKLE_REF := 0.35
+## Godot 4.7 no sigue los preload al exportar “solo la escena”.
+## Estas propiedades, asignadas en Main, sí entran en la APK.
+@export var sky_dawn: Texture2D
+@export var sky_day: Texture2D
+@export var sky_sunset: Texture2D
+@export var sky_night: Texture2D
+@export var mus_sunset: AudioStream
+@export var mus_night: AudioStream
+@export var amb_day: AudioStream
+@export var amb_night: AudioStream
+## Respaldo por si el nodo se crea en código y la escena no asignó nada.
+const TEX := {
+	"res://assets/art/bg/bg_dawn.jpg": preload("res://assets/art/bg/bg_dawn.jpg"),
+	"res://assets/art/bg/bg_day.jpg": preload("res://assets/art/bg/bg_day.jpg"),
+	"res://assets/art/bg/bg_sunset.jpg": preload("res://assets/art/bg/bg_sunset.jpg"),
+	"res://assets/art/bg/bg_night.jpg": preload("res://assets/art/bg/bg_night.jpg"),
+}
+const BEDS := {
+	"res://assets/audio/music/mus_sunset.ogg": preload("res://assets/audio/music/mus_sunset.ogg"),
+	"res://assets/audio/music/mus_night.ogg": preload("res://assets/audio/music/mus_night.ogg"),
+	"res://assets/audio/ambient/amb_day.ogg": preload("res://assets/audio/ambient/amb_day.ogg"),
+	"res://assets/audio/ambient/amb_night.ogg": preload("res://assets/audio/ambient/amb_night.ogg"),
+}
 
 var _data: Dictionary = {}
 var _order: Array[String] = []
@@ -111,6 +134,9 @@ func _load() -> void:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
+	for path in BEDS:
+		if _scene_audio(str(path)) == null and not ResourceLoader.exists(str(path)):
+			push_warning("falta en el paquete: " + str(path))
 	_data = parsed
 	_order.clear()
 	var raw = _data.get("order", [])
@@ -293,19 +319,58 @@ func _paint_sky(a: Dictionary, b: Dictionary, t: float) -> void:
 		return
 	var path_a := str(a.get("background", ""))
 	var path_b := str(b.get("background", ""))
-	if path_a != _tex_a and ResourceLoader.exists(path_a):
-		_sky_a.texture = load(path_a)
-		_tex_a = path_a
+	if path_a != _tex_a:
+		var tex_a := _texture(path_a)
+		if tex_a != null:
+			_sky_a.texture = tex_a
+			_tex_a = path_a
 	_sky_a.set("seam_tex_row", float(a.get("seam_row", 1397.3)))
 	_sky_a.modulate.a = 1.0
 	if _sky_b == null:
 		return
-	if path_b != _tex_b and ResourceLoader.exists(path_b):
-		_sky_b.texture = load(path_b)
-		_tex_b = path_b
+	if path_b != _tex_b:
+		var tex_b := _texture(path_b)
+		if tex_b != null:
+			_sky_b.texture = tex_b
+			_tex_b = path_b
 	_sky_b.set("seam_tex_row", float(b.get("seam_row", 1397.3)))
 	_sky_b.modulate.a = t
 	_sky_b.visible = t > 0.004
+
+
+func _texture(path: String) -> Texture2D:
+	var from_scene := _scene_texture(path)
+	if from_scene != null:
+		return from_scene
+	if TEX.has(path):
+		return TEX[path]
+	if ResourceLoader.exists(path):
+		return load(path)
+	return null
+
+
+func _scene_texture(path: String) -> Texture2D:
+	if path == "res://assets/art/bg/bg_dawn.jpg":
+		return sky_dawn
+	if path == "res://assets/art/bg/bg_day.jpg":
+		return sky_day
+	if path == "res://assets/art/bg/bg_sunset.jpg":
+		return sky_sunset
+	if path == "res://assets/art/bg/bg_night.jpg":
+		return sky_night
+	return null
+
+
+func _scene_audio(path: String) -> AudioStream:
+	if path == "res://assets/audio/music/mus_sunset.ogg":
+		return mus_sunset
+	if path == "res://assets/audio/music/mus_night.ogg":
+		return mus_night
+	if path == "res://assets/audio/ambient/amb_day.ogg":
+		return amb_day
+	if path == "res://assets/audio/ambient/amb_night.ogg":
+		return amb_night
+	return null
 
 
 func _paint_audio(a: Dictionary, b: Dictionary, t: float) -> void:

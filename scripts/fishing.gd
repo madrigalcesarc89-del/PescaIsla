@@ -1103,6 +1103,10 @@ func _on_debug_shop_reset() -> void:
 
 
 func _start_day_night() -> void:
+	var existing := get_node_or_null("DayNight")
+	if existing != null:
+		_day_night = existing
+		return
 	var node := Node.new()
 	node.name = "DayNight"
 	node.set_script(preload("res://scripts/day_night.gd"))

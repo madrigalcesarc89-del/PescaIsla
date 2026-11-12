@@ -24,6 +24,14 @@
 [ext_resource type="Script" path="res://scripts/camera_fit.gd" id="36_camfit"]
 [ext_resource type="Script" path="res://scripts/background_fit.gd" id="37_bgfit"]
 [ext_resource type="Texture2D" uid="uid://bmcdg071k6rfq" path="res://assets/art/bg/bg_sunset.jpg" id="40_fondo"]
+[ext_resource type="Script" path="res://scripts/day_night.gd" id="dn_script"]
+[ext_resource type="Texture2D" uid="uid://difpphsu4ks3k" path="res://assets/art/bg/bg_dawn.jpg" id="dn_dawn"]
+[ext_resource type="Texture2D" uid="uid://ms36nxmgy0d2" path="res://assets/art/bg/bg_day.jpg" id="dn_day"]
+[ext_resource type="Texture2D" uid="uid://dsqusl1ur2w4r" path="res://assets/art/bg/bg_night.jpg" id="dn_night"]
+[ext_resource type="AudioStream" uid="uid://xsv10kmhevwp" path="res://assets/audio/music/mus_sunset.ogg" id="dn_mus_sunset"]
+[ext_resource type="AudioStream" uid="uid://lkfnwcg83os3" path="res://assets/audio/music/mus_night.ogg" id="dn_mus_night"]
+[ext_resource type="AudioStream" uid="uid://dws0f1neqswsd" path="res://assets/audio/ambient/amb_day.ogg" id="dn_amb_day"]
+[ext_resource type="AudioStream" uid="uid://bh6opo3jxixd4" path="res://assets/audio/ambient/amb_night.ogg" id="dn_amb_night"]
 [ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
@@ -443,6 +451,17 @@ script = ExtResource("37_bgfit")
 
 [node name="Fishing" type="Node" parent="." unique_id=510232045]
 script = ExtResource("35_fish")
+
+[node name="DayNight" type="Node" parent="Fishing"]
+script = ExtResource("dn_script")
+sky_dawn = ExtResource("dn_dawn")
+sky_day = ExtResource("dn_day")
+sky_sunset = ExtResource("40_fondo")
+sky_night = ExtResource("dn_night")
+mus_sunset = ExtResource("dn_mus_sunset")
+mus_night = ExtResource("dn_mus_night")
+amb_day = ExtResource("dn_amb_day")
+amb_night = ExtResource("dn_amb_night")
 
 [node name="slot_back_left" type="Marker3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.58, 0.7, -0.98)
