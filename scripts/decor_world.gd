@@ -213,7 +213,7 @@ func _restore_ghost(snap: Dictionary, reason: String) -> void:
 
 
 func _blocked(reason: String) -> bool:
-	return reason == "busy" or reason == "water" or reason == "clip"
+	return reason == "water" or reason == "clip"
 
 
 func _apply_ghost(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> void:
