@@ -170,18 +170,8 @@ func ghost_move(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> Dic
 func ghost_step(dir: int) -> Dictionary:
 	if _ghost == null:
 		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0}
-	var snap := _ghost_snapshot()
 	var target: float = _ghost_sit + LIFT_STEP * float(dir)
 	_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, target)
-	if not _blocked(_ghost_reason):
-		return _ghost_state()
-	var why := _ghost_reason
-	var land := _step_land(float(snap["y"]), target, dir)
-	if land > -100.0:
-		_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, land)
-		if not _blocked(_ghost_reason):
-			return _ghost_state()
-	_restore_ghost(snap, why)
 	return _ghost_state()
 
 
@@ -224,32 +214,6 @@ func _restore_ghost(snap: Dictionary, reason: String) -> void:
 
 func _blocked(reason: String) -> bool:
 	return reason == "busy" or reason == "water" or reason == "clip"
-
-
-func _step_land(prev: float, target: float, dir: int) -> float:
-	var pts := _samples(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale)
-	var supports := _supports(_ghost_id, pts)
-	if dir > 0:
-		var low := 9999.0
-		var found := false
-		for s in supports:
-			var h := float(s)
-			if h > prev + 0.04 and h <= target + LIFT_SNAP and h < low:
-				low = h
-				found = true
-		if found:
-			return low
-		return -9999.0
-	var high := -9999.0
-	var found_down := false
-	for s2 in supports:
-		var h2 := float(s2)
-		if h2 < prev - 0.04 and h2 >= target - LIFT_SNAP and h2 > high:
-			high = h2
-			found_down = true
-	if found_down:
-		return high
-	return -9999.0
 
 
 func _apply_ghost(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> void:
