@@ -14,6 +14,9 @@ const CELL := 0.06
 const CAT_AT := Vector2(0.724, 0.279)
 const CAT_R := 0.36
 const LANTERN := Rect2(-0.70, 0.84, 0.44, 0.48)
+const LIFT_STEP := 0.28
+const LIFT_SNAP := 0.12
+const LIFT_MAX := 2.4
 
 var _bb := AABB()
 var _bb_ok := false
@@ -145,32 +148,8 @@ func ghost_move(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> Dic
 func ghost_step(dir: int) -> Dictionary:
 	if _ghost == null:
 		return {"valid": false, "reason": "water", "y": _plane}
-	var pts := _samples(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale)
-	var supports := _supports(_ghost_id, pts)
-	var heights: Array = []
-	for s in supports:
-		var h := float(s)
-		if dir > 0:
-			if h > _ghost_sit + 0.04:
-				heights.append(h)
-		elif h < _ghost_sit - 0.04:
-			heights.append(h)
-	heights.sort()
-	if dir < 0:
-		heights.reverse()
-	var blocked := false
-	for raw in heights:
-		var want := float(raw)
-		var resolved := _resolve(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale, want)
-		var sit := float(resolved.get("sit", -9999.0))
-		if str(resolved.get("reason", "")) == "ok" and absf(sit - want) <= 0.05:
-			_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, want)
-			return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
-		blocked = true
-	if dir > 0 and _ghost_valid:
-		_ghost_reason = "air"
-	elif dir < 0 and blocked and _ghost_valid:
-		_ghost_reason = "busy"
+	var target: float = _ghost_sit + LIFT_STEP * float(dir)
+	_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, target)
 	return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
 
 
@@ -465,9 +444,17 @@ func _resolve(id: String, x: float, z: float, yaw: float, scale: float, prefer_y
 		if span > 0.09:
 			return {"reason": "clip", "sit": _plane}
 		return {"reason": "water", "sit": _plane}
-	var sit := _pick_support(supports, prefer_y)
+	var floor := _lowest(supports)
+	var sit := floor
+	if prefer_y >= -100.0:
+		sit = clampf(prefer_y, floor, floor + LIFT_MAX)
+		var near := _near_support(supports, sit)
+		if near > -100.0:
+			sit = near
 	if _hits(id, x, z, yaw, scale, sit, pts):
 		return {"reason": "busy", "sit": sit}
+	if not _resting(supports, sit):
+		return {"reason": "air", "sit": sit}
 	return {"reason": "ok", "sit": sit}
 
 
@@ -484,22 +471,30 @@ func _supports(id: String, pts: PackedVector2Array) -> Array:
 	return found
 
 
-func _pick_support(supports: Array, prefer_y: float) -> float:
+func _lowest(supports: Array) -> float:
 	var sit := float(supports[0])
-	if prefer_y < -100.0:
-		for s in supports:
-			sit = minf(sit, float(s))
-		return sit
+	for s in supports:
+		sit = minf(sit, float(s))
+	return sit
+
+
+func _near_support(supports: Array, sit: float) -> float:
 	var best := -9999.0
+	var best_d := LIFT_SNAP
 	for s in supports:
 		var h := float(s)
-		if h <= prefer_y + 0.03 and h > best:
+		var d := absf(sit - h)
+		if d <= best_d:
+			best_d = d
 			best = h
-	if best < -100.0:
-		for s in supports:
-			sit = minf(sit, float(s))
-		return sit
 	return best
+
+
+func _resting(supports: Array, sit: float) -> bool:
+	for s in supports:
+		if absf(sit - float(s)) <= 0.04:
+			return true
+	return false
 
 
 func _dock_sit(pts: PackedVector2Array) -> float:

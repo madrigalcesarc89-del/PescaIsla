@@ -62,7 +62,7 @@
     "place_water": { "es": "Ahí hay agua", "en": "That's water" },
     "place_clip": { "es": "Atraviesa el muelle", "en": "It goes through the dock" },
     "place_busy": { "es": "Ese sitio está ocupado", "en": "That spot is taken" },
-    "place_air": { "es": "No puede quedar en el aire", "en": "It can't stay in the air" },
+    "place_air": { "es": "Bájalo: no puede quedar en el aire", "en": "Lower it: it can't stay in the air" },
     "place_not_now": { "es": "Termina esta pesca para colocarlo", "en": "Finish this cast before placing" },
     "shop_cancel": { "es": "Cancelar", "en": "Cancel" },
     "shop_confirm": { "es": "¿Comprar %s?", "en": "Buy %s?" },
