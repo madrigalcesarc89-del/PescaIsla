@@ -613,6 +613,13 @@ var _album: Control
 var _settings: Control
 var _shop: Control
 var _decor: Node3D = null
+var _place: Control = null
+var _placing := false
+var _place_id := ""
+var _place_x := 0.0
+var _place_z := 0.0
+var _place_yaw := 0.0
+var _place_valid := false
 var _escape_label: Label
 
 
@@ -650,7 +657,17 @@ func _build_ui() -> void:
 	_shop.purchase_requested.connect(_on_shop_buy)
 	_shop.equip_requested.connect(_on_shop_equip)
 	_shop.place_requested.connect(_on_shop_place)
+	_shop.move_requested.connect(_on_shop_move)
 	_shop.remove_requested.connect(_on_shop_remove)
+	_place = Control.new()
+	_place.set_script(preload("res://ui/decor_place.gd"))
+	_place.name = "DecorPlace"
+	_ui_layer.add_child(_place)
+	_apply_safe_area(_place)
+	_place.dragged.connect(_on_place_drag)
+	_place.rotate_pressed.connect(_on_place_rotate)
+	_place.confirm_pressed.connect(_on_place_confirm)
+	_place.cancel_pressed.connect(_on_place_cancel)
 	_escape_label = Label.new()
 	_escape_label.add_theme_font_size_override("font_size", 90)
 	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -753,6 +770,11 @@ func _on_album_unlock() -> void:
 
 func _on_go_back() -> void:
 	var card_open := _fishcard != null and _fishcard.visible
+	if card_open:
+		return
+	if _placing:
+		_on_place_cancel()
+		return
 	var detail_open := false
 	if _album != null and _album.has_method("is_detail_open"):
 		detail_open = bool(_album.is_detail_open())
@@ -767,7 +789,7 @@ func _on_go_back() -> void:
 		shop_open = true
 		if _shop.has_method("is_confirm_open"):
 			shop_confirm = bool(_shop.is_confirm_open())
-	var action := AlbumSave.back_action(card_open, detail_open, album_open, settings_open, soon_open, shop_confirm, shop_open)
+	var action := AlbumSave.back_action(false, detail_open, album_open, settings_open, soon_open, shop_confirm, shop_open)
 	if action == "ignore":
 		return
 	if action == "close_detail" or action == "close_album":
@@ -807,14 +829,14 @@ func _on_shop_buy(id: String) -> void:
 		return
 	coins = int(result.get("coins", coins))
 	_shop_state = result.get("state", _shop_state)
-	if str(ShopSave.item_by_id(id).get("category", "")) == "decor":
-		_apply_decor(id, false)
 	_sync_shop_rest()
 	_play_ui("buy")
 	if _hud != null:
 		_hud.animate_coins(before, coins)
 	if _shop != null:
 		_shop.notify(true, id, coins, _shop_state)
+	if str(ShopSave.item_by_id(id).get("category", "")) == "decor":
+		_start_place(id)
 
 
 func _on_shop_equip(id: String) -> void:
@@ -828,12 +850,118 @@ func _on_shop_equip(id: String) -> void:
 
 
 func _on_shop_place(id: String) -> void:
-	_apply_decor(id, false)
-	if _shop != null:
-		_shop.notify(true, id, coins, _shop_state)
+	_start_place(id)
+
+
+func _on_shop_move(id: String) -> void:
+	_start_place(id)
+
+
+func _start_place(id: String) -> void:
+	if state != State.IDLE:
+		if _shop != null and _shop.visible and _shop.has_method("warn"):
+			_shop.warn(SettingsData.t("place_not_now"))
+		return
+	_ensure_decor()
+	if _shop != null and _shop.visible:
+		_shop.consumes_back()
+	var began = _decor.call("ghost_begin", id, _shop_state)
+	if typeof(began) != TYPE_DICTIONARY or not bool(began.get("ok", false)):
+		if _hud != null:
+			_hud.show_toast(SettingsData.t("shop_no_room"))
+		return
+	var info: Dictionary = began
+	_placing = true
+	_place_id = id
+	_place_x = float(info.get("x", 0.0))
+	_place_z = float(info.get("z", 0.0))
+	_place_yaw = float(info.get("yaw", 0.0))
+	_place_valid = bool(info.get("valid", false))
+	if _place != null:
+		_place.call("show_place")
+		_place.call("set_status", _place_valid, str(info.get("reason", "")))
+
+
+func _on_place_drag(at: Vector2) -> void:
+	if not _placing:
+		return
+	var hit := _ray_dock(at)
+	if is_nan(hit.x):
+		return
+	_place_x = hit.x
+	_place_z = hit.y
+	_move_ghost()
+
+
+func _on_place_rotate() -> void:
+	if not _placing:
+		return
+	_place_yaw = fmod(_place_yaw + 45.0, 360.0)
+	if _place_yaw < 0.0:
+		_place_yaw += 360.0
+	_move_ghost()
+	_play_ui("tap")
+
+
+func _move_ghost() -> void:
+	var packed = _decor.call("ghost_move", _place_x, _place_z, _place_yaw)
+	if typeof(packed) != TYPE_DICTIONARY:
+		return
+	var info: Dictionary = packed
+	_place_valid = bool(info.get("valid", false))
+	if _place != null:
+		_place.call("set_status", _place_valid, str(info.get("reason", "")))
+
+
+func _on_place_confirm() -> void:
+	if not _placing:
+		return
+	if not _place_valid:
+		_play_ui("deny")
+		return
+	var pose := str(_decor.call("ghost_pose"))
+	var packed = _decor.call("commit_pose", _shop_state, _place_id, pose)
+	if typeof(packed) != TYPE_DICTIONARY or not bool(packed.get("ok", false)):
+		_play_ui("deny")
+		return
+	_shop_state = packed.get("state", _shop_state)
+	_sync_shop_rest()
+	_save_game()
+	_finish_place()
+	_play_ui("tap")
+
+
+func _on_place_cancel() -> void:
+	if _decor != null:
+		_decor.call("ghost_cancel")
+	_finish_place()
+
+
+func _finish_place() -> void:
+	_placing = false
+	_place_id = ""
+	if _place != null:
+		_place.visible = false
+
+
+func _ray_dock(screen: Vector2) -> Vector2:
+	var y := 0.68
+	if _decor != null:
+		y = float(_decor.call("plane_y"))
+	var origin := _cam.project_ray_origin(screen)
+	var dir := _cam.project_ray_normal(screen)
+	if absf(dir.y) < 0.00001:
+		return Vector2(NAN, NAN)
+	var t := (y - origin.y) / dir.y
+	if t < 0.0:
+		return Vector2(NAN, NAN)
+	var p: Vector3 = origin + dir * t
+	return Vector2(p.x, p.z)
 
 
 func _on_shop_remove(id: String) -> void:
+	if _placing and _place_id == id:
+		_on_place_cancel()
 	_apply_decor(id, true)
 	if _shop != null:
 		_shop.notify(true, id, coins, _shop_state)

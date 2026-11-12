@@ -6,6 +6,7 @@ const ShopSave = preload("res://scripts/shop_save.gd")
 signal purchase_requested(id: String)
 signal equip_requested(id: String)
 signal place_requested(id: String)
+signal move_requested(id: String)
 signal remove_requested(id: String)
 signal closed
 
@@ -391,10 +392,12 @@ func _add_actions(row: HBoxContainer, item: Dictionary, owned: bool, cat: String
 	elif cat == "decor" and owned:
 		var placed := (_state.get("decor_placed", {}) as Dictionary).has(id)
 		if placed:
+			box.add_child(_action_button("Move", false, SettingsData.t("place_move"), id, "move"))
 			box.add_child(_action_button("Remove", false, SettingsData.t("shop_remove"), id, "remove"))
+			count += 2
 		else:
 			box.add_child(_action_button("Place", false, SettingsData.t("shop_place"), id, "place"))
-		count += 1
+			count += 1
 	var show_buy: bool = false
 	if cat == "bait":
 		show_buy = int(item.get("pack_size", 0)) > 0
@@ -430,6 +433,8 @@ func _action_button(node_name: String, done: bool, text: String, id: String, kin
 		btn.pressed.connect(func() -> void: _on_equip(id, btn))
 	elif kind == "remove":
 		btn.pressed.connect(func() -> void: _on_remove(id, btn))
+	elif kind == "move":
+		btn.pressed.connect(func() -> void: _on_move(id, btn))
 	else:
 		btn.pressed.connect(func() -> void: _on_place(id, btn))
 	return btn
@@ -472,6 +477,14 @@ func _on_place(id: String, btn: Button) -> void:
 	_arm_lock(btn, true)
 	_play("tap")
 	place_requested.emit(id)
+
+
+func _on_move(id: String, btn: Button) -> void:
+	if _locked:
+		return
+	_arm_lock(btn, true)
+	_play("tap")
+	move_requested.emit(id)
 
 
 func _on_remove(id: String, btn: Button) -> void:
