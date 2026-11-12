@@ -507,7 +507,7 @@ func _qty_text(item: Dictionary, _owned: bool) -> String:
 func _build_tabs() -> void:
 	_add_tab("rod", "res://assets/art/shop/rod_bamboo.png")
 	_add_tab("bait", "res://assets/art/shop/bait_pink_worm.png")
-	_add_tab("decor", "res://assets/art/shop/deco_plant.png")
+	_add_tab("decor", "res://assets/art/shop/deco_birdhouse.png")
 
 
 func _add_tab(cat: String, icon_path: String) -> void:

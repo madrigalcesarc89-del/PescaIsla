@@ -119,17 +119,17 @@ func _logic() -> void:
 	var next: Dictionary = spent["state"]
 	_expect(bool(spent["fallback"]), "el último cebo avisa")
 	_expect(str(next["equipped_bait"]) == "bait_pink_worm", "vuelve a la lombriz")
-	var placed := ShopSave.place(ShopSave.fresh_state(), "deco_plant")
-	_expect(not (placed["decor_placed"] as Dictionary).has("deco_plant"), "no coloca sin comprar")
+	var placed := ShopSave.place(ShopSave.fresh_state(), "deco_birdhouse")
+	_expect(not (placed["decor_placed"] as Dictionary).has("deco_birdhouse"), "no coloca sin comprar")
 	var buyer: Dictionary = body.duplicate(true)
 	buyer["coins"] = 5000
 	var deco_path := "user://shop_audit_deco.json"
 	if FileAccess.file_exists(deco_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(deco_path))
-	var got: Dictionary = ShopSave.buy(deco_path, buyer, "deco_plant")
-	_expect(bool(got["ok"]), "compra la planta")
-	var put := ShopSave.place(got["state"], "deco_plant")
-	_expect(str((put["decor_placed"] as Dictionary).get("deco_plant", "")) == "shore", "guarda el hueco")
+	var got: Dictionary = ShopSave.buy(deco_path, buyer, "deco_birdhouse")
+	_expect(bool(got["ok"]), "compra la casa")
+	var put := ShopSave.place(got["state"], "deco_birdhouse")
+	_expect(str((put["decor_placed"] as Dictionary).get("deco_birdhouse", "")) == "esquina", "guarda el hueco")
 	_expect(AlbumSave.back_action(false, false, false, false, false, true, true) == "close_shop_confirm", "atrás cierra la confirmación")
 	_expect(AlbumSave.back_action(false, false, false, false, false, false, true) == "close_shop", "luego la tienda")
 	_expect(AlbumSave.back_action(true, false, false, false, false, true, true) == "ignore", "la tarjeta sigue ignorada")
@@ -240,7 +240,7 @@ func _check_layout(shop: Control, vp: Vector2i, tag: String, cat: String) -> voi
 	if close.size.x < 126.0 or close.size.y < 126.0:
 		_bad(tag + " cerrar pequeño")
 	var list: Node = shop.get_node("Panel/VBox/Scroll/List")
-	var expect := {"rod": 5, "bait": 4, "decor": 3}
+	var expect := {"rod": 5, "bait": 4, "decor": 8}
 	if list.get_child_count() != int(expect[cat]):
 		_bad(tag + " tarjetas " + str(list.get_child_count()))
 	var header: Control = shop.get_node("Panel/VBox/Header")

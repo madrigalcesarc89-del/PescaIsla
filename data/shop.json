@@ -141,14 +141,14 @@
       }
     },
     {
-      "id": "deco_plant",
+      "id": "deco_birdhouse",
       "category": "decor",
-      "price": 160,
-      "model": "res://assets/models/deco_plant.glb",
-      "slot_types": ["shore"],
-      "name": "shop_deco_plant",
-      "desc": "shop_deco_plant_desc",
-      "icon": "res://assets/art/shop/deco_plant.png",
+      "price": 240,
+      "model": "res://assets/models/deco/deco_birdhouse.glb",
+      "slot_types": ["esquina"],
+      "name": "shop_deco_birdhouse",
+      "desc": "shop_deco_birdhouse_desc",
+      "icon": "res://assets/art/shop/deco_birdhouse.png",
       "enabled": true,
       "effects": {
         "wait_mult": 1.0,
@@ -158,14 +158,14 @@
       }
     },
     {
-      "id": "deco_chair",
+      "id": "deco_cat_bed",
       "category": "decor",
-      "price": 420,
-      "model": "res://assets/models/deco_chair.glb",
-      "slot_types": ["dock"],
-      "name": "shop_deco_chair",
-      "desc": "shop_deco_chair_desc",
-      "icon": "res://assets/art/shop/deco_chair.png",
+      "price": 460,
+      "model": "res://assets/models/deco/deco_cat_bed.glb",
+      "slot_types": ["fondo"],
+      "name": "shop_deco_cat_bed",
+      "desc": "shop_deco_cat_bed_desc",
+      "icon": "res://assets/art/shop/deco_cat_bed.png",
       "enabled": true,
       "effects": {
         "wait_mult": 1.0,
@@ -175,14 +175,99 @@
       }
     },
     {
-      "id": "deco_campfire",
+      "id": "deco_succulent",
       "category": "decor",
-      "price": 880,
-      "model": "res://assets/models/deco_campfire.glb",
-      "slot_types": ["camp"],
-      "name": "shop_deco_campfire",
-      "desc": "shop_deco_campfire_desc",
-      "icon": "res://assets/art/shop/deco_campfire.png",
+      "price": 480,
+      "model": "res://assets/models/deco/deco_succulent.glb",
+      "slot_types": ["fondo"],
+      "name": "shop_deco_succulent",
+      "desc": "shop_deco_succulent_desc",
+      "icon": "res://assets/art/shop/deco_succulent.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_beach_chair",
+      "category": "decor",
+      "price": 520,
+      "model": "res://assets/models/deco/deco_beach_chair.glb",
+      "slot_types": ["lateral"],
+      "name": "shop_deco_beach_chair",
+      "desc": "shop_deco_beach_chair_desc",
+      "icon": "res://assets/art/shop/deco_beach_chair.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_table_lamp",
+      "category": "decor",
+      "price": 980,
+      "model": "res://assets/models/deco/deco_table_lamp.glb",
+      "slot_types": ["esquina"],
+      "name": "shop_deco_table_lamp",
+      "desc": "shop_deco_table_lamp_desc",
+      "icon": "res://assets/art/shop/deco_table_lamp.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_string_lights",
+      "category": "decor",
+      "price": 1100,
+      "model": "res://assets/models/deco/deco_string_lights.glb",
+      "slot_types": ["lateral"],
+      "name": "shop_deco_string_lights",
+      "desc": "shop_deco_string_lights_desc",
+      "icon": "res://assets/art/shop/deco_string_lights.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_firepit",
+      "category": "decor",
+      "price": 1200,
+      "model": "res://assets/models/deco/deco_firepit.glb",
+      "slot_types": ["fondo"],
+      "name": "shop_deco_firepit",
+      "desc": "shop_deco_firepit_desc",
+      "icon": "res://assets/art/shop/deco_firepit.png",
+      "enabled": true,
+      "effects": {
+        "wait_mult": 1.0,
+        "zone_mult": 1.0,
+        "weight_mult": { "common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0 },
+        "value_mult": 1.0
+      }
+    },
+    {
+      "id": "deco_hot_tub",
+      "category": "decor",
+      "price": 1400,
+      "model": "res://assets/models/deco/deco_hot_tub.glb",
+      "slot_types": ["fondo"],
+      "name": "shop_deco_hot_tub",
+      "desc": "shop_deco_hot_tub_desc",
+      "icon": "res://assets/art/shop/deco_hot_tub.png",
       "enabled": true,
       "effects": {
         "wait_mult": 1.0,
