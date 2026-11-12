@@ -619,6 +619,7 @@ var _place_id := ""
 var _place_x := 0.0
 var _place_z := 0.0
 var _place_yaw := 0.0
+var _place_y := -999.0
 var _place_valid := false
 var _escape_label: Label
 
@@ -662,10 +663,14 @@ func _build_ui() -> void:
 	_place = Control.new()
 	_place.set_script(preload("res://ui/decor_place.gd"))
 	_place.name = "DecorPlace"
+	if _hud.theme != null:
+		_place.theme = _hud.theme
 	_ui_layer.add_child(_place)
 	_apply_safe_area(_place)
 	_place.dragged.connect(_on_place_drag)
 	_place.rotate_pressed.connect(_on_place_rotate)
+	_place.up_pressed.connect(_on_place_up)
+	_place.down_pressed.connect(_on_place_down)
 	_place.confirm_pressed.connect(_on_place_confirm)
 	_place.cancel_pressed.connect(_on_place_cancel)
 	_escape_label = Label.new()
@@ -876,6 +881,7 @@ func _start_place(id: String) -> void:
 	_place_x = float(info.get("x", 0.0))
 	_place_z = float(info.get("z", 0.0))
 	_place_yaw = float(info.get("yaw", 0.0))
+	_place_y = float(info.get("y", -999.0))
 	_place_valid = bool(info.get("valid", false))
 	if _place != null:
 		_place.call("show_place")
@@ -903,12 +909,37 @@ func _on_place_rotate() -> void:
 	_play_ui("tap")
 
 
+func _on_place_up() -> void:
+	if not _placing:
+		return
+	_step_ghost(1)
+	_play_ui("tap")
+
+
+func _on_place_down() -> void:
+	if not _placing:
+		return
+	_step_ghost(-1)
+	_play_ui("tap")
+
+
+func _step_ghost(dir: int) -> void:
+	var packed = _decor.call("ghost_step", dir)
+	_take_place(packed)
+
+
 func _move_ghost() -> void:
-	var packed = _decor.call("ghost_move", _place_x, _place_z, _place_yaw)
+	var packed = _decor.call("ghost_move", _place_x, _place_z, _place_yaw, _place_y)
+	_take_place(packed)
+
+
+func _take_place(packed) -> void:
 	if typeof(packed) != TYPE_DICTIONARY:
 		return
 	var info: Dictionary = packed
 	_place_valid = bool(info.get("valid", false))
+	if info.has("y"):
+		_place_y = float(info["y"])
 	if _place != null:
 		_place.call("set_status", _place_valid, str(info.get("reason", "")))
 

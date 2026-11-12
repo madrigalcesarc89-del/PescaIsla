@@ -29,6 +29,8 @@ var _ghost_x := 0.0
 var _ghost_z := 0.0
 var _ghost_yaw := 0.0
 var _ghost_scale := 1.0
+var _ghost_sit := 0.0
+var _ghost_reason := "water"
 var _ghost_valid := false
 
 
@@ -63,7 +65,13 @@ func commit_pose(state: Dictionary, id: String, pose: String) -> Dictionary:
 	if parsed.is_empty():
 		return {"state": nxt, "ok": false}
 	_obs = _obstacles(nxt, id)
-	if _probe(id, float(parsed["x"]), float(parsed["z"]), float(parsed["yaw"]), float(parsed["scale"])) != "ok":
+	var prefer := -999.0
+	if parsed.has("y"):
+		prefer = float(parsed["y"])
+	var resolved := _resolve(id, float(parsed["x"]), float(parsed["z"]), float(parsed["yaw"]), float(parsed["scale"]), prefer)
+	if str(resolved.get("reason", "")) != "ok":
+		return {"state": nxt, "ok": false}
+	if parsed.has("y") and absf(float(resolved.get("sit", prefer)) - prefer) > 0.05:
 		return {"state": nxt, "ok": false}
 	var placed: Dictionary = (nxt["decor_placed"] as Dictionary).duplicate()
 	placed[id] = pose
@@ -103,6 +111,9 @@ func ghost_begin(id: String, state: Dictionary) -> Dictionary:
 		z = float(found["z"])
 		yaw = float(found["yaw"])
 		sc = float(found["scale"])
+	var prefer := -999.0
+	if have.has("y"):
+		prefer = float(have["y"])
 	_ghost_id = id
 	_ghost_scale = sc
 	_ghost = _make(id)
@@ -111,27 +122,60 @@ func ghost_begin(id: String, state: Dictionary) -> Dictionary:
 	_hide_current(id)
 	_ghost.name = "ghost_preview"
 	add_child(_ghost)
-	_apply_ghost(x, z, yaw)
+	_apply_ghost(x, z, yaw, prefer)
 	return {
 		"ok": true,
 		"x": x,
 		"z": z,
 		"yaw": yaw,
+		"y": _ghost_sit,
 		"scale": sc,
 		"valid": _ghost_valid,
-		"reason": _reason_now(),
+		"reason": _ghost_reason,
 	}
 
 
-func ghost_move(x: float, z: float, yaw: float) -> Dictionary:
+func ghost_move(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> Dictionary:
 	if _ghost == null:
-		return {"valid": false, "reason": "water"}
-	_apply_ghost(x, z, yaw)
-	return {"valid": _ghost_valid, "reason": _reason_now()}
+		return {"valid": false, "reason": "water", "y": _plane}
+	_apply_ghost(x, z, yaw, prefer_y)
+	return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
+
+
+func ghost_step(dir: int) -> Dictionary:
+	if _ghost == null:
+		return {"valid": false, "reason": "water", "y": _plane}
+	var pts := _samples(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale)
+	var supports := _supports(_ghost_id, pts)
+	var heights: Array = []
+	for s in supports:
+		var h := float(s)
+		if dir > 0:
+			if h > _ghost_sit + 0.04:
+				heights.append(h)
+		elif h < _ghost_sit - 0.04:
+			heights.append(h)
+	heights.sort()
+	if dir < 0:
+		heights.reverse()
+	var blocked := false
+	for raw in heights:
+		var want := float(raw)
+		var resolved := _resolve(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale, want)
+		var sit := float(resolved.get("sit", -9999.0))
+		if str(resolved.get("reason", "")) == "ok" and absf(sit - want) <= 0.05:
+			_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, want)
+			return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
+		blocked = true
+	if dir > 0 and _ghost_valid:
+		_ghost_reason = "air"
+	elif dir < 0 and blocked and _ghost_valid:
+		_ghost_reason = "busy"
+	return {"valid": _ghost_valid, "reason": _ghost_reason, "y": _ghost_sit}
 
 
 func ghost_pose() -> String:
-	return "%.3f,%.3f,%.1f,%.3f" % [_ghost_x, _ghost_z, _ghost_yaw, _ghost_scale]
+	return "%.3f,%.3f,%.1f,%.3f,%.3f" % [_ghost_x, _ghost_z, _ghost_yaw, _ghost_scale, _ghost_sit]
 
 
 func ghost_cancel() -> void:
@@ -139,21 +183,16 @@ func ghost_cancel() -> void:
 	_rebuild(_shown, "")
 
 
-func _reason_now() -> String:
-	if _ghost_valid:
-		return "ok"
-	return _probe(_ghost_id, _ghost_x, _ghost_z, _ghost_yaw, _ghost_scale)
-
-
-func _apply_ghost(x: float, z: float, yaw: float) -> void:
+func _apply_ghost(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> void:
 	_ghost_x = x
 	_ghost_z = z
 	_ghost_yaw = yaw
-	var reason := _probe(_ghost_id, x, z, yaw, _ghost_scale)
-	_ghost_valid = reason == "ok"
-	var sit := _sit_y(_ghost_id, x, z, yaw, _ghost_scale)
+	var resolved := _resolve(_ghost_id, x, z, yaw, _ghost_scale, prefer_y)
+	_ghost_reason = str(resolved.get("reason", "water"))
+	_ghost_valid = _ghost_reason == "ok"
+	_ghost_sit = float(resolved.get("sit", _plane))
 	var y0 := float(_metrics_of(_ghost_id).get("y0", 0.0))
-	_ghost.position = Vector3(x, sit - y0 * _ghost_scale, z)
+	_ghost.position = Vector3(x, _ghost_sit - y0 * _ghost_scale, z)
 	_ghost.rotation = Vector3(0.0, deg_to_rad(yaw), 0.0)
 	_ghost.scale = Vector3.ONE * _ghost_scale
 
@@ -210,12 +249,15 @@ func _parse_pose(raw: String) -> Dictionary:
 	var sc := 1.0
 	if parts.size() >= 4 and parts[3].is_valid_float():
 		sc = clampf(float(parts[3]), 0.35, 1.0)
-	return {
+	var parsed := {
 		"x": float(parts[0]),
 		"z": float(parts[1]),
 		"yaw": float(parts[2]),
 		"scale": sc,
 	}
+	if parts.size() >= 5 and parts[4].is_valid_float():
+		parsed["y"] = float(parts[4])
+	return parsed
 
 
 func _parse_any(raw: String, id: String) -> Dictionary:
@@ -230,7 +272,7 @@ func _parse_any(raw: String, id: String) -> Dictionary:
 		var sc := 1.0
 		if foot > 0.001:
 			sc = minf(1.0, max_size / foot)
-		return {"x": marker.position.x, "z": marker.position.z, "yaw": 0.0, "scale": sc}
+		return {"x": marker.position.x, "z": marker.position.z, "yaw": 0.0, "scale": sc, "y": marker.position.y}
 	return _parse_pose(raw)
 
 
@@ -407,25 +449,127 @@ func _search(id: String) -> Dictionary:
 
 
 func _probe(id: String, x: float, z: float, yaw: float, scale: float) -> String:
+	return str(_resolve(id, x, z, yaw, scale, -999.0).get("reason", "water"))
+
+
+func _resolve(id: String, x: float, z: float, yaw: float, scale: float, prefer_y: float) -> Dictionary:
 	_ensure_mask()
 	var pts := _samples(id, x, z, yaw, scale)
 	if pts.is_empty():
-		return "water"
+		return {"reason": "water", "sit": _plane}
+	var supports := _supports(id, pts)
+	if supports.is_empty():
+		var span := _span(pts)
+		if span < 0.0:
+			return {"reason": "water", "sit": _plane}
+		if span > 0.09:
+			return {"reason": "clip", "sit": _plane}
+		return {"reason": "water", "sit": _plane}
+	var sit := _pick_support(supports, prefer_y)
+	if _hits(id, x, z, yaw, scale, sit, pts):
+		return {"reason": "busy", "sit": sit}
+	return {"reason": "ok", "sit": sit}
+
+
+func _supports(id: String, pts: PackedVector2Array) -> Array:
+	var found: Array = []
+	var dock := _dock_sit(pts)
+	if dock >= 0.0:
+		found.append(dock)
+	for item in _obs:
+		if str(item.get("id", "")) == id:
+			continue
+		if _fully_on(pts, item["origin"], float(item["yaw"]), item["center"], float(item["hx"]), float(item["hz"])):
+			found.append(float(item["top"]))
+	return found
+
+
+func _pick_support(supports: Array, prefer_y: float) -> float:
+	var sit := float(supports[0])
+	if prefer_y < -100.0:
+		for s in supports:
+			sit = minf(sit, float(s))
+		return sit
+	var best := -9999.0
+	for s in supports:
+		var h := float(s)
+		if h <= prefer_y + 0.03 and h > best:
+			best = h
+	if best < -100.0:
+		for s in supports:
+			sit = minf(sit, float(s))
+		return sit
+	return best
+
+
+func _dock_sit(pts: PackedVector2Array) -> float:
 	var hi := -999.0
 	var lo := 999.0
 	for i in pts.size():
 		var p: Vector2 = pts[i]
 		var key := _key_at(p.x, p.y)
 		if not _mask.has(key):
-			return "water"
+			return -1.0
 		var sy := float(_mask[key])
 		hi = maxf(hi, sy)
 		lo = minf(lo, sy)
 	if hi - lo > 0.09:
-		return "clip"
-	if _blocked(id, x, z, yaw, scale, pts):
-		return "busy"
-	return "ok"
+		return -1.0
+	return hi
+
+
+func _span(pts: PackedVector2Array) -> float:
+	var hi := -999.0
+	var lo := 999.0
+	var any := false
+	for i in pts.size():
+		var key := _key_at(pts[i].x, pts[i].y)
+		if not _mask.has(key):
+			return -1.0
+		var sy := float(_mask[key])
+		hi = maxf(hi, sy)
+		lo = minf(lo, sy)
+		any = true
+	if not any:
+		return -1.0
+	return hi - lo
+
+
+func _hits(id: String, x: float, z: float, yaw: float, scale: float, sit: float, pts: PackedVector2Array) -> bool:
+	if _covers(id, x, z, yaw, scale, CAT_AT) or _near(pts, CAT_AT, CAT_R):
+		return true
+	var lamp := LANTERN.position + LANTERN.size * 0.5
+	if _covers(id, x, z, yaw, scale, lamp) or _in_rect(pts, LANTERN):
+		return true
+	var height := float(_metrics_of(id)["size"].y) * scale
+	var top := sit + height
+	for item in _obs:
+		if str(item.get("id", "")) == id:
+			continue
+		if not _overlaps_xz(pts, item):
+			continue
+		var other_top := float(item["top"])
+		var other_bot := float(item["bottom"])
+		if absf(sit - other_top) <= 0.03:
+			continue
+		if sit < other_top - 0.02 and top > other_bot + 0.02:
+			return true
+	return false
+
+
+func _overlaps_xz(pts: PackedVector2Array, item: Dictionary) -> bool:
+	return _covers_item(pts, item["origin"], float(item["yaw"]), item["center"], float(item["hx"]), float(item["hz"]))
+
+
+func _fully_on(pts: PackedVector2Array, origin: Vector2, yaw: float, center: Vector2, hx: float, hz: float) -> bool:
+	if pts.is_empty() or hx < 0.05 or hz < 0.05:
+		return false
+	var inv := Basis.from_euler(Vector3(0.0, deg_to_rad(yaw), 0.0)).inverse()
+	for i in pts.size():
+		var local: Vector3 = inv * Vector3(pts[i].x - origin.x, 0.0, pts[i].y - origin.y)
+		if absf(local.x - center.x) > hx - 0.03 or absf(local.z - center.y) > hz - 0.03:
+			return false
+	return true
 
 
 func _sit_y(id: String, x: float, z: float, yaw: float, scale: float) -> float:
@@ -444,26 +588,6 @@ func _sit_y(id: String, x: float, z: float, yaw: float, scale: float) -> float:
 		else:
 			hi = maxf(hi, sy)
 	return hi
-
-
-func _blocked(id: String, x: float, z: float, yaw: float, scale: float, pts: PackedVector2Array) -> bool:
-	if _covers(id, x, z, yaw, scale, CAT_AT) or _near(pts, CAT_AT, CAT_R):
-		return true
-	var lamp := LANTERN.position + LANTERN.size * 0.5
-	if _covers(id, x, z, yaw, scale, lamp) or _in_rect(pts, LANTERN):
-		return true
-	for item in _obs:
-		if str(item.get("id", "")) == id:
-			continue
-		var origin := item["origin"] as Vector2
-		var center := item["center"] as Vector2
-		if _covers_item(pts, origin, float(item["yaw"]), center, float(item["hx"]), float(item["hz"])):
-			return true
-		var world_c: Vector3 = Basis.from_euler(Vector3(0.0, deg_to_rad(float(item["yaw"])), 0.0)) * Vector3(center.x, 0.0, center.y)
-		var at := Vector2(origin.x + world_c.x, origin.y + world_c.z)
-		if _covers(id, x, z, yaw, scale, at):
-			return true
-	return false
 
 
 func _near(pts: PackedVector2Array, at: Vector2, radius: float) -> bool:
@@ -524,6 +648,7 @@ func _samples(id: String, x: float, z: float, yaw: float, scale: float) -> Packe
 
 
 func _obstacles(state: Dictionary, ignore: String) -> Array:
+	_ensure_mask()
 	var list: Array = []
 	var placed: Dictionary = state.get("decor_placed", {})
 	for key in placed.keys():
@@ -537,6 +662,10 @@ func _obstacles(state: Dictionary, ignore: String) -> Array:
 		var sc := float(pose["scale"])
 		var center: Vector2 = m["center"]
 		var half: Vector2 = m["half"]
+		var bottom := _sit_y(id, float(pose["x"]), float(pose["z"]), float(pose["yaw"]), sc)
+		if pose.has("y"):
+			bottom = float(pose["y"])
+		var tall: Vector3 = m["size"]
 		list.append({
 			"id": id,
 			"origin": Vector2(float(pose["x"]), float(pose["z"])),
@@ -545,6 +674,8 @@ func _obstacles(state: Dictionary, ignore: String) -> Array:
 			"center": Vector2(center.x * sc, center.y * sc),
 			"hx": half.x * sc,
 			"hz": half.y * sc,
+			"bottom": bottom,
+			"top": bottom + tall.y * sc,
 		})
 	return list
 
@@ -605,6 +736,7 @@ func _rebuild(placed: Dictionary, bounce_id: String) -> void:
 	var glows := 0
 	var ids: Array = placed.keys()
 	ids.sort()
+	_obs = _obstacles({"decor_placed": placed}, "")
 	for id in ids:
 		var raw := str(placed[id])
 		var inst := _make(str(id))
@@ -631,7 +763,13 @@ func _rebuild(placed: Dictionary, bounce_id: String) -> void:
 			var px := float(pose["x"])
 			var pz := float(pose["z"])
 			var yaw := float(pose["yaw"])
-			var sit := _sit_y(str(id), px, pz, yaw, sc2)
+			var prefer := -999.0
+			if pose.has("y"):
+				prefer = float(pose["y"])
+			var resolved := _resolve(str(id), px, pz, yaw, sc2, prefer)
+			var sit := float(resolved.get("sit", _sit_y(str(id), px, pz, yaw, sc2)))
+			if str(resolved.get("reason", "")) != "ok":
+				sit = _sit_y(str(id), px, pz, yaw, sc2)
 			var y0b := float(_metrics_of(str(id)).get("y0", 0.0))
 			inst.scale = Vector3.ONE * sc2
 			inst.rotation = Vector3(0.0, deg_to_rad(yaw), 0.0)
