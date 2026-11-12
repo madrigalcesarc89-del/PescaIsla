@@ -671,6 +671,8 @@ func _build_ui() -> void:
 	_place.rotate_pressed.connect(_on_place_rotate)
 	_place.up_pressed.connect(_on_place_up)
 	_place.down_pressed.connect(_on_place_down)
+	_place.smaller_pressed.connect(_on_place_smaller)
+	_place.bigger_pressed.connect(_on_place_bigger)
 	_place.confirm_pressed.connect(_on_place_confirm)
 	_place.cancel_pressed.connect(_on_place_cancel)
 	_escape_label = Label.new()
@@ -886,6 +888,7 @@ func _start_place(id: String) -> void:
 	if _place != null:
 		_place.call("show_place")
 		_place.call("set_status", _place_valid, str(info.get("reason", "")))
+		_place.call("show_scale", float(info.get("scale", 1.0)))
 
 
 func _on_place_drag(at: Vector2) -> void:
@@ -923,6 +926,25 @@ func _on_place_down() -> void:
 	_play_ui("tap")
 
 
+func _on_place_smaller() -> void:
+	if not _placing:
+		return
+	_scale_ghost(-1)
+	_play_ui("tap")
+
+
+func _on_place_bigger() -> void:
+	if not _placing:
+		return
+	_scale_ghost(1)
+	_play_ui("tap")
+
+
+func _scale_ghost(dir: int) -> void:
+	var packed = _decor.call("ghost_scale_step", dir)
+	_take_place(packed)
+
+
 func _step_ghost(dir: int) -> void:
 	var packed = _decor.call("ghost_step", dir)
 	_take_place(packed)
@@ -948,6 +970,8 @@ func _take_place(packed) -> void:
 		_place_y = float(info["y"])
 	if _place != null:
 		_place.call("set_status", _place_valid, str(info.get("reason", "")))
+		if info.has("scale"):
+			_place.call("show_scale", float(info["scale"]))
 
 
 func _on_place_confirm() -> void:

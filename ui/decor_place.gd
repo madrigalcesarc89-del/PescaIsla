@@ -5,6 +5,8 @@ signal dragged(at: Vector2)
 signal rotate_pressed
 signal up_pressed
 signal down_pressed
+signal smaller_pressed
+signal bigger_pressed
 signal confirm_pressed
 signal cancel_pressed
 
@@ -17,6 +19,9 @@ const LINE := Color("E3B792")
 
 var _hint: Label
 var _put: Button
+var _smaller: Button
+var _bigger: Button
+var _size_label: Label
 var _bar: PanelContainer
 
 
@@ -33,7 +38,7 @@ func _ready() -> void:
 	_bar.offset_left = 20.0
 	_bar.offset_right = -20.0
 	_bar.offset_top = 172.0
-	_bar.offset_bottom = 292.0
+	_bar.offset_bottom = 356.0
 	_bar.mouse_filter = Control.MOUSE_FILTER_STOP
 	_bar.clip_contents = true
 	var sb := StyleBoxFlat.new()
@@ -76,6 +81,24 @@ func _ready() -> void:
 	row.add_child(turn)
 	row.add_child(_put)
 	row.add_child(cancel)
+	var size_row := HBoxContainer.new()
+	size_row.add_theme_constant_override("separation", 8)
+	size_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_child(size_row)
+	_smaller = _button("Smaller", SettingsData.t("place_smaller"), AQUA, 52.0)
+	_smaller.pressed.connect(func() -> void: smaller_pressed.emit())
+	_bigger = _button("Bigger", SettingsData.t("place_bigger"), AQUA, 52.0)
+	_bigger.pressed.connect(func() -> void: bigger_pressed.emit())
+	_size_label = Label.new()
+	_size_label.name = "Size"
+	_size_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_size_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_size_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_size_label.custom_minimum_size = Vector2(72, 52)
+	UiFit.paint_light(_size_label, 22)
+	size_row.add_child(_smaller)
+	size_row.add_child(_size_label)
+	size_row.add_child(_bigger)
 	add_child(_bar)
 	_hint.text = SettingsData.t("place_drag")
 
@@ -104,14 +127,28 @@ func set_status(valid: bool, reason: String) -> void:
 	_put.modulate = Color(1, 1, 1, 1) if valid else Color(1, 1, 1, 0.45)
 
 
-func _button(node_name: String, text: String, face: Color) -> Button:
+func show_scale(scale: float) -> void:
+	if _size_label != null:
+		_size_label.text = "×%.1f" % scale
+	_set_end(_smaller, scale <= 0.501)
+	_set_end(_bigger, scale >= 1.799)
+
+
+func _set_end(btn: Button, off: bool) -> void:
+	if btn == null:
+		return
+	btn.disabled = off
+	btn.modulate = Color(1, 1, 1, 0.45) if off else Color(1, 1, 1, 1)
+
+
+func _button(node_name: String, text: String, face: Color, tall: float = 64.0) -> Button:
 	var btn := Button.new()
 	btn.name = node_name
 	btn.text = text
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.clip_contents = true
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn.custom_minimum_size = Vector2(0, 64)
+	btn.custom_minimum_size = Vector2(0, tall)
 	var box := StyleBoxFlat.new()
 	box.bg_color = face
 	box.border_color = LINE

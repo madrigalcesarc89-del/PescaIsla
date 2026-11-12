@@ -17,6 +17,9 @@ const LANTERN := Rect2(-0.70, 0.84, 0.44, 0.48)
 const LIFT_STEP := 0.28
 const LIFT_SNAP := 0.12
 const LIFT_MAX := 2.4
+const SCALE_MIN := 0.5
+const SCALE_MAX := 1.8
+const SCALE_STEP := 0.1
 
 var _bb := AABB()
 var _bb_ok := false
@@ -169,9 +172,19 @@ func ghost_move(x: float, z: float, yaw: float, prefer_y: float = -999.0) -> Dic
 
 func ghost_step(dir: int) -> Dictionary:
 	if _ghost == null:
-		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0}
+		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0, "scale": 1.0}
 	var target: float = _ghost_sit + LIFT_STEP * float(dir)
 	_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, target)
+	return _ghost_state()
+
+
+func ghost_scale_step(dir: int) -> Dictionary:
+	if _ghost == null:
+		return {"valid": false, "reason": "water", "y": _plane, "x": 0.0, "z": 0.0, "yaw": 0.0, "scale": 1.0}
+	var nxt := snappedf(clampf(_ghost_scale + SCALE_STEP * float(dir), SCALE_MIN, SCALE_MAX), 0.01)
+	if absf(nxt - _ghost_scale) >= 0.001:
+		_ghost_scale = nxt
+		_apply_ghost(_ghost_x, _ghost_z, _ghost_yaw, _ghost_sit)
 	return _ghost_state()
 
 
@@ -203,6 +216,7 @@ func _ghost_state() -> Dictionary:
 		"x": _ghost_x,
 		"z": _ghost_z,
 		"yaw": _ghost_yaw,
+		"scale": _ghost_scale,
 	}
 
 

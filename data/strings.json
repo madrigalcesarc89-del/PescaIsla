@@ -57,6 +57,8 @@
     "place_rotate": { "es": "Girar", "en": "Turn" },
     "place_up": { "es": "Subir", "en": "Up" },
     "place_down": { "es": "Bajar", "en": "Down" },
+    "place_smaller": { "es": "Menos", "en": "Smaller" },
+    "place_bigger": { "es": "Más", "en": "Bigger" },
     "place_drag": { "es": "Arrastra por la plataforma", "en": "Drag it on the platform" },
     "place_ok": { "es": "Cabe. Pulsa Poner", "en": "It fits. Tap Put" },
     "place_water": { "es": "Ahí hay agua", "en": "That's water" },
