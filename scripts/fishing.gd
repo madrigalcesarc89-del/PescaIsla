@@ -639,6 +639,7 @@ func _build_ui() -> void:
 	_album.unlock_requested.connect(_on_album_unlock)
 	_album.repair_requested.connect(_on_album_repair)
 	_album.grant_requested.connect(_on_debug_coins)
+	_album.coins_set_requested.connect(_on_debug_set_coins)
 	_album.shop_reset_requested.connect(_on_debug_shop_reset)
 	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
@@ -870,6 +871,18 @@ func _on_debug_coins() -> void:
 		return
 	var before := coins
 	coins += 1000
+	_save_game()
+	if _hud != null:
+		_hud.animate_coins(before, coins)
+	if _shop != null and _shop.visible:
+		_shop.sync_state(coins, _shop_state)
+
+
+func _on_debug_set_coins(amount: int) -> void:
+	if not OS.is_debug_build():
+		return
+	var before := coins
+	coins = clampi(amount, 0, 9999999)
 	_save_game()
 	if _hud != null:
 		_hud.animate_coins(before, coins)

@@ -10,6 +10,7 @@ signal reset_requested
 signal unlock_requested
 signal repair_requested
 signal grant_requested
+signal coins_set_requested(amount: int)
 signal shop_reset_requested
 signal seen_committed(seen: Dictionary)
 
@@ -641,10 +642,10 @@ func _build_debug() -> void:
 	panel.anchor_right = 0.5
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = -240.0
-	panel.offset_right = 240.0
-	panel.offset_top = -620.0
-	panel.offset_bottom = -48.0
+	panel.offset_left = -248.0
+	panel.offset_right = 248.0
+	panel.offset_top = -980.0
+	panel.offset_bottom = -36.0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
@@ -674,10 +675,52 @@ func _build_debug() -> void:
 	shop_reset.pressed.connect(func() -> void: shop_reset_requested.emit())
 	_paint(grant)
 	_paint(shop_reset)
+	var title := Label.new()
+	title.text = SettingsData.t("shop_debug_title")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_paint(title)
+	var field := LineEdit.new()
+	field.name = "CoinField"
+	field.placeholder_text = SettingsData.t("shop_debug_amount")
+	field.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	field.max_length = 7
+	field.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
+	field.custom_minimum_size = Vector2(416, 88)
+	field.add_theme_font_size_override("font_size", 32)
+	field.add_theme_color_override("font_color", Color("5A3D2B"))
+	field.add_theme_color_override("font_placeholder_color", Color("6B4A38"))
+	field.add_theme_constant_override("outline_size", 0)
+	var field_box := StyleBoxFlat.new()
+	field_box.bg_color = Color("FFF1D6")
+	field_box.border_color = Color("E3B792")
+	field_box.set_border_width_all(3)
+	field_box.set_corner_radius_all(18)
+	field_box.content_margin_left = 16
+	field_box.content_margin_right = 16
+	field.add_theme_stylebox_override("normal", field_box)
+	var set_coins := Button.new()
+	set_coins.name = "SetCoins"
+	set_coins.text = SettingsData.t("shop_debug_set")
+	set_coins.custom_minimum_size = Vector2(416, 88)
+	set_coins.pressed.connect(func() -> void:
+		var raw := field.text.strip_edges()
+		if not raw.is_valid_int():
+			return
+		var n := int(raw)
+		if n < 0:
+			return
+		if n > 9999999:
+			n = 9999999
+		coins_set_requested.emit(n)
+	)
+	_paint(set_coins)
 	row.add_child(reset)
 	row.add_child(unlock)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
+	col.add_child(title)
+	col.add_child(field)
+	col.add_child(set_coins)
 	col.add_child(row)
 	col.add_child(repair)
 	col.add_child(grant)
