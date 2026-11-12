@@ -235,6 +235,9 @@ func _paint(v: Dictionary, a: Dictionary, b: Dictionary, t: float) -> void:
 		_light.light_color = v["light_color"]
 		_light.light_energy = float(v["light_energy"])
 	if _env != null:
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		_env.ambient_light_sky_contribution = 0.0
+		_env.ambient_light_color = v["ambient_color"]
 		_env.ambient_light_energy = float(v["ambient_energy"])
 		_env.fog_light_color = v["fog_color"]
 		_env.adjustment_contrast = float(v["grade_contrast"])
@@ -330,6 +333,7 @@ func _phase(id: String) -> Dictionary:
 		"glint_far": float(src.get("glint_far", 80.0)),
 		"light_color": _col(src.get("light_color", [1, 1, 1])),
 		"light_energy": float(src.get("light_energy", 1.0)),
+		"ambient_color": _col(src.get("ambient_color", [1.0, 0.8902, 0.7843])),
 		"ambient_energy": float(src.get("ambient_energy", 0.6)),
 		"fog_color": _col(src.get("fog_color", [1, 1, 1])),
 		"grade_contrast": float(src.get("grade_contrast", 1.0)),
@@ -358,6 +362,7 @@ func _mix(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 	out["shallow_color"] = (a["shallow_color"] as Color).lerp(b["shallow_color"], t)
 	out["deep_color"] = (a["deep_color"] as Color).lerp(b["deep_color"], t)
 	out["sun_tint"] = (a["sun_tint"] as Color).lerp(b["sun_tint"], t)
+	out["ambient_color"] = (a["ambient_color"] as Color).lerp(b["ambient_color"], t)
 	for key in ["light_energy", "ambient_energy", "grade_contrast", "grade_saturation", "vignette_edge", "lantern", "fireflies", "sparkle", "decor_lights", "haze_start", "haze_end", "glint_far"]:
 		out[key] = lerpf(float(a[key]), float(b[key]), t)
 	return out
