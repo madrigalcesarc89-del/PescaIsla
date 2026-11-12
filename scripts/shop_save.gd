@@ -6,7 +6,7 @@ const AlbumSave = preload("res://scripts/album_save.gd")
 const STARTER_ROD := "rod_bamboo"
 const STARTER_BAIT := "bait_pink_worm"
 const RARITIES := ["common", "uncommon", "rare", "legendary"]
-const SHOP_KEYS := ["owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed"]
+const SHOP_KEYS := ["owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed", "decor_off"]
 
 static var _ready_cat := false
 static var _root: Dictionary = {}
@@ -106,12 +106,20 @@ static func normalize(src: Dictionary) -> Dictionary:
 	if typeof(raw_placed) == TYPE_DICTIONARY:
 		for k in raw_placed.keys():
 			placed[str(k)] = str(raw_placed[k])
+	var off: Array = []
+	var raw_off = src.get("decor_off", [])
+	if typeof(raw_off) == TYPE_ARRAY:
+		for entry in raw_off:
+			var oid := str(entry)
+			if oid != "" and not off.has(oid):
+				off.append(oid)
 	return {
 		"owned": owned,
 		"equipped_rod": rod,
 		"equipped_bait": bait,
 		"bait_qty": qty,
 		"decor_placed": placed,
+		"decor_off": off,
 	}
 
 
@@ -122,6 +130,7 @@ static func write_into(body: Dictionary, state: Dictionary) -> void:
 	body["equipped_bait"] = str(s["equipped_bait"])
 	body["bait_qty"] = (s["bait_qty"] as Dictionary).duplicate(true)
 	body["decor_placed"] = (s["decor_placed"] as Dictionary).duplicate(true)
+	body["decor_off"] = (s["decor_off"] as Array).duplicate()
 
 
 static func can_buy(coins: int, state: Dictionary, id: String) -> bool:
@@ -333,4 +342,5 @@ static func _copy_state(state: Dictionary) -> Dictionary:
 		"equipped_bait": str(state["equipped_bait"]),
 		"bait_qty": (state["bait_qty"] as Dictionary).duplicate(true),
 		"decor_placed": (state["decor_placed"] as Dictionary).duplicate(true),
+		"decor_off": (state["decor_off"] as Array).duplicate(),
 	}

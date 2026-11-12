@@ -50,6 +50,8 @@
     "shop_equipped_m": { "es": "Equipado", "en": "Equipped" },
     "shop_place": { "es": "Colocar", "en": "Place" },
     "shop_placed": { "es": "Colocada", "en": "Placed" },
+    "shop_remove": { "es": "Quitar", "en": "Remove" },
+    "shop_no_room": { "es": "No hay espacio libre; quita algo", "en": "No free space; remove something" },
     "shop_cancel": { "es": "Cancelar", "en": "Cancel" },
     "shop_confirm": { "es": "¿Comprar %s?", "en": "Buy %s?" },
     "shop_confirm_cost": { "es": "Cuesta %d monedas.", "en": "It costs %d coins." },

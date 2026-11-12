@@ -6,6 +6,7 @@ const ShopSave = preload("res://scripts/shop_save.gd")
 signal purchase_requested(id: String)
 signal equip_requested(id: String)
 signal place_requested(id: String)
+signal remove_requested(id: String)
 signal closed
 
 const CREAM := Color("FFF1D6")
@@ -389,7 +390,10 @@ func _add_actions(row: HBoxContainer, item: Dictionary, owned: bool, cat: String
 			count += 1
 	elif cat == "decor" and owned:
 		var placed := (_state.get("decor_placed", {}) as Dictionary).has(id)
-		box.add_child(_action_button("Place", placed, SettingsData.t("shop_placed") if placed else SettingsData.t("shop_place"), id, "place"))
+		if placed:
+			box.add_child(_action_button("Remove", false, SettingsData.t("shop_remove"), id, "remove"))
+		else:
+			box.add_child(_action_button("Place", false, SettingsData.t("shop_place"), id, "place"))
 		count += 1
 	var show_buy: bool = false
 	if cat == "bait":
@@ -424,6 +428,8 @@ func _action_button(node_name: String, done: bool, text: String, id: String, kin
 		btn.pressed.connect(func() -> void: _on_buy(id, btn))
 	elif kind == "equip":
 		btn.pressed.connect(func() -> void: _on_equip(id, btn))
+	elif kind == "remove":
+		btn.pressed.connect(func() -> void: _on_remove(id, btn))
 	else:
 		btn.pressed.connect(func() -> void: _on_place(id, btn))
 	return btn
@@ -466,6 +472,37 @@ func _on_place(id: String, btn: Button) -> void:
 	_arm_lock(btn, true)
 	_play("tap")
 	place_requested.emit(id)
+
+
+func _on_remove(id: String, btn: Button) -> void:
+	if _locked:
+		return
+	_arm_lock(btn, true)
+	_play("tap")
+	remove_requested.emit(id)
+
+
+func warn(text: String) -> void:
+	var note := _panel.get_node_or_null("Warn") as Label
+	if note == null:
+		note = Label.new()
+		note.name = "Warn"
+		note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.position = Vector2(24, 0)
+		_panel.add_child(note)
+	note.text = text
+	_paint(note, 30)
+	note.size = Vector2(maxf(200.0, _panel.size.x - 48.0), 90)
+	note.position = Vector2(24, maxf(80.0, _panel.size.y - 140.0))
+	note.visible = true
+	var tw := create_tween()
+	tw.tween_interval(1.8)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(note):
+			note.visible = false
+	)
 
 
 func _on_confirm_yes() -> void:

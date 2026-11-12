@@ -122,6 +122,7 @@ func _ready() -> void:
 	_build_visuals()
 	_apply_tackle_colors()
 	_build_ui()
+	call_deferred("_apply_decor", "", false)
 	_enter(State.IDLE)
 
 
@@ -611,6 +612,7 @@ var _fishcard: Control
 var _album: Control
 var _settings: Control
 var _shop: Control
+var _decor: Node3D = null
 var _escape_label: Label
 
 
@@ -647,6 +649,7 @@ func _build_ui() -> void:
 	_shop.purchase_requested.connect(_on_shop_buy)
 	_shop.equip_requested.connect(_on_shop_equip)
 	_shop.place_requested.connect(_on_shop_place)
+	_shop.remove_requested.connect(_on_shop_remove)
 	_escape_label = Label.new()
 	_escape_label.add_theme_font_size_override("font_size", 90)
 	_escape_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
@@ -803,6 +806,8 @@ func _on_shop_buy(id: String) -> void:
 		return
 	coins = int(result.get("coins", coins))
 	_shop_state = result.get("state", _shop_state)
+	if str(ShopSave.item_by_id(id).get("category", "")) == "decor":
+		_apply_decor(id, false)
 	_sync_shop_rest()
 	_play_ui("buy")
 	if _hud != null:
@@ -822,11 +827,42 @@ func _on_shop_equip(id: String) -> void:
 
 
 func _on_shop_place(id: String) -> void:
-	_shop_state = ShopSave.place(_shop_state, id)
-	_sync_shop_rest()
-	_save_game()
+	_apply_decor(id, false)
 	if _shop != null:
 		_shop.notify(true, id, coins, _shop_state)
+
+
+func _on_shop_remove(id: String) -> void:
+	_apply_decor(id, true)
+	if _shop != null:
+		_shop.notify(true, id, coins, _shop_state)
+
+
+func _ensure_decor() -> void:
+	if _decor != null and is_instance_valid(_decor):
+		return
+	var node := Node3D.new()
+	node.set_script(preload("res://scripts/decor_world.gd"))
+	node.name = "Decoraciones"
+	add_child(node)
+	_decor = node
+
+
+func _apply_decor(focus: String, hide_focus: bool) -> void:
+	_ensure_decor()
+	var before_p := JSON.stringify(_shop_state.get("decor_placed", {}))
+	var before_o := JSON.stringify(_shop_state.get("decor_off", []))
+	var packed = _decor.call("sync", _shop_state, focus, hide_focus)
+	if typeof(packed) != TYPE_DICTIONARY:
+		return
+	var info: Dictionary = packed
+	_shop_state = info.get("state", _shop_state)
+	var after_p := JSON.stringify(_shop_state.get("decor_placed", {}))
+	var after_o := JSON.stringify(_shop_state.get("decor_off", []))
+	if before_p != after_p or before_o != after_o:
+		_save_game()
+	if bool(info.get("full", false)) and _shop != null and _shop.has_method("warn"):
+		_shop.warn(SettingsData.t("shop_no_room"))
 
 
 func _on_debug_coins() -> void:
@@ -848,6 +884,7 @@ func _on_debug_shop_reset() -> void:
 	_cast_gear = ShopSave.gear(_shop_state)
 	_sync_shop_rest()
 	_save_game()
+	_apply_decor("", false)
 	if state == State.IDLE:
 		_apply_tackle_colors()
 	if _shop != null and _shop.visible:
