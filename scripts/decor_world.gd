@@ -373,10 +373,12 @@ func _scan_dock(n: Node, parent: Transform3D, support: Dictionary) -> void:
 				var b: Vector3 = xf * verts[idx[t * 3 + 1]]
 				var c: Vector3 = xf * verts[idx[t * 3 + 2]]
 				var cr: Vector3 = (b - a).cross(c - a)
-				if cr.length() < 0.0000001 or cr.y / cr.length() < 0.65:
+				if cr.length() < 0.0000001 or absf(cr.y / cr.length()) < 0.65:
 					continue
 				var cy := (a.y + b.y + c.y) / 3.0
-				if cy < 0.60 or cy > 0.82:
+				# La tapa visible del muelle mira hacia abajo (normal invertida) y está
+				# sobre el estante de 0.70. Apoyar ahí, no en la madera de abajo.
+				if cy < 0.80 or cy > 1.05:
 					continue
 				_raster_tri(a, b, c, support, -999.0)
 	for child in n.get_children():
