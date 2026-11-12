@@ -35,8 +35,17 @@ var _reel_player: AudioStreamPlayer
 var _jingle_player: AudioStreamPlayer
 var _music_player: AudioStreamPlayer
 var _ambient_player: AudioStreamPlayer
+var _music_spare: AudioStreamPlayer
+var _ambient_spare: AudioStreamPlayer
+var _music_i := 0
+var _amb_i := 0
+var _music_path := ""
+var _amb_path := ""
+var _music_tw: Tween = null
+var _amb_tw: Tween = null
 var _music_base_db := -14.0
 var _duck_tw: Tween = null
+const FADE_SEC := 4.0
 
 
 func _ready() -> void:
@@ -55,7 +64,7 @@ func _notification(what: int) -> void:
 
 
 func _set_paused(p: bool) -> void:
-	for pl in [_music_player, _ambient_player, _reel_player, _jingle_player] + _pool:
+	for pl in [_music_player, _music_spare, _ambient_player, _ambient_spare, _reel_player, _jingle_player] + _pool:
 		if pl != null:
 			(pl as AudioStreamPlayer).stream_paused = p
 
@@ -178,6 +187,68 @@ func _build_players() -> void:
 	_ambient_player.bus = "Ambient"
 	_ambient_player.stream = _sfx["ambient_day"]
 	add_child(_ambient_player)
+	_music_spare = AudioStreamPlayer.new()
+	_music_spare.bus = "Music"
+	_music_spare.volume_db = -40.0
+	add_child(_music_spare)
+	_ambient_spare = AudioStreamPlayer.new()
+	_ambient_spare.bus = "Ambient"
+	_ambient_spare.volume_db = -40.0
+	add_child(_ambient_spare)
+	_music_path = FILES["music_day"]
+	_amb_path = FILES["ambient_day"]
+
+
+## Fundido de 4 s entre camas. No toca el bus: el volumen de ajustes
+## y la bajada del jingle siguen mandando.
+func set_bed(music_path: String, amb_path: String) -> void:
+	if music_path != "" and music_path != _music_path:
+		_music_path = music_path
+		_music_i = _fade(_music_player, _music_spare, _music_i, _music_tw, music_path)
+	if amb_path != "" and amb_path != _amb_path:
+		_amb_path = amb_path
+		_amb_i = _fade(_ambient_player, _ambient_spare, _amb_i, _amb_tw, amb_path)
+
+
+func _fade(a: AudioStreamPlayer, b: AudioStreamPlayer, idx: int, tw: Tween, path: String) -> int:
+	if not ResourceLoader.exists(path):
+		return idx
+	var cur := a if idx == 0 else b
+	var nxt := b if idx == 0 else a
+	var stream := load(path)
+	if stream == null:
+		return idx
+	if tw != null and tw.is_valid():
+		tw.kill()
+	var from_cur := db_to_linear(cur.volume_db) if cur.playing else 0.0
+	var from_nxt := db_to_linear(nxt.volume_db) if nxt.playing else 0.0
+	var same := nxt.stream == stream and nxt.playing
+	if not same:
+		nxt.stop()
+		nxt.stream = stream
+		from_nxt = 0.0
+		nxt.volume_db = linear_to_db(0.0001)
+		nxt.play()
+	var fade := create_tween()
+	fade.tween_method(_apply_fade.bind(cur, nxt, from_cur, from_nxt), 0.0, 1.0, FADE_SEC)
+	fade.tween_callback(_stop_if_quiet.bind(cur))
+	if a == _music_player:
+		_music_tw = fade
+	else:
+		_amb_tw = fade
+	return 1 - idx
+
+
+func _apply_fade(u: float, cur: AudioStreamPlayer, nxt: AudioStreamPlayer, from_cur: float, from_nxt: float) -> void:
+	if cur != null:
+		cur.volume_db = linear_to_db(maxf(lerpf(from_cur, 0.0, u), 0.0001))
+	if nxt != null:
+		nxt.volume_db = linear_to_db(maxf(lerpf(from_nxt, 1.0, u), 0.0001))
+
+
+func _stop_if_quiet(player: AudioStreamPlayer) -> void:
+	if player != null and player.volume_db < -30.0:
+		player.stop()
 
 
 # ------------------------------------------------------------------

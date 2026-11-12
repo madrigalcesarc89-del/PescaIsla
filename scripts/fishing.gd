@@ -116,6 +116,7 @@ var _cast_target: Vector3
 func _ready() -> void:
 	SettingsData.load_all()
 	SettingsData.apply_audio()
+	_start_day_night()
 	_load_db()
 	_load_strings()
 	_load_game()
@@ -462,7 +463,13 @@ func _apply_pose() -> void:
 
 
 func _pick_fish() -> void:
-	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear)
+	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear, _phase_now())
+
+
+func _phase_now() -> String:
+	if _day_night != null and _day_night.has_method("phase_name"):
+		return str(_day_night.call("phase_name"))
+	return ""
 
 
 func _setup_zone() -> void:
@@ -614,6 +621,7 @@ var _settings: Control
 var _shop: Control
 var _decor: Node3D = null
 var _place: Control = null
+var _day_night: Node = null
 var _placing := false
 var _place_id := ""
 var _place_x := 0.0
@@ -686,6 +694,7 @@ func _build_ui() -> void:
 	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_escape_label.visible = false
 	_hud.add_child(_escape_label)
+	_build_phase_button()
 	var root := get_tree().root
 	if root.has_signal("go_back_requested"):
 		root.go_back_requested.connect(_on_go_back)
@@ -1093,6 +1102,35 @@ func _on_debug_shop_reset() -> void:
 		_shop.sync_state(coins, _shop_state)
 
 
+func _start_day_night() -> void:
+	var node := Node.new()
+	node.name = "DayNight"
+	node.set_script(preload("res://scripts/day_night.gd"))
+	add_child(node)
+	_day_night = node
+
+
+func _build_phase_button() -> void:
+	if not OS.is_debug_build() or _hud == null:
+		return
+	var btn := Button.new()
+	btn.name = "DebugPhase"
+	btn.text = "Fase"
+	btn.position = Vector2(24, 168)
+	btn.custom_minimum_size = Vector2(168, 72)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", 28)
+	btn.pressed.connect(_on_debug_phase)
+	_hud.add_child(btn)
+
+
+func _on_debug_phase() -> void:
+	if not OS.is_debug_build():
+		return
+	if _day_night != null and _day_night.has_method("skip_phase"):
+		_day_night.call("skip_phase")
+
+
 func _play_ui(key: String) -> void:
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null and am.has_method("play_sfx"):
@@ -1173,10 +1211,14 @@ func _refresh_ui() -> void:
 	_hud.show_reel(state == State.REEL)
 	if state == State.CATCH and not current_fish.is_empty():
 		var rarity := str(current_fish.get("rarity", "common"))
+		var extra := ""
+		if FishRoll.more_at_night(current_fish):
+			extra = SettingsData.t("fish_more_night")
 		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
 			fish_text(current_fish, "name"), rarity_name(rarity),
 			"+%d %s" % [_gained, SettingsData.t("coins").to_lower()],
-			fish_text(current_fish, "description"))
+			fish_text(current_fish, "description"),
+			extra)
 		_spawn_float_gain(_gained)
 	elif state == State.ESCAPE:
 		_hud.show_toast(SettingsData.t("almost"))

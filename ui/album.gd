@@ -3,6 +3,7 @@ extends Control
 ## El panel no usa tamaño fijo: los márgenes son 48 px más el área segura.
 
 const AlbumSave = preload("res://scripts/album_save.gd")
+const FishRoll = preload("res://scripts/fish_roll.gd")
 
 signal closed
 signal claim_requested(rarity: String)
@@ -597,12 +598,15 @@ func _on_card(id: String) -> void:
 	var rarity := str(fish.get("rarity", "common"))
 	var tex: Texture2D = load(str(fish.get("texture", "")))
 	if not owned:
-		_inspect.show_fish("frame_" + rarity, tex, "", "", "", SettingsData.t("album_missing"))
+		_inspect.show_fish("frame_" + rarity, tex, "", "", "", SettingsData.t("album_missing"), _night_line(fish))
 	else:
 		var extra := SettingsData.t("album_catches") % int(_caught.get(id, 0))
 		var since := str(_first.get(id, ""))
 		if since != "":
 			extra += "\n" + (SettingsData.t("album_since") % since)
+		var night := _night_line(fish)
+		if night != "":
+			extra += "\n" + night
 		_inspect.show_fish(
 			"frame_" + rarity,
 			tex,
@@ -615,6 +619,12 @@ func _on_card(id: String) -> void:
 	var icon := _inspect.find_child("FishIcon", true, false) as CanvasItem
 	if icon != null:
 		icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
+
+
+func _night_line(fish: Dictionary) -> String:
+	if FishRoll.more_at_night(fish):
+		return SettingsData.t("fish_more_night")
+	return ""
 
 
 func _on_claim(rarity: String) -> void:

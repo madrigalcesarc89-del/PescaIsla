@@ -40,7 +40,8 @@ static func legend_boosted(dry_legend: int, db: Dictionary) -> bool:
 
 ## Pesos efectivos. Un pez que el jugador aún no tiene pesa el doble
 ## dentro de su rareza (el total de la rareza no cambia).
-static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, gear: Dictionary = {}) -> Array:
+## time_weights, si viene una fase, escala a ese pez dentro de la rareza.
+static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, gear: Dictionary = {}, phase: String = "") -> Array:
 	var rules := pity_rules(db)
 	var rw := rarity_weights(db)
 	if legend_boosted(dry_legend, db):
@@ -68,7 +69,12 @@ static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_lege
 		for f in members:
 			var owned := int(caught.get(str(f.get("id", "")), 0)) > 0
 			var mult := 1.0 if owned else float(rules.discovery_mult)
-			var w := maxf(0.0, float(f.get("weight", 1.0))) * mult
+			var tw := 1.0
+			if phase != "":
+				var table = f.get("time_weights", {})
+				if typeof(table) == TYPE_DICTIONARY:
+					tw = maxf(0.0, float((table as Dictionary).get(phase, 1.0)))
+			var w := maxf(0.0, float(f.get("weight", 1.0))) * mult * tw
 			scaled.append([f, w])
 			sum_w += w
 		if sum_w <= 0.0:
@@ -80,8 +86,15 @@ static func effective(fishes: Array, caught: Dictionary, dry_rare: int, dry_lege
 
 
 ## roll en [0, 1). Devuelve el diccionario del pez, o {} si no hay bolsa.
-static func pick(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, roll: float, gear: Dictionary = {}) -> Dictionary:
-	return _pick_entries(effective(fishes, caught, dry_rare, dry_legend, db, gear), roll)
+static func pick(fishes: Array, caught: Dictionary, dry_rare: int, dry_legend: int, db: Dictionary, roll: float, gear: Dictionary = {}, phase: String = "") -> Dictionary:
+	return _pick_entries(effective(fishes, caught, dry_rare, dry_legend, db, gear, phase), roll)
+
+
+static func more_at_night(fish: Dictionary) -> bool:
+	var table = fish.get("time_weights", {})
+	if typeof(table) != TYPE_DICTIONARY:
+		return false
+	return float((table as Dictionary).get("night", 1.0)) > 1.01
 
 
 ## Sorteo anterior al paso 23: weight absoluto, sin rareza ni pity.

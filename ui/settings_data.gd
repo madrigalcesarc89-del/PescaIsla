@@ -1,6 +1,6 @@
 class_name SettingsData
 extends RefCounted
-## 19f: preferencias en user://settings.json (musica, efectos, vibracion, idioma).
+## Preferencias en user://settings.json (musica, efectos, vibracion, idioma, hora).
 
 const PATH := "user://settings.json"
 
@@ -8,6 +8,7 @@ static var music := 0.7
 static var sfx := 0.9
 static var vibration := true
 static var lang := "es"
+static var time_mode := "cycle"
 
 static var _strings: Dictionary = {}
 
@@ -26,13 +27,21 @@ static func load_all() -> void:
 	vibration = bool(d.get("vibration", vibration))
 	var l := str(d.get("lang", lang))
 	lang = l if l in ["es", "en"] else "es"
+	var mode := str(d.get("time_mode", "cycle"))
+	time_mode = mode if mode in ["cycle", "clock"] else "cycle"
 
 
 static func save_all() -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	if f == null:
 		return
-	f.store_string(JSON.stringify({"music": music, "sfx": sfx, "vibration": vibration, "lang": lang}))
+	f.store_string(JSON.stringify({
+		"music": music,
+		"sfx": sfx,
+		"vibration": vibration,
+		"lang": lang,
+		"time_mode": time_mode,
+	}))
 
 
 static func apply_audio() -> void:

@@ -38,6 +38,22 @@ var _ghost_scale := 1.0
 var _ghost_sit := 0.0
 var _ghost_reason := "water"
 var _ghost_valid := false
+var _night_glow := 0.0
+
+
+func set_night_glow(level: float) -> void:
+	var v := clampf(level, 0.0, 1.0)
+	if absf(v - _night_glow) < 0.001:
+		return
+	_night_glow = v
+	_paint_glows(self)
+
+
+func _paint_glows(n: Node) -> void:
+	if n is OmniLight3D and str(n.name) == "placed_glow":
+		(n as OmniLight3D).light_energy = 0.55 * _night_glow
+	for child in n.get_children():
+		_paint_glows(child)
 
 
 func plane_y() -> float:
@@ -868,7 +884,7 @@ func _glow(inst: Node3D, id: String, height: float, glows: int) -> int:
 	light.name = "placed_glow"
 	light.shadow_enabled = false
 	light.omni_range = 1.6
-	light.light_energy = 0.55
+	light.light_energy = 0.55 * _night_glow
 	light.light_color = Color(1.0, 0.75, 0.42)
 	light.position = Vector3(0.0, height * float(GLOW[id]), 0.0)
 	inst.add_child(light)
