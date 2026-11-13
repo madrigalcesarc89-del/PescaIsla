@@ -58,6 +58,34 @@ func _on_shop() -> void:
 	shop_pressed.emit()
 
 
+func shop_button() -> Button:
+	return _shop_btn
+
+
+func hold_button() -> Button:
+	return _hold_btn
+
+
+func action_button() -> Button:
+	return _action_btn
+
+
+func album_button() -> Button:
+	return _album_btn
+
+
+func reel_box() -> Control:
+	return _reel_box
+
+
+func hint_panel() -> Control:
+	return _hint_pill
+
+
+func bite_alert() -> CanvasItem:
+	return _bubble
+
+
 func close_soon() -> bool:
 	if not _soon.visible:
 		return false

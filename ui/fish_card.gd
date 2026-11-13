@@ -55,6 +55,10 @@ var _forcing := false
 @onready var _fun_btn: Button = $Center/CardBox/FunButton
 
 
+func continue_button() -> Button:
+	return _fun_btn
+
+
 func _ready() -> void:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/ui_layout.json"))
 	_layout = parsed if typeof(parsed) == TYPE_DICTIONARY else {}

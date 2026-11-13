@@ -12,6 +12,7 @@ const STRINGS_PATH := "res://data/strings.json"
 const FishRoll = preload("res://scripts/fish_roll.gd")
 const AlbumSave = preload("res://scripts/album_save.gd")
 const ShopSave = preload("res://scripts/shop_save.gd")
+const TutorialScript = preload("res://ui/tutorial.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
 const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
@@ -42,6 +43,8 @@ const RESULT_HOLD := 1.8
 @export var reel_limit: float = 10.0
 @export var marker_up: float = 0.9
 @export var marker_down: float = 0.7
+## El export de escenas no sigue un preload. Esta referencia entra en la APK.
+@export var pack_tutorial: Script
 ## Punto del agua donde cae el flotador (mundo).
 ## Reserva como fallback; en cada lanzamiento se recalcula con un rayo
 ## desde el punto de pantalla CAST_SCREEN contra el plano del agua (18c).
@@ -125,6 +128,7 @@ func _ready() -> void:
 	_build_ui()
 	call_deferred("_apply_decor", "", false)
 	_enter(State.IDLE)
+	_boot_tutorial()
 
 
 func _build_visuals() -> void:
@@ -244,6 +248,8 @@ func _process(delta: float) -> void:
 			if _t_state >= cast_time:
 				var wait_scale := float(_cast_gear.get("wait_mult", 1.0))
 				_wait_time = randf_range(wait_min, wait_max) * wait_scale
+				if _tutorial_guiding():
+					_wait_time = 0.6
 				_enter(State.WAIT)
 		State.WAIT:
 			if _t_state >= _wait_time:
@@ -334,6 +340,7 @@ func _enter(s: int) -> void:
 	_audio_state(s)
 	_refresh_ui()
 	state_changed.emit(state)
+	_note_tutorial(prev, s)
 
 
 ## Vibracion por estado (20b): picada 90 ms, captura 60+40+60 ms.
@@ -463,7 +470,21 @@ func _apply_pose() -> void:
 
 
 func _pick_fish() -> void:
+	if _tutorial_guiding():
+		var forced := _first_common_fish()
+		if not forced.is_empty():
+			current_fish = forced
+			return
 	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear, _phase_now())
+
+
+func _first_common_fish() -> Dictionary:
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		if str(fish.get("rarity", "")) == "common":
+			return fish
+	return {}
 
 
 func _phase_now() -> String:
@@ -587,6 +608,7 @@ func _load_game() -> void:
 	_save_rest = parsed.get("rest", {})
 	_shop_state = ShopSave.normalize(_save_rest)
 	_cast_gear = ShopSave.gear(_shop_state)
+	_tutorial_done = bool(_save_rest.get("tutorial_done", false))
 	_sync_shop_rest()
 
 
@@ -622,6 +644,11 @@ var _shop: Control
 var _decor: Node3D = null
 var _place: Control = null
 var _day_night: Node = null
+var _tutorial: Control = null
+var _tutorial_done := false
+var _tutorial_step := 0
+var _tut_album := false
+var _tut_shop := false
 var _placing := false
 var _place_id := ""
 var _place_x := 0.0
@@ -657,6 +684,7 @@ func _build_ui() -> void:
 	_album.grant_requested.connect(_on_debug_coins)
 	_album.coins_set_requested.connect(_on_debug_set_coins)
 	_album.shop_reset_requested.connect(_on_debug_shop_reset)
+	_album.tutorial_reset_requested.connect(_on_debug_tutorial_reset)
 	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
@@ -712,8 +740,11 @@ func _on_album_seen(seen: Dictionary) -> void:
 
 
 func _on_album() -> void:
+	if _tutorial_step == 5:
+		_tut_album = true
 	_bind_album()
 	_album.open_album()
+	_maybe_finish_tour()
 
 
 func _on_album_claim(rarity: String) -> void:
@@ -832,7 +863,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_shop_open() -> void:
 	if _shop == null:
 		return
+	if _tutorial_step == 5:
+		_tut_shop = true
 	_shop.open_shop(coins, _shop_state)
+	_maybe_finish_tour()
 
 
 func _on_shop_buy(id: String) -> void:
@@ -1102,6 +1136,21 @@ func _on_debug_shop_reset() -> void:
 		_shop.sync_state(coins, _shop_state)
 
 
+func _on_debug_tutorial_reset() -> void:
+	if not OS.is_debug_build():
+		return
+	_tutorial_done = false
+	_tutorial_step = 1
+	_tut_album = false
+	_tut_shop = false
+	_save_rest["tutorial_done"] = false
+	_save_game()
+	if _tutorial == null:
+		_boot_tutorial()
+	else:
+		_sync_tutorial()
+
+
 func _start_day_night() -> void:
 	var existing := get_node_or_null("DayNight")
 	if existing != null:
@@ -1155,6 +1204,7 @@ func _on_lang_changed() -> void:
 		_album.reload_visible()
 	if _shop != null and _shop.visible and _shop.has_method("reload_locale"):
 		_shop.reload_locale()
+	_sync_tutorial()
 
 
 func _apply_safe_area(c: Control) -> void:
@@ -1246,6 +1296,126 @@ func _process_ui(_delta: float) -> void:
 		_escape_label.position = _line.points[0] + Vector2(30, -160)
 	elif _escape_label != null:
 		_escape_label.visible = false
+	if _tutorial != null and not _tutorial_done and _tutorial_step > 0:
+		_tutorial.set_cat_anchor(_cat_screen())
+
+
+func _boot_tutorial() -> void:
+	if _tutorial_done or _ui_layer == null:
+		return
+	var node := Control.new()
+	node.name = "Tutorial"
+	var scr: Script = pack_tutorial if pack_tutorial != null else TutorialScript
+	node.set_script(scr)
+	if _hud != null and _hud.theme != null:
+		node.theme = _hud.theme
+	_ui_layer.add_child(node)
+	_tutorial = node
+	if _tutorial.has_signal("skipped"):
+		_tutorial.skipped.connect(_on_tutorial_skip)
+	_tutorial_step = 1
+	_tut_album = false
+	_tut_shop = false
+	_sync_tutorial()
+
+
+func _tutorial_guiding() -> bool:
+	return not _tutorial_done and _tutorial_step >= 1 and _tutorial_step <= 3
+
+
+func _on_tutorial_skip() -> void:
+	_finish_tutorial()
+
+
+func _finish_tutorial() -> void:
+	_tutorial_done = true
+	_tutorial_step = 0
+	_save_rest["tutorial_done"] = true
+	_save_game()
+	if _tutorial != null:
+		_tutorial.hide_tutorial()
+
+
+func _maybe_finish_tour() -> void:
+	if _tutorial_step == 5 and _tut_album and _tut_shop:
+		_finish_tutorial()
+		return
+	_sync_tutorial()
+
+
+func _note_tutorial(prev: int, s: int) -> void:
+	if _tutorial_done or _tutorial_step <= 0:
+		return
+	if _tutorial_step == 1 and s == State.CAST:
+		_tutorial_step = 2
+	elif _tutorial_step == 2 and s == State.REEL:
+		_tutorial_step = 3
+	elif _tutorial_step == 3 and s == State.CATCH:
+		_tutorial_step = 4
+	elif s == State.IDLE and prev == State.ESCAPE and (_tutorial_step == 2 or _tutorial_step == 3):
+		_tutorial_step = 1
+	elif s == State.IDLE and prev == State.CATCH and _tutorial_step == 4:
+		_tutorial_step = 5
+		_tut_album = false
+		_tut_shop = false
+	_sync_tutorial()
+
+
+func _sync_tutorial() -> void:
+	if _tutorial == null or not _tutorial.has_method("present"):
+		return
+	if _tutorial_done or _tutorial_step <= 0:
+		_tutorial.hide_tutorial()
+		return
+	var text := ""
+	var targets: Array = []
+	if _tutorial_step == 1:
+		text = SettingsData.t("tutorial_cast")
+		targets = [_hud.action_button()]
+	elif _tutorial_step == 2:
+		text = SettingsData.t("tutorial_bite")
+		targets = [_hud.action_button()]
+		if _hud.has_method("bite_alert"):
+			var alert := _hud.bite_alert() as CanvasItem
+			if alert != null and alert.visible:
+				targets = [_hud.action_button(), alert]
+	elif _tutorial_step == 3:
+		text = SettingsData.t("tutorial_reel")
+		targets = [_hud.hold_button(), _hud.reel_box()]
+	elif _tutorial_step == 4:
+		text = SettingsData.t("tutorial_card")
+		var btn: Button = null
+		if _fishcard != null and _fishcard.has_method("continue_button"):
+			btn = _fishcard.continue_button()
+		targets = [btn]
+	else:
+		if _tut_album and not _tut_shop:
+			text = SettingsData.t("tutorial_shop")
+			targets = [_hud.shop_button()]
+		elif _tut_shop and not _tut_album:
+			text = SettingsData.t("tutorial_album")
+			targets = [_hud.album_button()]
+		else:
+			text = SettingsData.t("tutorial_both")
+			targets = [_hud.album_button(), _hud.shop_button()]
+	if _tutorial.has_method("set_avoid"):
+		_tutorial.set_avoid(_tutorial_avoid())
+	_tutorial.present(text, targets, _cat_screen())
+
+
+func _tutorial_avoid() -> Array:
+	var out: Array = []
+	if _hud != null and _hud.has_method("hint_panel"):
+		out.append(_hud.hint_panel())
+	return out
+
+
+func _cat_screen() -> Vector2:
+	if _cam == null or _cat == null:
+		return Vector2(280, 900)
+	if _cam.is_position_behind(_cat.global_position):
+		return Vector2(280, 900)
+	return _cam.unproject_position(_cat.global_position)
 
 
 ## Contador temporal de monedas: "+N" que sube y se desvanece en 2 s.
