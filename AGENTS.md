@@ -49,6 +49,10 @@ Comparar captura contra `docs/previews/reorg_base.png`: diferencia media < 0.5 f
 zonas de partículas (agua con ondas, luciérnagas, barco).
 
 ## Identificadores de peces (confirmados)
-común: `fish_pink_sardine`, `fish_moon`, `fish_cream_carp` · poco común: `fish_mint_puffer`,
-`fish_peach_angelfish`, `fish_jellyfish` · raro: `fish_lanternfish`, `fish_golden_koi`,
-`fish_seahorse` · legendario: `fish_cloud`, `fish_mini_whale`, `fish_sea_dragon`
+común: `fish_pink_sardine`, `fish_moon`, `fish_silver_minnow`, `fish_sunny_perch`,
+`fish_cinnamon_gudgeon`, `fish_cream_carp`, `fish_clownfish` ·
+poco común: `fish_mint_puffer`, `fish_bubble_fish`, `fish_peach_angelfish`, `fish_jellyfish` ·
+raro: `fish_lanternfish`, `fish_pastel_ray`, `fish_golden_koi`, `fish_seahorse` ·
+épico: `fish_cotton_fish`, `fish_cloud`, `fish_comet_fish`, `fish_mini_whale`, `fish_ghost_fish` ·
+legendario: `fish_electric_eel`, `fish_rainbow_fish`, `fish_sea_dragon` ·
+secreto: `fish_kitty_fish`

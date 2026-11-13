@@ -1,179 +1,812 @@
 {
   "rarities": {
-    "common": { "es": "Común", "en": "Common" },
-    "uncommon": { "es": "Poco común", "en": "Uncommon" },
-    "rare": { "es": "Raro", "en": "Rare" },
-    "legendary": { "es": "Legendario", "en": "Legendary" }
+    "common": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "uncommon": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "rare": {
+      "es": "Raro",
+      "en": "Rare"
+    },
+    "legendary": {
+      "es": "Legendario",
+      "en": "Legendary"
+    },
+    "epic": {
+      "es": "Épico",
+      "en": "Epic"
+    },
+    "secret": {
+      "es": "Secreto",
+      "en": "Secret"
+    }
   },
   "ui": {
-    "game_name": { "es": "Purrfect Catch", "en": "Purrfect Catch" },
-    "hint_idle": { "es": "Toca para lanzar el anzuelo", "en": "Tap to cast the line" },
-    "hint_cast": { "es": "Lanzando...", "en": "Casting..." },
-    "hint_wait": { "es": "Espera... atento al flotador", "en": "Wait... watch the bobber" },
-    "hint_bite": { "es": "¡PICÓ! ¡Tira ahora!", "en": "BITE! Pull now!" },
-    "hint_reel": { "es": "Mantén el marcador en verde", "en": "Keep the marker green" },
-    "action_fish": { "es": "¡PESCAR!", "en": "FISH!" },
-    "action_strike": { "es": "¡TIRAR!", "en": "PULL!" },
-    "hold": { "es": "MANTÉN", "en": "HOLD" },
-    "coins": { "es": "Monedas", "en": "Coins" },
-    "great": { "es": "¡Genial!", "en": "Great!" },
-    "close": { "es": "Cerrar", "en": "Close" },
-    "soon": { "es": "Próximamente", "en": "Coming soon" },
-    "soon_body": { "es": "Contenido en camino.", "en": "Content on its way." },
-    "settings": { "es": "Ajustes", "en": "Settings" },
-    "music": { "es": "Música", "en": "Music" },
-    "sfx": { "es": "Efectos", "en": "Sound FX" },
-    "vibration": { "es": "Vibración", "en": "Vibration" },
-    "language": { "es": "Idioma", "en": "Language" },
-    "settings_time": { "es": "Hora del juego", "en": "Game time" },
-    "settings_time_cycle": { "es": "Ciclo", "en": "Cycle" },
-    "settings_time_clock": { "es": "Reloj", "en": "Clock" },
-    "fish_more_night": { "es": "Más frecuente de noche", "en": "More common at night" },
-    "album": { "es": "Álbum", "en": "Album" },
-    "album_missing": { "es": "Aún no lo has atrapado", "en": "You haven't caught it yet" },
-    "album_catches": { "es": "×%d", "en": "×%d" },
-    "album_since": { "es": "Desde %s", "en": "Since %s" },
-    "album_claim": { "es": "Reclamar +%d", "en": "Claim +%d" },
-    "album_back": { "es": "Volver", "en": "Back" },
-    "album_reset": { "es": "Reiniciar", "en": "Reset" },
-    "album_unlock": { "es": "Desbloquear", "en": "Unlock all" },
-    "album_repair": { "es": "Reparar premios", "en": "Fix rewards" },
-    "shop": { "es": "Tienda", "en": "Shop" },
-    "escaped": { "es": "Se escapó...", "en": "It got away..." },
-    "no_penalty": { "es": "Sin penalización", "en": "No penalty" },
-    "credits_t": { "es": "Créditos", "en": "Credits" },
-    "continue": { "es": "Continuar", "en": "Continue" },
-    "tutorial_skip": { "es": "Omitir", "en": "Skip" },
-    "tutorial_cast": { "es": "Toca para lanzar", "en": "Tap to cast" },
-    "tutorial_bite": { "es": "Espera… cuando salga el !, toca", "en": "Wait… when the ! shows, tap" },
-    "tutorial_reel": { "es": "Mantén presionado para recoger y deja el marcador en la zona verde", "en": "Hold to reel and keep the marker in the green zone" },
-    "tutorial_card": { "es": "Mira tu captura y toca Continuar", "en": "See your catch and tap Continue" },
-    "tutorial_both": { "es": "Abre el álbum y la tienda", "en": "Open the album and the shop" },
-    "tutorial_album": { "es": "Toca el álbum. Ahí se guardan tus peces.", "en": "Tap the album. Your fish are kept there." },
-    "tutorial_shop": { "es": "Ahora toca la tienda. Ahí mejoras tu equipo.", "en": "Now tap the shop. You upgrade your gear there." },
-    "tutorial_album_help": { "es": "Este es tu álbum. Cada pez que pescas queda aquí, por rareza. Ciérralo para seguir.", "en": "This is your album. Every fish you catch stays here, by rarity. Close it to continue." },
-    "tutorial_shop_help": { "es": "En la tienda compras cañas, cebos y adornos para la isla. Ciérrala para terminar.", "en": "The shop sells rods, bait and island decorations. Close it to finish." },
-    "tutorial_done_title": { "es": "Tutorial terminado", "en": "Tutorial complete" },
-    "tutorial_done_body": { "es": "Toma %d monedas para tu primera mejora.", "en": "Take %d coins for your first upgrade." },
-    "tutorial_done_ok": { "es": "Seguir pescando", "en": "Keep fishing" },
-    "debug_reset_tutorial": { "es": "Reiniciar tutorial", "en": "Reset tutorial" },
-    "debug_reset_gift": { "es": "Reiniciar regalo", "en": "Reset gift" },
-    "gift": { "es": "Regalo", "en": "Gift" },
-    "gift_title": { "es": "Regalos", "en": "Gifts" },
-    "gift_sub": { "es": "Cada día el premio vale más. Si faltas uno, no pierdes la racha.", "en": "Each day the prize is worth more. Miss one and you keep your streak." },
-    "gift_day": { "es": "Día %d", "en": "Day %d" },
-    "gift_today": { "es": "Hoy", "en": "Today" },
-    "gift_next": { "es": "Siguiente", "en": "Next" },
-    "gift_got": { "es": "Listo", "en": "Done" },
-    "gift_claim": { "es": "Reclamar", "en": "Claim" },
-    "gift_close": { "es": "Luego", "en": "Later" },
-    "gift_wait": { "es": "Todavía no. Vuelve cuando pase un día.", "en": "Not yet. Come back after a day." },
-    "gift_clock": { "es": "El reloj del teléfono retrocedió. El regalo espera.", "en": "The phone clock went back. The gift waits." },
-    "almost": { "es": "¡Casi! Inténtalo otra vez", "en": "Almost! Try again" },
-    "credits_body": { "es": "PescaIsla · pesca tranquila con gato.\nArte y código: César + IA.", "en": "PescaIsla · cozy fishing with a cat.\nArt and code: Cesar + AI." },
-    "shop_tab_rod": { "es": "Caña", "en": "Rod" },
-    "shop_tab_bait": { "es": "Cebo", "en": "Bait" },
-    "shop_tab_decor": { "es": "Decoración", "en": "Decor" },
-    "shop_buy": { "es": "Comprar", "en": "Buy" },
-    "shop_equip": { "es": "Equipar", "en": "Equip" },
-    "shop_equipped_f": { "es": "Equipada", "en": "Equipped" },
-    "shop_equipped_m": { "es": "Equipado", "en": "Equipped" },
-    "shop_place": { "es": "Colocar", "en": "Place" },
-    "shop_placed": { "es": "Colocada", "en": "Placed" },
-    "shop_remove": { "es": "Quitar", "en": "Remove" },
-    "shop_no_room": { "es": "No hay espacio libre; quita algo", "en": "No free space; remove something" },
-    "place_move": { "es": "Mover", "en": "Move" },
-    "place_put": { "es": "Poner", "en": "Put" },
-    "place_rotate": { "es": "Girar", "en": "Turn" },
-    "place_up": { "es": "Subir", "en": "Up" },
-    "place_down": { "es": "Bajar", "en": "Down" },
-    "place_smaller": { "es": "Menos", "en": "Smaller" },
-    "place_bigger": { "es": "Más", "en": "Bigger" },
-    "place_drag": { "es": "Arrastra por la plataforma", "en": "Drag it on the platform" },
-    "place_ok": { "es": "Cabe. Pulsa Poner", "en": "It fits. Tap Put" },
-    "place_water": { "es": "Ahí hay agua", "en": "That's water" },
-    "place_clip": { "es": "Atraviesa el muelle", "en": "It goes through the dock" },
-    "place_busy": { "es": "Ese sitio está ocupado", "en": "That spot is taken" },
-    "place_air": { "es": "Bájalo: no puede quedar en el aire", "en": "Lower it: it can't stay in the air" },
-    "place_not_now": { "es": "Termina esta pesca para colocarlo", "en": "Finish this cast before placing" },
-    "shop_cancel": { "es": "Cancelar", "en": "Cancel" },
-    "shop_confirm": { "es": "¿Comprar %s?", "en": "Buy %s?" },
-    "shop_confirm_cost": { "es": "Cuesta %d monedas.", "en": "It costs %d coins." },
-    "shop_qty": { "es": "×%d", "en": "×%d" },
-    "shop_infinite": { "es": "∞", "en": "∞" },
-    "shop_fx_wait": { "es": "Espera %s", "en": "Wait %s" },
-    "shop_fx_zone": { "es": "Zona %s", "en": "Zone %s" },
-    "shop_fx_value": { "es": "Valor %s", "en": "Value %s" },
-    "shop_fx_common": { "es": "Comunes %s", "en": "Commons %s" },
-    "shop_fx_uncommon": { "es": "Poco comunes %s", "en": "Uncommons %s" },
-    "shop_fx_rare": { "es": "Raros %s", "en": "Rares %s" },
-    "shop_fx_legendary": { "es": "Legendarios %s", "en": "Legendaries %s" },
-    "shop_fx_starter": { "es": "Equipo inicial", "en": "Starter gear" },
-    "shop_slot_shore": { "es": "Orilla", "en": "Shore" },
-    "shop_slot_dock": { "es": "Muelle", "en": "Dock" },
-    "shop_slot_camp": { "es": "Campamento", "en": "Camp" },
-    "shop_slot_esquina": { "es": "Esquina", "en": "Corner" },
-    "shop_slot_lateral": { "es": "Lateral", "en": "Side" },
-    "shop_slot_fondo": { "es": "Fondo", "en": "Back" },
-    "shop_bait_out": { "es": "Se acabó el cebo. Vuelves a la lombriz.", "en": "The bait ran out. Back to the worm." },
-    "shop_debug_coins": { "es": "+1000 monedas", "en": "+1000 coins" },
-    "shop_debug_set": { "es": "Poner monedas", "en": "Set coins" },
-    "shop_debug_amount": { "es": "Cantidad", "en": "Amount" },
-    "shop_debug_title": { "es": "Depuración", "en": "Debug" },
-    "shop_debug_reset": { "es": "Reiniciar tienda", "en": "Reset shop" },
-    "shop_rod_bamboo": { "es": "Caña de bambú", "en": "Bamboo rod" },
-    "shop_rod_bamboo_desc": { "es": "Ligera y de siempre. No cambia la pesca.", "en": "The usual light rod. It doesn't change fishing." },
-    "shop_rod_coral": { "es": "Caña coral", "en": "Coral rod" },
-    "shop_rod_coral_desc": { "es": "El pez pica antes.", "en": "The fish bites sooner." },
-    "shop_rod_cherry": { "es": "Caña cerezo", "en": "Cherry rod" },
-    "shop_rod_cherry_desc": { "es": "La zona verde es más ancha.", "en": "The green zone is wider." },
-    "shop_rod_moon": { "es": "Caña luna", "en": "Moon rod" },
-    "shop_rod_moon_desc": { "es": "Atrae más peces raros.", "en": "It draws more rare fish." },
-    "shop_rod_rainbow": { "es": "Caña arcoíris", "en": "Rainbow rod" },
-    "shop_rod_rainbow_desc": { "es": "Cada captura vale más.", "en": "Each catch is worth more." },
-    "shop_bait_pink_worm": { "es": "Lombriz rosa", "en": "Pink worm" },
-    "shop_bait_pink_worm_desc": { "es": "No se acaba. El cebo de siempre.", "en": "It never runs out. The usual bait." },
-    "shop_bait_peach_shrimp": { "es": "Camarón durazno", "en": "Peach shrimp" },
-    "shop_bait_peach_shrimp_desc": { "es": "Un cebo dulce que sube el valor.", "en": "A sweet bait that raises the value." },
-    "shop_bait_firefly_worm": { "es": "Lombriz luciérnaga", "en": "Firefly worm" },
-    "shop_bait_firefly_worm_desc": { "es": "Brilla y llama a los legendarios.", "en": "It glows and calls legendaries." },
-    "shop_bait_golden_pearl": { "es": "Perla dorada", "en": "Golden pearl" },
-    "shop_bait_golden_pearl_desc": { "es": "Cebo premium. Muchos legendarios.", "en": "Premium bait. Lots of legendaries." },
-    "shop_deco_plant": { "es": "Planta de orilla", "en": "Shore plant" },
-    "shop_deco_plant_desc": { "es": "Una maceta para la orilla.", "en": "A pot for the shore." },
-    "shop_deco_chair": { "es": "Silla del muelle", "en": "Dock chair" },
-    "shop_deco_chair_desc": { "es": "Para sentarse a esperar.", "en": "A seat while you wait." },
-    "shop_deco_campfire": { "es": "Fogata", "en": "Campfire" },
-    "shop_deco_campfire_desc": { "es": "Luz cálida para el campamento.", "en": "Warm light for the camp." },
-    "shop_deco_birdhouse": { "es": "Casa de pájaros", "en": "Birdhouse" },
-    "shop_deco_birdhouse_desc": { "es": "Una casita para la esquina del muelle.", "en": "A little house for the dock corner." },
-    "shop_deco_cat_bed": { "es": "Cama del gato", "en": "Cat bed" },
-    "shop_deco_cat_bed_desc": { "es": "Un cojín redondo para descansar.", "en": "A round cushion for a nap." },
-    "shop_deco_succulent": { "es": "Suculenta", "en": "Succulent" },
-    "shop_deco_succulent_desc": { "es": "Una maceta chica y verde.", "en": "A small green pot." },
-    "shop_deco_beach_chair": { "es": "Silla de playa", "en": "Beach chair" },
-    "shop_deco_beach_chair_desc": { "es": "Para sentarse a mirar el agua.", "en": "A seat for watching the water." },
-    "shop_deco_table_lamp": { "es": "Lámpara de mesa", "en": "Table lamp" },
-    "shop_deco_table_lamp_desc": { "es": "Luz cálida para la noche.", "en": "A warm light for the night." },
-    "shop_deco_string_lights": { "es": "Luces de feria", "en": "String lights" },
-    "shop_deco_string_lights_desc": { "es": "Un hilo de luces para el borde.", "en": "A string of lights for the edge." },
-    "shop_deco_firepit": { "es": "Fogata", "en": "Fire pit" },
-    "shop_deco_firepit_desc": { "es": "Brasas para la cubierta.", "en": "Embers for the deck." },
-    "shop_deco_hot_tub": { "es": "Tina de madera", "en": "Wooden tub" },
-    "shop_deco_hot_tub_desc": { "es": "Grande, para la orilla.", "en": "Big, for the shore." }
+    "game_name": {
+      "es": "Purrfect Catch",
+      "en": "Purrfect Catch"
+    },
+    "hint_idle": {
+      "es": "Toca para lanzar el anzuelo",
+      "en": "Tap to cast the line"
+    },
+    "hint_cast": {
+      "es": "Lanzando...",
+      "en": "Casting..."
+    },
+    "hint_wait": {
+      "es": "Espera... atento al flotador",
+      "en": "Wait... watch the bobber"
+    },
+    "hint_bite": {
+      "es": "¡PICÓ! ¡Tira ahora!",
+      "en": "BITE! Pull now!"
+    },
+    "hint_reel": {
+      "es": "Mantén el marcador en verde",
+      "en": "Keep the marker green"
+    },
+    "action_fish": {
+      "es": "¡PESCAR!",
+      "en": "FISH!"
+    },
+    "action_strike": {
+      "es": "¡TIRAR!",
+      "en": "PULL!"
+    },
+    "hold": {
+      "es": "MANTÉN",
+      "en": "HOLD"
+    },
+    "coins": {
+      "es": "Monedas",
+      "en": "Coins"
+    },
+    "great": {
+      "es": "¡Genial!",
+      "en": "Great!"
+    },
+    "close": {
+      "es": "Cerrar",
+      "en": "Close"
+    },
+    "soon": {
+      "es": "Próximamente",
+      "en": "Coming soon"
+    },
+    "soon_body": {
+      "es": "Contenido en camino.",
+      "en": "Content on its way."
+    },
+    "settings": {
+      "es": "Ajustes",
+      "en": "Settings"
+    },
+    "music": {
+      "es": "Música",
+      "en": "Music"
+    },
+    "sfx": {
+      "es": "Efectos",
+      "en": "Sound FX"
+    },
+    "vibration": {
+      "es": "Vibración",
+      "en": "Vibration"
+    },
+    "language": {
+      "es": "Idioma",
+      "en": "Language"
+    },
+    "settings_time": {
+      "es": "Hora del juego",
+      "en": "Game time"
+    },
+    "settings_time_cycle": {
+      "es": "Ciclo",
+      "en": "Cycle"
+    },
+    "settings_time_clock": {
+      "es": "Reloj",
+      "en": "Clock"
+    },
+    "fish_more_night": {
+      "es": "Más frecuente de noche",
+      "en": "More common at night"
+    },
+    "album": {
+      "es": "Álbum",
+      "en": "Album"
+    },
+    "album_missing": {
+      "es": "Aún no lo has atrapado",
+      "en": "You haven't caught it yet"
+    },
+    "album_catches": {
+      "es": "×%d",
+      "en": "×%d"
+    },
+    "album_since": {
+      "es": "Desde %s",
+      "en": "Since %s"
+    },
+    "album_claim": {
+      "es": "Reclamar +%d",
+      "en": "Claim +%d"
+    },
+    "album_back": {
+      "es": "Volver",
+      "en": "Back"
+    },
+    "album_reset": {
+      "es": "Reiniciar",
+      "en": "Reset"
+    },
+    "album_unlock": {
+      "es": "Desbloquear todos",
+      "en": "Unlock all"
+    },
+    "album_repair": {
+      "es": "Reparar premios",
+      "en": "Fix rewards"
+    },
+    "shop": {
+      "es": "Tienda",
+      "en": "Shop"
+    },
+    "escaped": {
+      "es": "Se escapó...",
+      "en": "It got away..."
+    },
+    "no_penalty": {
+      "es": "Sin penalización",
+      "en": "No penalty"
+    },
+    "credits_t": {
+      "es": "Créditos",
+      "en": "Credits"
+    },
+    "continue": {
+      "es": "Continuar",
+      "en": "Continue"
+    },
+    "tutorial_skip": {
+      "es": "Omitir",
+      "en": "Skip"
+    },
+    "tutorial_cast": {
+      "es": "Toca para lanzar",
+      "en": "Tap to cast"
+    },
+    "tutorial_bite": {
+      "es": "Espera… cuando salga el !, toca",
+      "en": "Wait… when the ! shows, tap"
+    },
+    "tutorial_reel": {
+      "es": "Mantén presionado para recoger y deja el marcador en la zona verde",
+      "en": "Hold to reel and keep the marker in the green zone"
+    },
+    "tutorial_card": {
+      "es": "Mira tu captura y toca Continuar",
+      "en": "See your catch and tap Continue"
+    },
+    "tutorial_both": {
+      "es": "Abre el álbum y la tienda",
+      "en": "Open the album and the shop"
+    },
+    "tutorial_album": {
+      "es": "Toca el álbum. Ahí se guardan tus peces.",
+      "en": "Tap the album. Your fish are kept there."
+    },
+    "tutorial_shop": {
+      "es": "Ahora toca la tienda. Ahí mejoras tu equipo.",
+      "en": "Now tap the shop. You upgrade your gear there."
+    },
+    "tutorial_album_help": {
+      "es": "Este es tu álbum. Cada pez que pescas queda aquí, por rareza. Ciérralo para seguir.",
+      "en": "This is your album. Every fish you catch stays here, by rarity. Close it to continue."
+    },
+    "tutorial_shop_help": {
+      "es": "En la tienda compras cañas, cebos y adornos para la isla. Ciérrala para terminar.",
+      "en": "The shop sells rods, bait and island decorations. Close it to finish."
+    },
+    "tutorial_done_title": {
+      "es": "Tutorial terminado",
+      "en": "Tutorial complete"
+    },
+    "tutorial_done_body": {
+      "es": "Toma %d monedas para tu primera mejora.",
+      "en": "Take %d coins for your first upgrade."
+    },
+    "tutorial_done_ok": {
+      "es": "Seguir pescando",
+      "en": "Keep fishing"
+    },
+    "debug_reset_tutorial": {
+      "es": "Reiniciar tutorial",
+      "en": "Reset tutorial"
+    },
+    "debug_reset_gift": {
+      "es": "Reiniciar regalo",
+      "en": "Reset gift"
+    },
+    "gift": {
+      "es": "Regalo",
+      "en": "Gift"
+    },
+    "gift_title": {
+      "es": "Regalos",
+      "en": "Gifts"
+    },
+    "gift_sub": {
+      "es": "Cada día el premio vale más. Si faltas uno, no pierdes la racha.",
+      "en": "Each day the prize is worth more. Miss one and you keep your streak."
+    },
+    "gift_day": {
+      "es": "Día %d",
+      "en": "Day %d"
+    },
+    "gift_today": {
+      "es": "Hoy",
+      "en": "Today"
+    },
+    "gift_next": {
+      "es": "Siguiente",
+      "en": "Next"
+    },
+    "gift_got": {
+      "es": "Listo",
+      "en": "Done"
+    },
+    "gift_claim": {
+      "es": "Reclamar",
+      "en": "Claim"
+    },
+    "gift_close": {
+      "es": "Luego",
+      "en": "Later"
+    },
+    "gift_wait": {
+      "es": "Todavía no. Vuelve cuando pase un día.",
+      "en": "Not yet. Come back after a day."
+    },
+    "gift_clock": {
+      "es": "El reloj del teléfono retrocedió. El regalo espera.",
+      "en": "The phone clock went back. The gift waits."
+    },
+    "almost": {
+      "es": "¡Casi! Inténtalo otra vez",
+      "en": "Almost! Try again"
+    },
+    "credits_body": {
+      "es": "PescaIsla · pesca tranquila con gato.\nArte y código: César + IA.",
+      "en": "PescaIsla · cozy fishing with a cat.\nArt and code: Cesar + AI."
+    },
+    "shop_tab_rod": {
+      "es": "Caña",
+      "en": "Rod"
+    },
+    "shop_tab_bait": {
+      "es": "Cebo",
+      "en": "Bait"
+    },
+    "shop_tab_decor": {
+      "es": "Decoración",
+      "en": "Decor"
+    },
+    "shop_buy": {
+      "es": "Comprar",
+      "en": "Buy"
+    },
+    "shop_equip": {
+      "es": "Equipar",
+      "en": "Equip"
+    },
+    "shop_equipped_f": {
+      "es": "Equipada",
+      "en": "Equipped"
+    },
+    "shop_equipped_m": {
+      "es": "Equipado",
+      "en": "Equipped"
+    },
+    "shop_place": {
+      "es": "Colocar",
+      "en": "Place"
+    },
+    "shop_placed": {
+      "es": "Colocada",
+      "en": "Placed"
+    },
+    "shop_remove": {
+      "es": "Quitar",
+      "en": "Remove"
+    },
+    "shop_no_room": {
+      "es": "No hay espacio libre; quita algo",
+      "en": "No free space; remove something"
+    },
+    "place_move": {
+      "es": "Mover",
+      "en": "Move"
+    },
+    "place_put": {
+      "es": "Poner",
+      "en": "Put"
+    },
+    "place_rotate": {
+      "es": "Girar",
+      "en": "Turn"
+    },
+    "place_up": {
+      "es": "Subir",
+      "en": "Up"
+    },
+    "place_down": {
+      "es": "Bajar",
+      "en": "Down"
+    },
+    "place_smaller": {
+      "es": "Menos",
+      "en": "Smaller"
+    },
+    "place_bigger": {
+      "es": "Más",
+      "en": "Bigger"
+    },
+    "place_drag": {
+      "es": "Arrastra por la plataforma",
+      "en": "Drag it on the platform"
+    },
+    "place_ok": {
+      "es": "Cabe. Pulsa Poner",
+      "en": "It fits. Tap Put"
+    },
+    "place_water": {
+      "es": "Ahí hay agua",
+      "en": "That's water"
+    },
+    "place_clip": {
+      "es": "Atraviesa el muelle",
+      "en": "It goes through the dock"
+    },
+    "place_busy": {
+      "es": "Ese sitio está ocupado",
+      "en": "That spot is taken"
+    },
+    "place_air": {
+      "es": "Bájalo: no puede quedar en el aire",
+      "en": "Lower it: it can't stay in the air"
+    },
+    "place_not_now": {
+      "es": "Termina esta pesca para colocarlo",
+      "en": "Finish this cast before placing"
+    },
+    "shop_cancel": {
+      "es": "Cancelar",
+      "en": "Cancel"
+    },
+    "shop_confirm": {
+      "es": "¿Comprar %s?",
+      "en": "Buy %s?"
+    },
+    "shop_confirm_cost": {
+      "es": "Cuesta %d monedas.",
+      "en": "It costs %d coins."
+    },
+    "shop_qty": {
+      "es": "×%d",
+      "en": "×%d"
+    },
+    "shop_infinite": {
+      "es": "∞",
+      "en": "∞"
+    },
+    "shop_fx_wait": {
+      "es": "Espera %s",
+      "en": "Wait %s"
+    },
+    "shop_fx_zone": {
+      "es": "Zona %s",
+      "en": "Zone %s"
+    },
+    "shop_fx_value": {
+      "es": "Valor %s",
+      "en": "Value %s"
+    },
+    "shop_fx_common": {
+      "es": "Comunes %s",
+      "en": "Commons %s"
+    },
+    "shop_fx_uncommon": {
+      "es": "Poco comunes %s",
+      "en": "Uncommons %s"
+    },
+    "shop_fx_rare": {
+      "es": "Raros %s",
+      "en": "Rares %s"
+    },
+    "shop_fx_legendary": {
+      "es": "Legendarios %s",
+      "en": "Legendaries %s"
+    },
+    "shop_fx_starter": {
+      "es": "Equipo inicial",
+      "en": "Starter gear"
+    },
+    "shop_slot_shore": {
+      "es": "Orilla",
+      "en": "Shore"
+    },
+    "shop_slot_dock": {
+      "es": "Muelle",
+      "en": "Dock"
+    },
+    "shop_slot_camp": {
+      "es": "Campamento",
+      "en": "Camp"
+    },
+    "shop_slot_esquina": {
+      "es": "Esquina",
+      "en": "Corner"
+    },
+    "shop_slot_lateral": {
+      "es": "Lateral",
+      "en": "Side"
+    },
+    "shop_slot_fondo": {
+      "es": "Fondo",
+      "en": "Back"
+    },
+    "shop_bait_out": {
+      "es": "Se acabó el cebo. Vuelves a la lombriz.",
+      "en": "The bait ran out. Back to the worm."
+    },
+    "shop_debug_coins": {
+      "es": "+1000 monedas",
+      "en": "+1000 coins"
+    },
+    "shop_debug_set": {
+      "es": "Poner monedas",
+      "en": "Set coins"
+    },
+    "shop_debug_amount": {
+      "es": "Cantidad",
+      "en": "Amount"
+    },
+    "shop_debug_title": {
+      "es": "Depuración",
+      "en": "Debug"
+    },
+    "shop_debug_reset": {
+      "es": "Reiniciar tienda",
+      "en": "Reset shop"
+    },
+    "shop_rod_bamboo": {
+      "es": "Caña de bambú",
+      "en": "Bamboo rod"
+    },
+    "shop_rod_bamboo_desc": {
+      "es": "Ligera y de siempre. No cambia la pesca.",
+      "en": "The usual light rod. It doesn't change fishing."
+    },
+    "shop_rod_coral": {
+      "es": "Caña coral",
+      "en": "Coral rod"
+    },
+    "shop_rod_coral_desc": {
+      "es": "El pez pica antes.",
+      "en": "The fish bites sooner."
+    },
+    "shop_rod_cherry": {
+      "es": "Caña cerezo",
+      "en": "Cherry rod"
+    },
+    "shop_rod_cherry_desc": {
+      "es": "La zona verde es más ancha.",
+      "en": "The green zone is wider."
+    },
+    "shop_rod_moon": {
+      "es": "Caña luna",
+      "en": "Moon rod"
+    },
+    "shop_rod_moon_desc": {
+      "es": "Atrae más peces raros, épicos y legendarios.",
+      "en": "It draws more rare, epic and legendary fish."
+    },
+    "shop_rod_rainbow": {
+      "es": "Caña arcoíris",
+      "en": "Rainbow rod"
+    },
+    "shop_rod_rainbow_desc": {
+      "es": "Cada captura vale más.",
+      "en": "Each catch is worth more."
+    },
+    "shop_bait_pink_worm": {
+      "es": "Lombriz rosa",
+      "en": "Pink worm"
+    },
+    "shop_bait_pink_worm_desc": {
+      "es": "No se acaba. El cebo de siempre.",
+      "en": "It never runs out. The usual bait."
+    },
+    "shop_bait_peach_shrimp": {
+      "es": "Camarón durazno",
+      "en": "Peach shrimp"
+    },
+    "shop_bait_peach_shrimp_desc": {
+      "es": "Un cebo dulce que sube el valor.",
+      "en": "A sweet bait that raises the value."
+    },
+    "shop_bait_firefly_worm": {
+      "es": "Lombriz luciérnaga",
+      "en": "Firefly worm"
+    },
+    "shop_bait_firefly_worm_desc": {
+      "es": "Brilla y llama a los raros y a los mejores.",
+      "en": "It glows and calls rare fish and the best ones."
+    },
+    "shop_bait_golden_pearl": {
+      "es": "Perla dorada",
+      "en": "Golden pearl"
+    },
+    "shop_bait_golden_pearl_desc": {
+      "es": "Cebo premium. Muchos legendarios.",
+      "en": "Premium bait. Lots of legendaries."
+    },
+    "shop_deco_plant": {
+      "es": "Planta de orilla",
+      "en": "Shore plant"
+    },
+    "shop_deco_plant_desc": {
+      "es": "Una maceta para la orilla.",
+      "en": "A pot for the shore."
+    },
+    "shop_deco_chair": {
+      "es": "Silla del muelle",
+      "en": "Dock chair"
+    },
+    "shop_deco_chair_desc": {
+      "es": "Para sentarse a esperar.",
+      "en": "A seat while you wait."
+    },
+    "shop_deco_campfire": {
+      "es": "Fogata",
+      "en": "Campfire"
+    },
+    "shop_deco_campfire_desc": {
+      "es": "Luz cálida para el campamento.",
+      "en": "Warm light for the camp."
+    },
+    "shop_deco_birdhouse": {
+      "es": "Casa de pájaros",
+      "en": "Birdhouse"
+    },
+    "shop_deco_birdhouse_desc": {
+      "es": "Una casita para la esquina del muelle.",
+      "en": "A little house for the dock corner."
+    },
+    "shop_deco_cat_bed": {
+      "es": "Cama del gato",
+      "en": "Cat bed"
+    },
+    "shop_deco_cat_bed_desc": {
+      "es": "Un cojín redondo para descansar.",
+      "en": "A round cushion for a nap."
+    },
+    "shop_deco_succulent": {
+      "es": "Suculenta",
+      "en": "Succulent"
+    },
+    "shop_deco_succulent_desc": {
+      "es": "Una maceta chica y verde.",
+      "en": "A small green pot."
+    },
+    "shop_deco_beach_chair": {
+      "es": "Silla de playa",
+      "en": "Beach chair"
+    },
+    "shop_deco_beach_chair_desc": {
+      "es": "Para sentarse a mirar el agua.",
+      "en": "A seat for watching the water."
+    },
+    "shop_deco_table_lamp": {
+      "es": "Lámpara de mesa",
+      "en": "Table lamp"
+    },
+    "shop_deco_table_lamp_desc": {
+      "es": "Luz cálida para la noche.",
+      "en": "A warm light for the night."
+    },
+    "shop_deco_string_lights": {
+      "es": "Luces de feria",
+      "en": "String lights"
+    },
+    "shop_deco_string_lights_desc": {
+      "es": "Un hilo de luces para el borde.",
+      "en": "A string of lights for the edge."
+    },
+    "shop_deco_firepit": {
+      "es": "Fogata",
+      "en": "Fire pit"
+    },
+    "shop_deco_firepit_desc": {
+      "es": "Brasas para la cubierta.",
+      "en": "Embers for the deck."
+    },
+    "shop_deco_hot_tub": {
+      "es": "Tina de madera",
+      "en": "Wooden tub"
+    },
+    "shop_deco_hot_tub_desc": {
+      "es": "Grande, para la orilla.",
+      "en": "Big, for the shore."
+    },
+    "album_secret_hint": {
+      "es": "Solo aparece de noche… cuando conozcas a casi todos",
+      "en": "It only shows at night… once you know almost everyone"
+    },
+    "album_force_secret": {
+      "es": "Forzar el pez secreto",
+      "en": "Force the secret fish"
+    },
+    "shop_fx_epic": {
+      "es": "Épicos %s",
+      "en": "Epics %s"
+    },
+    "shop_fx_secret": {
+      "es": "Secretos %s",
+      "en": "Secrets %s"
+    }
   },
   "fish": {
-    "fish_pink_sardine": { "name_es": "Sardina rosa", "name_en": "Pink sardine", "description_es": "Pequeña y rápida. La más fácil de ver.", "description_en": "Small and quick. The easiest one to spot." },
-    "fish_moon": { "name_es": "Pez luna", "name_en": "Moon fish", "description_es": "Brilla un poco de noche. Común pero bonito.", "description_en": "It glows a little at night. Common, but pretty." },
-    "fish_cream_carp": { "name_es": "Carpa crema", "name_en": "Cream carp", "description_es": "Tranquila y redonda. Buena para practicar.", "description_en": "Calm and round. Good for practice." },
-    "fish_mint_puffer": { "name_es": "Pez globo menta", "name_en": "Mint pufferfish", "description_es": "Se infla si te descuidas. Tira a tiempo.", "description_en": "It puffs up if you hesitate. Pull in time." },
-    "fish_peach_angelfish": { "name_es": "Pez ángel durazno", "name_en": "Peach angelfish", "description_es": "Elegante y algo escurridizo.", "description_en": "Elegant, and a little slippery." },
-    "fish_jellyfish": { "name_es": "Medusa pequeña", "name_en": "Small jellyfish", "description_es": "Flota sin prisa, pero pica con la espera.", "description_en": "It drifts slowly, but the wait stings." },
-    "fish_lanternfish": { "name_es": "Pez linterna", "name_en": "Lanternfish", "description_es": "Su luz atrae miradas... y buenos precios.", "description_en": "Its light draws looks, and a good price." },
-    "fish_golden_koi": { "name_es": "Koi dorado", "name_en": "Golden koi", "description_es": "Trae suerte a quien lo atrapa.", "description_en": "It brings luck to whoever catches it." },
-    "fish_seahorse": { "name_es": "Caballito de mar", "name_en": "Seahorse", "description_es": "Pequeño, raro y muy cotizado.", "description_en": "Small, rare, and highly prized." },
-    "fish_cloud": { "name_es": "Pez nube", "name_en": "Cloud fish", "description_es": "Dicen que vive entre nubes. Casi imposible.", "description_en": "They say it lives in the clouds. Almost impossible." },
-    "fish_mini_whale": { "name_es": "Ballena mini", "name_en": "Mini whale", "description_es": "Enorme para el anzuelo. Leyenda de la isla.", "description_en": "Huge for a hook. A legend of the island." },
-    "fish_sea_dragon": { "name_es": "Dragón de mar", "name_en": "Sea dragon", "description_es": "El rey de estas aguas. Solo para maestros.", "description_en": "The king of these waters. Only for masters." }
+    "fish_pink_sardine": {
+      "name_es": "Sardina rosa",
+      "name_en": "Pink sardine",
+      "description_es": "Pequeña y rápida. La más fácil de ver.",
+      "description_en": "Small and quick. The easiest one to spot."
+    },
+    "fish_moon": {
+      "name_es": "Pez luna",
+      "name_en": "Moon fish",
+      "description_es": "Brilla un poco de noche. Común pero bonito.",
+      "description_en": "It glows a little at night. Common, but pretty."
+    },
+    "fish_silver_minnow": {
+      "name_es": "Piscardo de plata",
+      "name_en": "Silver minnow",
+      "description_es": "Un destello chiquito. Se escapa en un parpadeo.",
+      "description_en": "A tiny flash. It slips away in a blink."
+    },
+    "fish_sunny_perch": {
+      "name_es": "Perca soleada",
+      "name_en": "Sunny perch",
+      "description_es": "Sale cuando el día está claro.",
+      "description_en": "It comes out when the day is clear."
+    },
+    "fish_cinnamon_gudgeon": {
+      "name_es": "Gobio canela",
+      "name_en": "Cinnamon gudgeon",
+      "description_es": "Nada despacio, tibio como la canela.",
+      "description_en": "It swims slowly, warm as cinnamon."
+    },
+    "fish_cream_carp": {
+      "name_es": "Carpa crema",
+      "name_en": "Cream carp",
+      "description_es": "Tranquila y redonda. Buena para practicar.",
+      "description_en": "Calm and round. Good for practice."
+    },
+    "fish_clownfish": {
+      "name_es": "Pez payaso",
+      "name_en": "Clownfish",
+      "description_es": "Naranja y blanco. Le gusta el sol.",
+      "description_en": "Orange and white. It likes the sun."
+    },
+    "fish_mint_puffer": {
+      "name_es": "Pez globo menta",
+      "name_en": "Mint pufferfish",
+      "description_es": "Se infla si te descuidas. Tira a tiempo.",
+      "description_en": "It puffs up if you hesitate. Pull in time."
+    },
+    "fish_bubble_fish": {
+      "name_es": "Pez burbuja",
+      "name_en": "Bubble fish",
+      "description_es": "Siempre va con una sonrisa redonda.",
+      "description_en": "It always wears a round smile."
+    },
+    "fish_peach_angelfish": {
+      "name_es": "Pez ángel durazno",
+      "name_en": "Peach angelfish",
+      "description_es": "Elegante y algo escurridizo.",
+      "description_en": "Elegant, and a little slippery."
+    },
+    "fish_jellyfish": {
+      "name_es": "Medusa pequeña",
+      "name_en": "Small jellyfish",
+      "description_es": "Flota sin prisa, pero pica con la espera.",
+      "description_en": "It drifts slowly, but the wait stings."
+    },
+    "fish_lanternfish": {
+      "name_es": "Pez linterna",
+      "name_en": "Lanternfish",
+      "description_es": "Su luz atrae miradas... y buenos precios.",
+      "description_en": "Its light draws looks, and a good price."
+    },
+    "fish_pastel_ray": {
+      "name_es": "Raya pastel",
+      "name_en": "Pastel ray",
+      "description_es": "Roza la arena sin hacer ruido.",
+      "description_en": "It skims the sand without a sound."
+    },
+    "fish_golden_koi": {
+      "name_es": "Koi dorado",
+      "name_en": "Golden koi",
+      "description_es": "Trae suerte a quien lo atrapa.",
+      "description_en": "It brings luck to whoever catches it."
+    },
+    "fish_seahorse": {
+      "name_es": "Caballito de mar",
+      "name_en": "Seahorse",
+      "description_es": "Pequeño, raro y muy cotizado.",
+      "description_en": "Small, rare, and highly prized."
+    },
+    "fish_cotton_fish": {
+      "name_es": "Pez algodón",
+      "name_en": "Cotton fish",
+      "description_es": "Suave como una nube pequeña.",
+      "description_en": "Soft as a little cloud."
+    },
+    "fish_cloud": {
+      "name_es": "Pez nube",
+      "name_en": "Cloud fish",
+      "description_es": "Esponjoso y lento. Vive entre nubes.",
+      "description_en": "Fluffy and slow. It lives among the clouds."
+    },
+    "fish_comet_fish": {
+      "name_es": "Pez cometa",
+      "name_en": "Comet fish",
+      "description_es": "Deja una estela de colores.",
+      "description_en": "It leaves a trail of color."
+    },
+    "fish_mini_whale": {
+      "name_es": "Ballena mini",
+      "name_en": "Mini whale",
+      "description_es": "Grande y dulce. Apenas cabe en el anzuelo.",
+      "description_en": "Big and sweet. It barely fits the hook."
+    },
+    "fish_ghost_fish": {
+      "name_es": "Pez fantasma",
+      "name_en": "Ghost fish",
+      "description_es": "Se acerca más cuando cae la noche.",
+      "description_en": "It comes closer after dark."
+    },
+    "fish_electric_eel": {
+      "name_es": "Anguila eléctrica",
+      "name_en": "Electric eel",
+      "description_es": "Un chispazo justo al atardecer.",
+      "description_en": "A little spark right at sunset."
+    },
+    "fish_rainbow_fish": {
+      "name_es": "Pez arcoíris",
+      "name_en": "Rainbow fish",
+      "description_es": "Cuesta creer que exista de verdad.",
+      "description_en": "It's hard to believe it's real."
+    },
+    "fish_sea_dragon": {
+      "name_es": "Dragón de mar",
+      "name_en": "Sea dragon",
+      "description_es": "El rey de estas aguas. Solo para maestros.",
+      "description_en": "The king of these waters. Only for masters."
+    },
+    "fish_kitty_fish": {
+      "name_es": "Pez gatito",
+      "name_en": "Kitty fish",
+      "description_es": "Orejas de gato. Solo sale de noche, si ya conoces a casi todos.",
+      "description_en": "Cat ears. It only comes out at night, once you know almost everyone."
+    }
   }
 }
