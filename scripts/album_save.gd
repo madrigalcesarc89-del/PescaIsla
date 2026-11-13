@@ -13,7 +13,7 @@ const GROUP_KEY := {
 	"legendary": "group_legendary_v2",
 }
 const DEFAULT_REWARDS := {"common": 80, "uncommon": 150, "rare": 350, "epic": 700, "legendary": 1200}
-const RUN_EPOCH := 1
+const RUN_EPOCH := 2
 
 
 static func claim_key(rarity: String) -> String:
@@ -131,7 +131,8 @@ static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: 
 	return body
 
 
-## La partida vieja no trae run_epoch. Solo esa se vacía una vez.
+## Partida anterior a este epoch: se vacía una sola vez.
+## Quita peces, monedas, premios, tutorial, regalo y compras.
 static func stale_run(data: Dictionary) -> bool:
 	return int(data.get("run_epoch", 0)) < RUN_EPOCH
 
@@ -141,7 +142,8 @@ static func apply_fresh_run(data: Dictionary) -> Dictionary:
 		return data
 	var parsed: Dictionary = read(data)
 	var rest: Dictionary = parsed.get("rest", {})
-	rest.erase("run_epoch")
+	for key in ["run_epoch", "tutorial_done", "tutorial_rewarded", "daily_last", "daily_streak", "owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed", "decor_off"]:
+		rest.erase(key)
 	var body := payload(0, {}, {}, empty_claimed(), {"dry_rare": 0, "dry_legend": 0}, rest, {})
 	body["run_epoch"] = RUN_EPOCH
 	return body

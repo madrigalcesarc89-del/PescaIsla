@@ -86,8 +86,23 @@ func _init() -> void:
 	_expect(int(fresh["coins"]) == 0, "reinicio monedas")
 	_expect(fresh["caught"].is_empty(), "reinicio sin peces")
 	_expect(fresh["claimed"]["common"] == false, "reinicio sin premios")
-	_expect(int(fresh["run_epoch"]) == 1, "marca la partida nueva")
+	_expect(int(fresh["run_epoch"]) == 2, "marca la partida nueva")
 	_expect(str(fresh["rod"]) == "bamboo", "no borra la caña")
+	var progressed := {
+		"coins": 3499,
+		"run_epoch": 1,
+		"tutorial_done": true,
+		"tutorial_rewarded": true,
+		"daily_last": 10,
+		"daily_streak": 3,
+		"owned": ["rod_bamboo", "deco_chair"],
+		"decor_placed": {"a": "deco_chair"},
+		"caught": {"fish_moon": 1},
+	}
+	var wiped: Dictionary = AlbumSave.apply_fresh_run(progressed)
+	_expect(int(wiped["coins"]) == 0 and wiped["caught"].is_empty(), "la partida vieja se vacía")
+	_expect(not wiped.has("tutorial_done") and not wiped.has("owned") and not wiped.has("decor_placed"), "tutorial y tienda vuelven al inicio")
+	_expect(not wiped.has("daily_last"), "el regalo diario vuelve a cero")
 	fresh["caught"] = {"fish_moon": 1}
 	fresh["coins"] = 9
 	var kept: Dictionary = AlbumSave.apply_fresh_run(fresh)
