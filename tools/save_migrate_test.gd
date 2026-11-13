@@ -45,10 +45,11 @@ func _init() -> void:
 	_expect(int(bare["coins"]) == 0, "vacío monedas")
 	_expect(bare["claimed"]["legendary"] == false, "vacío premio")
 	var db = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish_db.json"))
-	_expect(AlbumSave.reward_amount(db, "common") == 50, "premio común")
-	_expect(AlbumSave.reward_amount(db, "uncommon") == 120, "premio poco común")
-	_expect(AlbumSave.reward_amount(db, "rare") == 300, "premio raro")
-	_expect(AlbumSave.reward_amount(db, "legendary") == 800, "premio legendario")
+	_expect(AlbumSave.reward_amount(db, "common") == 80, "premio común")
+	_expect(AlbumSave.reward_amount(db, "uncommon") == 150, "premio poco común")
+	_expect(AlbumSave.reward_amount(db, "rare") == 350, "premio raro")
+	_expect(AlbumSave.reward_amount(db, "epic") == 700, "premio épico")
+	_expect(AlbumSave.reward_amount(db, "legendary") == 1200, "premio legendario")
 	var fishes: Array = db["fishes"]
 	var none := {}
 	_expect(not AlbumSave.rarity_complete(fishes, none, "common"), "común incompleto")
@@ -61,14 +62,25 @@ func _init() -> void:
 	_expect(not AlbumSave.can_claim(fishes, one, parsed["claimed"], "rare"), "un raro no reclama")
 	var only: Array = [fishes[6]]
 	_expect(not AlbumSave.can_claim(only, one, parsed["claimed"], "rare"), "lista de un pez no reclama")
-	var common_ids := ["fish_pink_sardine", "fish_moon", "fish_cream_carp"]
+	var common_ids := []
+	for fish in fishes:
+		if str(fish["rarity"]) == "common":
+			common_ids.append(str(fish["id"]))
+	var few := {}
+	for id in common_ids.slice(0, 3):
+		few[id] = 1
+	_expect(not AlbumSave.can_claim(fishes, few, parsed["claimed"], "common"), "tres comunes ya no")
 	var commons := {}
 	for id in common_ids:
 		commons[id] = 1
-	_expect(AlbumSave.can_claim(fishes, commons, parsed["claimed"], "common"), "tres comunes sí")
+	_expect(AlbumSave.can_claim(fishes, commons, parsed["claimed"], "common"), "comunes completos sí")
 	var already: Dictionary = parsed["claimed"].duplicate()
-	already["common"] = true
+	already["group_common_v2"] = true
 	_expect(not AlbumSave.can_claim(fishes, commons, already, "common"), "ya cobrado no")
+	var old_paid: Dictionary = parsed["claimed"].duplicate()
+	old_paid["common"] = true
+	_expect(AlbumSave.can_claim(fishes, commons, old_paid, "common"), "la clave vieja no bloquea el premio nuevo")
+	_expect(AlbumSave.extra_claim_coins(fishes, {}, old_paid, db) == 0, "la clave vieja no quita monedas")
 	var dirty := {"coins": 500, "caught": {"fish_pink_sardine": 3, "fish_moon": 1}, "claimed": {"common": true}, "rod": "bamboo"}
 	var fresh: Dictionary = AlbumSave.apply_fresh_run(dirty)
 	_expect(int(fresh["coins"]) == 0, "reinicio monedas")
@@ -85,7 +97,8 @@ func _init() -> void:
 	_expect(AlbumSave.back_action(false, false, true, true, false) == "close_album", "luego el álbum")
 	_expect(AlbumSave.back_action(false, false, false, false, false) == "quit", "sin paneles")
 	var rw: Dictionary = db["rarity_weights"]
-	_expect(int(rw["common"]) == 55 and int(rw["uncommon"]) == 28 and int(rw["rare"]) == 13 and int(rw["legendary"]) == 4, "pesos 55/28/13/4")
+	_expect(int(rw["common"]) == 50 and int(rw["uncommon"]) == 28 and int(rw["rare"]) == 16 and int(rw["epic"]) == 14 and int(rw["legendary"]) == 7, "pesos 50/28/16/14/7")
+	_expect(is_equal_approx(float(db["secret_chance"]), 0.03), "secreto al 3%")
 	var pity: Dictionary = db["pity"]
 	_expect(int(pity["discovery_mult"]) == 2 and int(pity["rare_after"]) == 25 and int(pity["legend_after"]) == 80, "bonus y mala suerte")
 	if _fail == 0:

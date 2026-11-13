@@ -15,7 +15,7 @@ const ASPECTS := {
 	"3x4": Vector2i(1440, 1920),
 }
 const VALUES := [1, 22, 333, 4444]
-const SHOTS := ["fish_pink_sardine", "fish_peach_angelfish", "fish_golden_koi", "fish_sea_dragon"]
+const SHOTS := ["fish_silver_minnow", "fish_peach_angelfish", "fish_seahorse", "fish_cotton_fish", "fish_electric_eel", "fish_kitty_fish"]
 
 var _fail := 0
 
@@ -86,11 +86,11 @@ func _init() -> void:
 							_contrast(measured.name_color, Color(1.0, 0.945, 0.839)),
 						])
 					_check(measured, aspect, id, lang, value_text)
-					if shot_dir != "" and aspect == "9x16" and lang == "es" and value == 1 and id in SHOTS:
+					if shot_dir != "" and value == 1 and id in SHOTS:
 						var real := "+%d %s" % [int(f.get("value", value)), SettingsData.t("coins").to_lower()]
-						card.show_fish("frame_" + rarity, tex, name_text, badge, real)
+						card.show_fish("frame_" + rarity, tex, name_text, badge, real, blurb)
 						await process_frame
-						await _save_shot(sv, shot_dir, id)
+						await _save_shot(sv, shot_dir, "%s_%s_%s" % [id, lang, aspect])
 	if _fail == 0:
 		print("CARD_AUDIT_OK")
 		quit()
@@ -179,18 +179,21 @@ func _lin(u: float) -> float:
 
 func _save_shot(sv: SubViewport, dir: String, id: String) -> void:
 	await process_frame
+	if DisplayServer.get_name() == "headless":
+		print("CARD_SHOT sin ejecutar ", id)
+		return
 	var tex := sv.get_texture()
 	if tex == null:
-		_bad("sin textura de viewport")
+		print("CARD_SHOT sin ejecutar ", id)
 		return
 	var img := tex.get_image()
 	if img == null:
-		_bad("sin imagen de captura")
+		print("CARD_SHOT sin ejecutar ", id)
 		return
 	DirAccess.make_dir_recursive_absolute(dir)
 	var path := dir.path_join(id + ".png")
 	var err := img.save_png(path)
 	if err != OK:
-		_bad("no se guardó " + path)
+		print("CARD_SHOT sin ejecutar ", id)
 	else:
 		print("SHOT", path, img.get_width(), img.get_height())

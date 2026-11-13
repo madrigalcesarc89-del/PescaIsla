@@ -11,6 +11,8 @@ const HALO_MOD := {
 	"frame_uncommon": Color(0.55, 0.9, 0.82, 0.42),
 	"frame_rare": Color(0.72, 0.62, 1.0, 0.58),
 	"frame_legendary": Color(1.0, 0.84, 0.38, 0.7),
+	"frame_epic": Color(0.91, 0.56, 0.72, 0.65),
+	"frame_secret": Color(0.23, 0.29, 0.48, 0.75),
 }
 const BACKING := Color(1.0, 0.945, 0.839)
 const PILL := Color(1.0, 0.945, 0.88)
@@ -177,11 +179,24 @@ func _paint_text(lab: Label) -> void:
 
 func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String, blurb: String = "", extra: String = "") -> void:
 	_frame_key = frame_key
-	var fr: Dictionary = (_layout.get("frames", {}) as Dictionary).get(frame_key, {})
+	var frames: Dictionary = _layout.get("frames", {})
+	var fr: Dictionary = frames.get(frame_key, {})
+	if fr.is_empty():
+		fr = frames.get("frame_legendary", {})
 	if fr.is_empty():
 		return
-	var frame_tex: Texture2D = load("res://assets/art/ui/" + frame_key + ".png")
+	var load_key := frame_key
+	var tint := Color.WHITE
+	if not FileAccess.file_exists("res://assets/art/ui/" + frame_key + ".png"):
+		if frame_key == "frame_epic":
+			load_key = "frame_legendary"
+			tint = Color("E88FB8")
+		elif frame_key == "frame_secret":
+			load_key = "frame_legendary"
+			tint = Color("3B4A7A")
+	var frame_tex: Texture2D = load("res://assets/art/ui/" + load_key + ".png")
 	_frame_rect.texture = frame_tex
+	_frame_rect.modulate = tint
 	if _backing.material is ShaderMaterial:
 		(_backing.material as ShaderMaterial).set_shader_parameter("frame_tex", frame_tex)
 	_fish.texture = tex
@@ -205,10 +220,14 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 	var th := theme
 	if th != null and th.has_stylebox("panel", "Badge" + slice):
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
+	if slice == "Secret":
+		_badge_label.add_theme_color_override("font_color", Color("FFF1D6"))
+	else:
+		UiFit.paint_light(_badge_label, 34)
 	# Cubre el marco entero. El shader borra el crema del margen transparente.
 	_anchor_frac(_backing, [0.0, 0.0, 1.0, 1.0])
 	_anchor_frac(_window, fr.get("window", [0.1, 0.1, 0.8, 0.8]))
-	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary"
+	_halo.visible = frame_key == "frame_rare" or frame_key == "frame_legendary" or frame_key == "frame_epic" or frame_key == "frame_secret"
 	if _halo.visible:
 		_halo.modulate = HALO_MOD[frame_key]
 	visible = true

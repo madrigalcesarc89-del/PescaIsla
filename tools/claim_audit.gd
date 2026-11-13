@@ -39,16 +39,23 @@ func _init() -> void:
 	await _show(album, fishes, {}, {}, db)
 	if _claims(album) != 0:
 		_bad("botón visible en guardado nuevo")
-	var commons := {
+	var commons := {}
+	for fish in fishes:
+		if str(fish["rarity"]) == "common":
+			commons[str(fish["id"])] = 1
+	var only_three := {
 		"fish_pink_sardine": 1,
 		"fish_moon": 1,
 		"fish_cream_carp": 1,
 	}
+	await _show(album, fishes, only_three, {}, db)
+	if _claims(album) != 0:
+		_bad("tres comunes no completan el grupo nuevo")
 	await _show(album, fishes, commons, {}, db)
 	var buttons := _claim_buttons(album)
 	if buttons.size() != 1:
 		_bad("se esperaba un Reclamar, hay " + str(buttons.size()))
-	elif not str(buttons[0].text).begins_with("Reclamar +50"):
+	elif not str(buttons[0].text).begins_with("Reclamar +80"):
 		_bad("texto " + str(buttons[0].text))
 	else:
 		var btn: Button = buttons[0]
@@ -69,22 +76,24 @@ func _init() -> void:
 	var rest := {}
 	var seen := {}
 	var step: Dictionary = AlbumSave.commit_claim(path, 0, commons, first, empty_claim, pity, rest, seen, fishes, db, "common")
-	if not bool(step.get("ok", false)) or int(step["added"]) != 50 or int(step["coins"]) != 50:
-		_bad("el cobro no sumó 50")
-	if not bool(step["claimed"]["common"]):
+	if not bool(step.get("ok", false)) or int(step["added"]) != 80 or int(step["coins"]) != 80:
+		_bad("el cobro no sumó 80")
+	if not bool(step["claimed"]["group_common_v2"]):
 		_bad("no marcó claimed")
+	if bool(step["claimed"]["common"]):
+		_bad("el cobro nuevo marcó la clave vieja")
 	await _show(album, fishes, commons, step["claimed"], db)
 	if _claims(album) != 0:
 		_bad("el botón sigue tras cobrar")
 	var again: Dictionary = AlbumSave.commit_claim(path, int(step["coins"]), commons, first, step["claimed"], pity, rest, seen, fishes, db, "common")
-	if bool(again.get("ok", false)) or int(again["added"]) != 0 or int(again["coins"]) != 50:
+	if bool(again.get("ok", false)) or int(again["added"]) != 0 or int(again["coins"]) != 80:
 		_bad("el segundo cobro duplicó")
 	var disk = JSON.parse_string(FileAccess.get_file_as_string(path))
 	var reloaded: Dictionary = AlbumSave.read(disk)
-	if int(reloaded["coins"]) != 50 or not bool(reloaded["claimed"]["common"]):
+	if int(reloaded["coins"]) != 80 or not bool(reloaded["claimed"]["group_common_v2"]):
 		_bad("reiniciar no conservó el cobro")
 	var third: Dictionary = AlbumSave.commit_claim(path, int(reloaded["coins"]), reloaded["caught"], reloaded["first_caught"], reloaded["claimed"], reloaded["pity"], reloaded["rest"], reloaded["album_seen"], fishes, db, "common")
-	if int(third["coins"]) != 50 or int(third["added"]) != 0:
+	if int(third["coins"]) != 80 or int(third["added"]) != 0:
 		_bad("tras reiniciar se duplicó")
 	var rare := commons.duplicate()
 	rare["fish_lanternfish"] = 1
@@ -95,17 +104,28 @@ func _init() -> void:
 		_bad("un raro suelto mostró botón")
 	var bad := "user://no_such_claim_dir/save.json"
 	var failed: Dictionary = AlbumSave.commit_claim(bad, 0, commons, first, empty_claim, pity, rest, seen, fishes, db, "common")
-	if bool(failed.get("ok", false)) or int(failed["coins"]) != 0 or bool(failed["claimed"]["common"]):
+	if bool(failed.get("ok", false)) or int(failed["coins"]) != 0 or bool(failed["claimed"]["group_common_v2"]):
 		_bad("un fallo de disco marcó el premio")
-	var corrupt_claimed := {"common": true, "uncommon": true, "rare": true, "legendary": true}
+	var legacy := {"common": true, "uncommon": true, "rare": true, "legendary": true}
+	var legacy_extra := AlbumSave.extra_claim_coins(fishes, {}, legacy, db)
+	print("legacy_extra ", legacy_extra)
+	if legacy_extra != 0:
+		_bad("la clave vieja no debe descontar monedas")
+	var corrupt_claimed := {
+		"group_common_v2": true,
+		"group_uncommon_v2": true,
+		"group_rare_v2": true,
+		"group_epic_v2": true,
+		"group_legendary_v2": true,
+	}
 	var extra := AlbumSave.extra_claim_coins(fishes, {}, corrupt_claimed, db)
 	print("extra_coins_fixture ", extra)
-	if extra != 1270:
+	if extra != 2480:
 		_bad("monedas de más del ejemplo " + str(extra))
-	var repaired: Dictionary = AlbumSave.commit_repair("user://claim_audit_repair.json", 2000, {}, first, corrupt_claimed, pity, rest, seen, fishes, db)
-	if int(repaired["extra"]) != 1270 or int(repaired["coins"]) != 730:
+	var repaired: Dictionary = AlbumSave.commit_repair("user://claim_audit_repair.json", 3000, {}, first, corrupt_claimed, pity, rest, seen, fishes, db)
+	if int(repaired["extra"]) != 2480 or int(repaired["coins"]) != 520:
 		_bad("la reparación no descontó")
-	if bool(repaired["claimed"]["legendary"]):
+	if bool(repaired["claimed"].get("group_legendary_v2", false)):
 		_bad("la reparación dejó un premio falso")
 	_wipe(path)
 	_wipe("user://claim_audit_repair.json")

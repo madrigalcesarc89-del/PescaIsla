@@ -2,13 +2,31 @@ extends RefCounted
 ## Guardado del álbum. Los JSON viejos solo traen caught como enteros:
 ## se rellenan first_caught y claimed sin perder monedas ni otras claves.
 
-const RARITIES := ["common", "uncommon", "rare", "legendary"]
-const DEFAULT_REWARDS := {"common": 50, "uncommon": 120, "rare": 300, "legendary": 800}
+const RARITIES := ["common", "uncommon", "rare", "epic", "legendary", "secret"]
+const REWARD_RARITIES := ["common", "uncommon", "rare", "epic", "legendary"]
+const LEGACY_KEYS := ["common", "uncommon", "rare", "legendary"]
+const GROUP_KEY := {
+	"common": "group_common_v2",
+	"uncommon": "group_uncommon_v2",
+	"rare": "group_rare_v2",
+	"epic": "group_epic_v2",
+	"legendary": "group_legendary_v2",
+}
+const DEFAULT_REWARDS := {"common": 80, "uncommon": 150, "rare": 350, "epic": 700, "legendary": 1200}
 const RUN_EPOCH := 1
 
 
+static func claim_key(rarity: String) -> String:
+	return str(GROUP_KEY.get(rarity, ""))
+
+
 static func empty_claimed() -> Dictionary:
-	return {"common": false, "uncommon": false, "rare": false, "legendary": false}
+	var out := {}
+	for key in LEGACY_KEYS:
+		out[key] = false
+	for rarity in REWARD_RARITIES:
+		out[claim_key(rarity)] = false
+	return out
 
 
 ## Lee un guardado viejo o nuevo y devuelve el modelo interno.
@@ -37,8 +55,8 @@ static func read(data: Dictionary) -> Dictionary:
 	var claimed := empty_claimed()
 	var src = data.get("claimed", {})
 	if typeof(src) == TYPE_DICTIONARY:
-		for rarity in RARITIES:
-			claimed[rarity] = bool(src.get(rarity, false))
+		for key in claimed.keys():
+			claimed[key] = bool(src.get(key, false))
 	var pity_in = data.get("pity", {})
 	var pity := {"dry_rare": 0, "dry_legend": 0}
 	if typeof(pity_in) == TYPE_DICTIONARY:
@@ -99,8 +117,8 @@ static func payload(coins: int, caught: Dictionary, first: Dictionary, claimed: 
 	body["caught"] = flat
 	body["album"] = album
 	var cl := empty_claimed()
-	for rarity in RARITIES:
-		cl[rarity] = bool(claimed.get(rarity, false))
+	for key in cl.keys():
+		cl[key] = bool(claimed.get(key, false))
 	body["claimed"] = cl
 	body["pity"] = {
 		"dry_rare": maxi(0, int(pity.get("dry_rare", 0))),
@@ -150,10 +168,10 @@ static func group_ids(fishes: Array, rarity: String) -> Array:
 	return ids
 
 
-## Un grupo está completo solo si el catálogo trae sus 3 peces y cada uno tiene caught > 0.
+## Un grupo está completo si el catálogo trae al menos un pez y cada uno tiene caught > 0.
 static func group_complete(fishes: Array, caught: Dictionary, rarity: String) -> bool:
 	var ids: Array = group_ids(fishes, rarity)
-	if ids.size() != 3:
+	if ids.is_empty():
 		return false
 	for id in ids:
 		if int(caught.get(str(id), 0)) <= 0:
@@ -161,9 +179,12 @@ static func group_complete(fishes: Array, caught: Dictionary, rarity: String) ->
 	return true
 
 
-## Única fuente de verdad del botón Reclamar.
+## Única fuente de verdad del botón Reclamar. El esquema viejo no cobra otra vez.
 static func can_claim(fishes: Array, caught: Dictionary, claimed: Dictionary, rarity: String) -> bool:
-	if bool(claimed.get(rarity, false)):
+	var key := claim_key(rarity)
+	if key == "":
+		return false
+	if bool(claimed.get(key, false)):
 		return false
 	return group_complete(fishes, caught, rarity)
 
@@ -180,7 +201,7 @@ static func commit_claim(path: String, coins: int, caught: Dictionary, first: Di
 	var amount := reward_amount(db, rarity)
 	var new_coins := int(coins) + amount
 	var new_claimed: Dictionary = claimed.duplicate(true)
-	new_claimed[rarity] = true
+	new_claimed[claim_key(rarity)] = true
 	var body := payload(new_coins, caught, first, new_claimed, pity, rest, seen)
 	var err := atomic_write(path, JSON.stringify(body))
 	if err != OK:
@@ -190,8 +211,9 @@ static func commit_claim(path: String, coins: int, caught: Dictionary, first: Di
 
 static func extra_claim_coins(fishes: Array, caught: Dictionary, claimed: Dictionary, db: Dictionary) -> int:
 	var extra := 0
-	for rarity in RARITIES:
-		if bool(claimed.get(rarity, false)) and not group_complete(fishes, caught, rarity):
+	for rarity in REWARD_RARITIES:
+		var key := claim_key(rarity)
+		if bool(claimed.get(key, false)) and not group_complete(fishes, caught, rarity):
 			extra += reward_amount(db, rarity)
 	return extra
 
@@ -201,9 +223,10 @@ static func commit_repair(path: String, coins: int, caught: Dictionary, first: D
 	if extra <= 0:
 		return {"ok": true, "coins": coins, "claimed": claimed, "extra": 0}
 	var new_claimed: Dictionary = claimed.duplicate(true)
-	for rarity in RARITIES:
-		if bool(new_claimed.get(rarity, false)) and not group_complete(fishes, caught, rarity):
-			new_claimed[rarity] = false
+	for rarity in REWARD_RARITIES:
+		var key := claim_key(rarity)
+		if bool(new_claimed.get(key, false)) and not group_complete(fishes, caught, rarity):
+			new_claimed[key] = false
 	var new_coins := maxi(0, int(coins) - extra)
 	var body := payload(new_coins, caught, first, new_claimed, pity, rest, seen)
 	var err := atomic_write(path, JSON.stringify(body))

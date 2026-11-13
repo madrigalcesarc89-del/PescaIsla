@@ -1,5 +1,5 @@
 extends Control
-## Álbum anclado a la pantalla. Cuatro secciones, cuadrícula de 3 columnas.
+## Álbum anclado a la pantalla. Seis secciones, cuadrícula de 3 columnas.
 ## El panel no usa tamaño fijo: los márgenes son 48 px más el área segura.
 
 const AlbumSave = preload("res://scripts/album_save.gd")
@@ -15,6 +15,7 @@ signal coins_set_requested(amount: int)
 signal shop_reset_requested
 signal tutorial_reset_requested
 signal gift_reset_requested
+signal force_secret_requested
 signal seen_committed(seen: Dictionary)
 
 const CREAM := Color("FFF1D6")
@@ -22,7 +23,9 @@ const RARITY_COLOR := {
 	"common": Color("E3B792"),
 	"uncommon": Color("5CC8C2"),
 	"rare": Color("B8A6E0"),
+	"epic": Color("E88FB8"),
 	"legendary": Color("E8C14A"),
+	"secret": Color("3B4A7A"),
 }
 const CARD_W := 288.0
 const CARD_H := 372.0
@@ -367,7 +370,7 @@ func _rebuild() -> void:
 		if int(_caught.get(str(fish.get("id", "")), 0)) > 0:
 			owned += 1
 	_title.text = SettingsData.t("album")
-	_count.text = "%d/12" % owned
+	_count.text = "%d/%d" % [owned, _fishes.size()]
 	_paint(_title)
 	_paint(_count)
 	var title_room := maxf(80.0, _content_width() - 132.0 - 180.0)
@@ -397,7 +400,8 @@ func _make_section(rarity: String) -> Control:
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", int(GAP))
 	grid.add_theme_constant_override("v_separation", int(GAP))
-	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.custom_minimum_size = Vector2(_content_width(), 0)
 	for fish in _fishes:
 		if typeof(fish) != TYPE_DICTIONARY:
 			continue
@@ -461,6 +465,11 @@ func rarity_count_safe(rarity: String) -> Dictionary:
 
 
 func _make_reward(rarity: String) -> Control:
+	if AlbumSave.claim_key(rarity) == "":
+		var blank := Control.new()
+		blank.name = "Reward"
+		blank.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return blank
 	var amount := AlbumSave.reward_amount(_db, rarity)
 	if AlbumSave.can_claim(_fishes, _caught, _claimed, rarity):
 		var btn := Button.new()
@@ -486,7 +495,7 @@ func _make_reward(rarity: String) -> Control:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var done := AlbumSave.group_complete(_fishes, _caught, rarity) and bool(_claimed.get(rarity, false))
+	var done := AlbumSave.group_complete(_fishes, _caught, rarity) and bool(_claimed.get(AlbumSave.claim_key(rarity), false))
 	var path := "res://assets/art/ui/icon_check.png" if done else "res://assets/art/ui/icon_lock.png"
 	icon.texture = load(path)
 	box.add_child(icon)
@@ -555,7 +564,21 @@ func _make_card(fish: Dictionary) -> Button:
 	_paint(name_lab)
 	if not owned:
 		name_lab.text = "???"
+		if rarity == "secret":
+			_place(name_lab, 0.06, 0.50, 0.94, 0.66)
 		UiFit.fit_label(name_lab, _card_w * 0.86, 1, 26, 32)
+		if rarity == "secret":
+			var hint := Label.new()
+			hint.name = "SecretHint"
+			hint.text = SettingsData.t("album_secret_hint")
+			hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_place(hint, 0.06, 0.68, 0.94, 0.96)
+			_paint(hint)
+			UiFit.fit_label(hint, _card_w * 0.86, 3, 14, 18)
+			btn.add_child(hint)
 	else:
 		name_lab.text = _fish_field(id, "name")
 		UiFit.fit_label(name_lab, _card_w * 0.86, 2, 26, 32)
@@ -664,7 +687,7 @@ func _build_debug() -> void:
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -248.0
 	panel.offset_right = 248.0
-	panel.offset_top = -980.0
+	panel.offset_top = -1120.0
 	panel.offset_bottom = -36.0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -677,6 +700,7 @@ func _build_debug() -> void:
 	unlock.text = SettingsData.t("album_unlock")
 	unlock.custom_minimum_size = Vector2(200, 88)
 	unlock.pressed.connect(func() -> void: unlock_requested.emit())
+	UiFit.fit_label(unlock, 180.0, 2, 16, 28)
 	var repair := Button.new()
 	repair.name = "Repair"
 	repair.text = SettingsData.t("album_repair")
@@ -705,6 +729,13 @@ func _build_debug() -> void:
 	gift_reset.custom_minimum_size = Vector2(416, 80)
 	gift_reset.pressed.connect(func() -> void: gift_reset_requested.emit())
 	_paint(gift_reset)
+	var force_secret := Button.new()
+	force_secret.name = "ForceSecret"
+	force_secret.text = SettingsData.t("album_force_secret")
+	force_secret.custom_minimum_size = Vector2(416, 80)
+	force_secret.pressed.connect(func() -> void: force_secret_requested.emit())
+	_paint(force_secret)
+	UiFit.fit_label(force_secret, 390.0, 2, 16, 24)
 	var title := Label.new()
 	title.text = SettingsData.t("shop_debug_title")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -757,6 +788,7 @@ func _build_debug() -> void:
 	col.add_child(shop_reset)
 	col.add_child(tut_reset)
 	col.add_child(gift_reset)
+	col.add_child(force_secret)
 	panel.add_child(col)
 	add_child(panel)
 	_debug = panel

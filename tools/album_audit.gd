@@ -24,20 +24,20 @@ func _init() -> void:
 	SettingsData.load_all()
 	var db = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish_db.json"))
 	var fishes: Array = db["fishes"]
-	var four := {}
-	var first_four := {}
-	for fish in fishes:
-		if str(fish["rarity"]) != "common":
-			continue
-		four[str(fish["id"])] = 1
-		first_four[str(fish["id"])] = "2026-11-10"
-	four["fish_peach_angelfish"] = 2
-	first_four["fish_peach_angelfish"] = "2026-11-10"
+	var half := {}
+	var first_half := {}
+	var half_ids := [
+		"fish_pink_sardine", "fish_moon", "fish_silver_minnow", "fish_sunny_perch",
+		"fish_cinnamon_gudgeon", "fish_clownfish", "fish_mint_puffer", "fish_bubble_fish",
+		"fish_peach_angelfish", "fish_lanternfish", "fish_pastel_ray", "fish_cotton_fish",
+	]
+	for id in half_ids:
+		half[id] = 1
+		first_half[id] = "2026-11-10"
 	var six := {}
 	var first_six := {}
-	for i in range(6):
-		var id6 := str(fishes[i]["id"])
-		six[id6] = 2 if i == 4 else 1
+	for id6 in ["fish_pink_sardine", "fish_moon", "fish_silver_minnow", "fish_sunny_perch", "fish_peach_angelfish", "fish_lanternfish"]:
+		six[id6] = 1
 		first_six[id6] = "2026-11-10"
 	var all := {}
 	var first_all := {}
@@ -47,7 +47,7 @@ func _init() -> void:
 	var open_claimed := {"common": false, "uncommon": false, "rare": false, "legendary": false}
 	var states := {
 		"empty": [{}, {}, open_claimed],
-		"four": [four, first_four, open_claimed],
+		"half": [half, first_half, open_claimed],
 		"full": [all, first_all, open_claimed],
 	}
 	var sv := SubViewport.new()
@@ -68,7 +68,7 @@ func _init() -> void:
 		await process_frame
 		for lang in ["es", "en"]:
 			SettingsData.lang = lang
-			for state_name in ["empty", "four", "full"]:
+			for state_name in ["empty", "half", "full"]:
 				var pack: Array = states[state_name]
 				album.setup(fishes, pack[0], pack[1], pack[2], db, {}, true)
 				album.open_album()
@@ -77,6 +77,15 @@ func _init() -> void:
 				var tag := "%s %s %s" % [aspect, lang, state_name]
 				_check_layout(album, sv.size, tag)
 				_check_state(album, state_name, lang, tag)
+				if aspect == "9x16":
+					_save_album_shot(sv, album, "%s_%s" % [state_name, lang])
+					if state_name == "full":
+						var scroll: ScrollContainer = album.get_node("Panel/VBox/Scroll")
+						scroll.scroll_vertical = 100000
+						await process_frame
+						await process_frame
+						_save_album_shot(sv, album, "full_%s_bottom" % lang)
+						scroll.scroll_vertical = 0
 				if state_name == "full" and aspect == "9x16" and lang == "es":
 					var t0 := Time.get_ticks_usec()
 					for _i in 120:
@@ -154,8 +163,8 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 	if int(title.get_theme_constant("outline_size")) != 0:
 		_bad(tag + " título con contorno")
 	var sections: Node = album.get_node("Panel/VBox/Scroll/Sections")
-	if sections.get_child_count() != 4:
-		_bad(tag + " no hay 4 secciones")
+	if sections.get_child_count() != 6:
+		_bad(tag + " no hay 6 secciones")
 	var grids := 0
 	for section in sections.get_children():
 		for child in section.get_children():
@@ -164,8 +173,7 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 				var grid := child as GridContainer
 				if grid.columns != 3:
 					_bad(tag + " la cuadrícula no tiene 3 columnas")
-				if grid.get_child_count() != 3:
-					_bad(tag + " una sección no tiene 3 tarjetas")
+				var wide := grid.get_child_count() >= 3
 				var block_l := 100000.0
 				var block_end := 0.0
 				for card in grid.get_children():
@@ -173,8 +181,8 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 					block_l = minf(block_l, cr.position.x)
 					block_end = maxf(block_end, cr.end.x)
 				var block_r := float(vp.x) - block_end
-				print("  margin_grid L ", block_l, " R ", block_r)
-				if absf(block_l - block_r) > 1.0:
+				print("  margin_grid L ", block_l, " R ", block_r, " n ", grid.get_child_count())
+				if wide and absf(block_l - block_r) > 1.0:
 					_bad(tag + " margen de la cuadrícula L %.1f R %.1f" % [block_l, block_r])
 				var title_row: Control = section.get_child(0)
 				if absf(title_row.get_global_rect().position.x - head_l) > 1.0:
@@ -199,9 +207,9 @@ func _check_layout(album: Control, vp: Vector2i, tag: String) -> void:
 							_bad(tag + " un pez cerrado muestra la insignia")
 						if icon == null or icon.modulate.r > 0.02 or icon.modulate.g > 0.02 or icon.modulate.b > 0.02 or icon.modulate.a < 0.99:
 							_bad(tag + " la silueta no es negra")
-				if xs.size() != 3:
+				if wide and xs.size() != 3:
 					_bad(tag + " las tarjetas no quedan en 3 columnas (" + str(xs.size()) + ")")
-	if grids != 4:
+	if grids != 6:
 		_bad(tag + " faltan cuadrículas")
 	_check_text_contrast(album.get_node("Panel"), tag)
 
@@ -214,7 +222,7 @@ func _check_card_text(card: Node, tag: String) -> void:
 			_bad(tag + " nombre bajo 26: " + name_lab.text)
 		if int(name_lab.get_theme_constant("outline_size")) != 0:
 			_bad(tag + " nombre con contorno")
-	for lab_name in ["Catches", "Badge", "Mark"]:
+	for lab_name in ["Catches", "Badge", "Mark", "SecretHint"]:
 		var lab := card.get_node_or_null(lab_name) as Label
 		if lab == null:
 			continue
@@ -257,7 +265,7 @@ func _text_inside(lab: Label, host: Control, tag: String) -> void:
 
 func _check_state(album: Control, state_name: String, lang: String, tag: String) -> void:
 	var count: Label = album.get_node("Panel/VBox/Header/CountBtn/CountBox/Count")
-	var expect := {"empty": "0/12", "four": "4/12", "full": "12/12"}
+	var expect := {"empty": "0/24", "half": "12/24", "full": "24/24"}
 	if count.text != expect[state_name]:
 		_bad(tag + " contador " + count.text)
 	var claims := 0
@@ -279,14 +287,14 @@ func _check_state(album: Control, state_name: String, lang: String, tag: String)
 				locks += 1
 			elif path.ends_with("icon_check.png"):
 				checks += 1
-	if state_name == "empty" and (claims != 0 or locks != 4):
-		_bad(tag + " vacío debería tener 4 candados")
-	if state_name == "four" and (claims != 1 or locks != 3):
-		_bad(tag + " cuatro peces claims=%d locks=%d" % [claims, locks])
-	if state_name == "full" and (claims != 4 or checks != 0):
+	if state_name == "empty" and (claims != 0 or locks != 5):
+		_bad(tag + " vacío claims=%d locks=%d" % [claims, locks])
+	if state_name == "half" and (claims != 0 or locks != 5):
+		_bad(tag + " doce peces claims=%d locks=%d" % [claims, locks])
+	if state_name == "full" and (claims != 5 or checks != 0):
 		_bad(tag + " completo, grupos reclamables " + str(claims))
-	if state_name == "four" or state_name == "full":
-		var long_name := "Pez ángel durazno" if lang == "es" else "Peach angelfish"
+	if state_name == "half" or state_name == "full":
+		var long_name := "Piscardo de plata" if lang == "es" else "Cinnamon gudgeon"
 		var found := false
 		for lab in _labels(album.get_node("Panel")):
 			if lab is Label and str(lab.text) == long_name:
@@ -418,6 +426,28 @@ func _lum(c: Color) -> float:
 
 func _lin(u: float) -> float:
 	return u / 12.92 if u <= 0.04045 else pow((u + 0.055) / 1.055, 2.4)
+
+
+func _save_album_shot(sv: SubViewport, _album: Control, shot_name: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		print("ALBUM_SHOT sin ejecutar ", shot_name)
+		return
+	var tex := sv.get_texture()
+	if tex == null:
+		print("ALBUM_SHOT sin ejecutar ", shot_name)
+		return
+	var img := tex.get_image()
+	if img == null:
+		print("ALBUM_SHOT sin ejecutar ", shot_name)
+		return
+	var dir := "/tmp/PescaIsla/docs/previews"
+	DirAccess.make_dir_recursive_absolute(dir)
+	var path := dir + "/album_" + shot_name + ".png"
+	if img.save_png(path) != OK:
+		print("ALBUM_SHOT sin ejecutar ", shot_name)
+		return
+	_shots += 1
+	print("ALBUM_SHOT ", path, " ", img.get_width(), "x", img.get_height())
 
 
 func _bad(msg: String) -> void:
