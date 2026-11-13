@@ -34,6 +34,8 @@
 [ext_resource type="AudioStream" uid="uid://bh6opo3jxixd4" path="res://assets/audio/ambient/amb_night.ogg" id="dn_amb_night"]
 [ext_resource type="Script" path="res://ui/tutorial.gd" id="tut_script"]
 [ext_resource type="Script" path="res://scripts/daily_gift.gd" id="gift_script"]
+[ext_resource type="Shader" path="res://shaders/tutorial_dim.gdshader" id="tut_dim"]
+[ext_resource type="Script" path="res://ui/gift_board.gd" id="gift_board"]
 [ext_resource type="Texture2D" uid="uid://2283yq3sycr0" path="res://assets/art/cat/cat_idle.png" id="44_idle_df"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
@@ -455,6 +457,8 @@ script = ExtResource("37_bgfit")
 script = ExtResource("35_fish")
 pack_tutorial = ExtResource("tut_script")
 pack_gift = ExtResource("gift_script")
+pack_dim = ExtResource("tut_dim")
+pack_gift_board = ExtResource("gift_board")
 
 [node name="DayNight" type="Node" parent="Fishing"]
 script = ExtResource("dn_script")

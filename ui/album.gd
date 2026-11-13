@@ -191,6 +191,14 @@ func open_album() -> void:
 		am.play_sfx("open")
 
 
+func close_button() -> Button:
+	return _close
+
+
+func count_button() -> Button:
+	return _count_btn
+
+
 func is_detail_open() -> bool:
 	return visible and _inspect != null and _inspect.visible
 

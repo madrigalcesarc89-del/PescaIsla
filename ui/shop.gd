@@ -145,6 +145,10 @@ func open_shop(coins: int, state: Dictionary) -> void:
 	_play("open")
 
 
+func close_button() -> Button:
+	return _close
+
+
 func sync_state(coins: int, state: Dictionary) -> void:
 	var frm := _coins
 	_coins = coins

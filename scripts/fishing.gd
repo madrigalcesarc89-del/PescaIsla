@@ -35,6 +35,8 @@ const POSE_FOR_STATE := {
 ## Vuelta a IDLE tras el aviso de ESCAPE (la tarjeta de CATCH
 ## permanece hasta que el jugador la toque, 20c).
 const RESULT_HOLD := 1.8
+const TUTORIAL_BONUS := 40
+const GiftBoardScript = preload("res://ui/gift_board.gd")
 
 @export var wait_min: float = 2.0
 @export var wait_max: float = 6.0
@@ -47,6 +49,8 @@ const RESULT_HOLD := 1.8
 ## El export de escenas no sigue un preload. Estas referencias entran en la APK.
 @export var pack_tutorial: Script
 @export var pack_gift: Script
+@export var pack_dim: Shader
+@export var pack_gift_board: Script
 ## Punto del agua donde cae el flotador (mundo).
 ## Reserva como fallback; en cada lanzamiento se recalcula con un rayo
 ## desde el punto de pantalla CAST_SCREEN contra el plano del agua (18c).
@@ -656,11 +660,16 @@ var _day_night: Node = null
 var _tutorial: Control = null
 var _tutorial_done := false
 var _tutorial_step := 0
-var _tut_album := false
-var _tut_shop := false
+var _tut_saw_album := false
+var _tut_album_done := false
+var _tut_saw_shop := false
+var _tut_shop_done := false
+var _tut_dim := 0.62
+var _tut_bottom := false
 var _daily_last := 0
 var _daily_streak := 0
 var _gift_tick := 0.0
+var _gift_board: Control = null
 var _placing := false
 var _place_id := ""
 var _place_x := 0.0
@@ -701,6 +710,7 @@ func _build_ui() -> void:
 	_album.tutorial_reset_requested.connect(_on_debug_tutorial_reset)
 	_album.gift_reset_requested.connect(_on_debug_gift_reset)
 	_album.seen_committed.connect(_on_album_seen)
+	_album.closed.connect(_on_album_closed)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
 	_settings.lang_changed.connect(_on_lang_changed)
@@ -711,6 +721,7 @@ func _build_ui() -> void:
 	_shop.place_requested.connect(_on_shop_place)
 	_shop.move_requested.connect(_on_shop_move)
 	_shop.remove_requested.connect(_on_shop_remove)
+	_shop.closed.connect(_on_shop_closed)
 	_place = Control.new()
 	_place.set_script(preload("res://ui/decor_place.gd"))
 	_place.name = "DecorPlace"
@@ -756,9 +767,16 @@ func _on_album_seen(seen: Dictionary) -> void:
 
 func _on_album() -> void:
 	if _tutorial_step == 5:
-		_tut_album = true
+		_tut_saw_album = true
 	_bind_album()
 	_album.open_album()
+	_sync_tutorial()
+
+
+func _on_album_closed() -> void:
+	if _tutorial_done or _tutorial_step != 5 or not _tut_saw_album or _tut_album_done:
+		return
+	_tut_album_done = true
 	_maybe_finish_tour()
 
 
@@ -837,6 +855,9 @@ func _on_go_back() -> void:
 	if _placing:
 		_on_place_cancel()
 		return
+	if _gift_board != null and _gift_board.visible:
+		_gift_board.hide_board()
+		return
 	var detail_open := false
 	if _album != null and _album.has_method("is_detail_open"):
 		detail_open = bool(_album.is_detail_open())
@@ -879,8 +900,15 @@ func _on_shop_open() -> void:
 	if _shop == null:
 		return
 	if _tutorial_step == 5:
-		_tut_shop = true
+		_tut_saw_shop = true
 	_shop.open_shop(coins, _shop_state)
+	_sync_tutorial()
+
+
+func _on_shop_closed() -> void:
+	if _tutorial_done or _tutorial_step != 5 or not _tut_saw_shop or _tut_shop_done:
+		return
+	_tut_shop_done = true
 	_maybe_finish_tour()
 
 
@@ -1156,9 +1184,12 @@ func _on_debug_tutorial_reset() -> void:
 		return
 	_tutorial_done = false
 	_tutorial_step = 1
-	_tut_album = false
-	_tut_shop = false
+	_tut_saw_album = false
+	_tut_album_done = false
+	_tut_saw_shop = false
+	_tut_shop_done = false
 	_save_rest["tutorial_done"] = false
+	_save_rest["tutorial_rewarded"] = false
 	_save_game()
 	if _tutorial == null:
 		_boot_tutorial()
@@ -1175,12 +1206,54 @@ func _refresh_gift() -> void:
 
 
 func _on_gift() -> void:
+	_open_gift_board()
+
+
+func _ensure_gift_board() -> void:
+	if _gift_board != null or _ui_layer == null:
+		return
+	var node := Control.new()
+	node.name = "GiftBoard"
+	var scr: Script = pack_gift_board if pack_gift_board != null else GiftBoardScript
+	node.set_script(scr)
+	if _hud != null and _hud.theme != null:
+		node.theme = _hud.theme
+	_ui_layer.add_child(node)
+	_gift_board = node
+	if _gift_board.has_signal("claimed"):
+		_gift_board.claimed.connect(_on_gift_claim)
+	if _gift_board.has_signal("dismissed"):
+		_gift_board.dismissed.connect(_on_gift_dismiss)
+
+
+func _open_gift_board() -> void:
+	_ensure_gift_board()
+	if _gift_board == null or not _gift_board.has_method("show_board"):
+		return
+	var now := int(Time.get_unix_time_from_system())
+	var can := DailyGift.ready(now, _daily_last)
+	var reason := ""
+	if _daily_last > 0 and now < _daily_last:
+		can = false
+		reason = "clock"
+	elif not can:
+		reason = "wait"
+	_gift_board.show_board(DailyGift.TABLE, _daily_streak, can, reason)
+
+
+func _on_gift_dismiss() -> void:
+	if _gift_board != null:
+		_gift_board.hide_board()
+
+
+func _on_gift_claim() -> void:
 	var now := int(Time.get_unix_time_from_system())
 	var result: Dictionary = DailyGift.claim(now, _daily_last, _daily_streak)
 	if not bool(result.get("ok", false)):
 		var key := "gift_clock" if str(result.get("reason", "")) == "clock" else "gift_wait"
 		if _hud != null:
 			_hud.show_toast(SettingsData.t(key))
+		_open_gift_board()
 		return
 	var amount := int(result.get("coins", 0))
 	var before := coins
@@ -1194,6 +1267,8 @@ func _on_gift() -> void:
 		_hud.animate_coins(before, coins)
 		_hud.show_toast("+%d %s" % [amount, SettingsData.t("coins").to_lower()])
 	_refresh_gift()
+	if _gift_board != null:
+		_gift_board.hide_board()
 	if _shop != null and _shop.visible:
 		_shop.sync_state(coins, _shop_state)
 
@@ -1369,12 +1444,16 @@ func _boot_tutorial() -> void:
 	if _hud != null and _hud.theme != null:
 		node.theme = _hud.theme
 	_ui_layer.add_child(node)
+	if node.has_method("use_dim_shader"):
+		node.use_dim_shader(pack_dim)
 	_tutorial = node
 	if _tutorial.has_signal("skipped"):
 		_tutorial.skipped.connect(_on_tutorial_skip)
 	_tutorial_step = 1
-	_tut_album = false
-	_tut_shop = false
+	_tut_saw_album = false
+	_tut_album_done = false
+	_tut_saw_shop = false
+	_tut_shop_done = false
 	_sync_tutorial()
 
 
@@ -1383,21 +1462,36 @@ func _tutorial_guiding() -> bool:
 
 
 func _on_tutorial_skip() -> void:
-	_finish_tutorial()
+	_finish_tutorial(false)
 
 
-func _finish_tutorial() -> void:
+func _finish_tutorial(reward: bool) -> void:
+	var amount := 0
+	if reward and not bool(_save_rest.get("tutorial_rewarded", false)):
+		amount = TUTORIAL_BONUS
+		var before := coins
+		coins += amount
+		_save_rest["tutorial_rewarded"] = true
+		if _hud != null:
+			_hud.animate_coins(before, coins)
 	_tutorial_done = true
 	_tutorial_step = 0
 	_save_rest["tutorial_done"] = true
 	_save_game()
-	if _tutorial != null:
+	if _tutorial == null:
+		return
+	if reward and _tutorial.has_method("show_complete"):
+		var body := ""
+		if amount > 0:
+			body = SettingsData.t("tutorial_done_body") % amount
+		_tutorial.show_complete(SettingsData.t("tutorial_done_title"), body, SettingsData.t("tutorial_done_ok"))
+	else:
 		_tutorial.hide_tutorial()
 
 
 func _maybe_finish_tour() -> void:
-	if _tutorial_step == 5 and _tut_album and _tut_shop:
-		_finish_tutorial()
+	if _tutorial_step == 5 and _tut_album_done and _tut_shop_done:
+		_finish_tutorial(true)
 		return
 	_sync_tutorial()
 
@@ -1415,8 +1509,10 @@ func _note_tutorial(prev: int, s: int) -> void:
 		_tutorial_step = 1
 	elif s == State.IDLE and prev == State.CATCH and _tutorial_step == 4:
 		_tutorial_step = 5
-		_tut_album = false
-		_tut_shop = false
+		_tut_saw_album = false
+		_tut_album_done = false
+		_tut_saw_shop = false
+		_tut_shop_done = false
 	_sync_tutorial()
 
 
@@ -1428,6 +1524,8 @@ func _sync_tutorial() -> void:
 		return
 	var text := ""
 	var targets: Array = []
+	_tut_dim = 0.62
+	_tut_bottom = false
 	if _tutorial_step == 1:
 		text = SettingsData.t("tutorial_cast")
 		targets = [_hud.action_button()]
@@ -1448,15 +1546,32 @@ func _sync_tutorial() -> void:
 			btn = _fishcard.continue_button()
 		targets = [btn]
 	else:
-		if _tut_album and not _tut_shop:
-			text = SettingsData.t("tutorial_shop")
-			targets = [_hud.shop_button()]
-		elif _tut_shop and not _tut_album:
+		var album_open := _album != null and _album.visible
+		var shop_open := _shop != null and _shop.visible
+		if album_open and _tut_saw_album and not _tut_album_done:
+			text = SettingsData.t("tutorial_album_help")
+			if _album.has_method("close_button"):
+				targets = [_album.close_button()]
+			_tut_dim = 0.28
+			_tut_bottom = true
+		elif shop_open and _tut_saw_shop and not _tut_shop_done:
+			text = SettingsData.t("tutorial_shop_help")
+			if _shop.has_method("close_button"):
+				targets = [_shop.close_button()]
+			_tut_dim = 0.28
+			_tut_bottom = true
+		elif not _tut_album_done:
 			text = SettingsData.t("tutorial_album")
 			targets = [_hud.album_button()]
+			_tut_dim = 0.62
 		else:
-			text = SettingsData.t("tutorial_both")
-			targets = [_hud.album_button(), _hud.shop_button()]
+			text = SettingsData.t("tutorial_shop")
+			targets = [_hud.shop_button()]
+			_tut_dim = 0.62
+	if _tutorial.has_method("set_dim"):
+		_tutorial.set_dim(_tut_dim)
+	if _tutorial.has_method("set_prefer_bottom"):
+		_tutorial.set_prefer_bottom(_tut_bottom)
 	if _tutorial.has_method("set_avoid"):
 		_tutorial.set_avoid(_tutorial_avoid())
 	_tutorial.present(text, targets, _cat_screen())
@@ -1464,10 +1579,32 @@ func _sync_tutorial() -> void:
 
 func _tutorial_avoid() -> Array:
 	var out: Array = []
-	if _hud != null and _hud.has_method("hint_panel"):
-		out.append(_hud.hint_panel())
-	if _hud != null and _hud.has_method("gift_button"):
-		out.append(_hud.gift_button())
+	if _album != null and _album.visible:
+		if _album.has_method("close_button"):
+			out.append(_album.close_button())
+		if _album.has_method("count_button"):
+			out.append(_album.count_button())
+		return out
+	if _shop != null and _shop.visible:
+		if _shop.has_method("close_button"):
+			out.append(_shop.close_button())
+		return out
+	if _hud == null:
+		return out
+	for method_name in ["coins_panel", "settings_button", "gift_button", "action_button", "hold_button", "album_button", "shop_button", "hint_panel", "reel_box"]:
+		if _hud.has_method(method_name):
+			var node = _hud.call(method_name)
+			if node != null:
+				out.append(node)
+	var fase := _hud.get_node_or_null("DebugPhase")
+	if fase != null:
+		out.append(fase)
+	if _fishcard != null and _fishcard.visible and _fishcard.has_method("continue_button"):
+		out.append(_fishcard.continue_button())
+	if _album != null and _album.visible and _album.has_method("close_button"):
+		out.append(_album.close_button())
+	if _shop != null and _shop.visible and _shop.has_method("close_button"):
+		out.append(_shop.close_button())
 	return out
 
 

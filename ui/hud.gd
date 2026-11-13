@@ -82,6 +82,14 @@ func reel_box() -> Control:
 	return _reel_box
 
 
+func settings_button() -> Button:
+	return _settings_btn
+
+
+func coins_panel() -> Control:
+	return _coins_pill
+
+
 func hint_panel() -> Control:
 	return _hint_pill
 
