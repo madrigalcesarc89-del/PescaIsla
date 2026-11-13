@@ -30,6 +30,8 @@ signal gift_pressed
 @onready var _soon_title: Label = $SoonPanel/VBox/SoonTitle
 var _gift_btn: Button
 var _gift_dot: Panel
+var _reel_base_top := 0.0
+var _reel_base_bottom := 0.0
 
 
 func _ready() -> void:
@@ -43,6 +45,8 @@ func _ready() -> void:
 			_hold_btn.add_theme_stylebox_override(sb, pill)
 		_hold_btn.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
 	resized.connect(_fit_pills)
+	_reel_base_top = _reel_box.offset_top
+	_reel_base_bottom = _reel_box.offset_bottom
 	_action_btn.pressed.connect(func() -> void: action_pressed.emit())
 	_hold_btn.button_down.connect(func() -> void: hold_down.emit())
 	_hold_btn.button_up.connect(func() -> void: hold_up.emit())
@@ -166,6 +170,36 @@ func _place_gift() -> void:
 	if _gift_dot != null:
 		_gift_dot.position = Vector2(w - 14.0, -8.0)
 		_gift_dot.size = Vector2(22, 22)
+	_separate_gift_and_reel()
+
+
+## Si el medidor sube (pantalla baja o área segura), no puede tapar Regalo.
+func _separate_gift_and_reel() -> void:
+	if _gift_btn == null or _reel_box == null:
+		return
+	_reel_box.offset_top = _reel_base_top
+	_reel_box.offset_bottom = _reel_base_bottom
+	if not _reel_box.visible or size.y <= 0.0:
+		return
+	const GAP := 24.0
+	var gift := _gift_btn.get_rect()
+	var reel := _reel_box.get_rect()
+	if gift.end.x <= reel.position.x or reel.end.x <= gift.position.x:
+		return
+	if gift.end.y + GAP <= reel.position.y:
+		return
+	var reel_h := reel.size.y
+	var min_top := gift.end.y + GAP
+	var max_top := size.y - 24.0 - reel_h
+	if _shop_btn != null:
+		max_top = minf(max_top, _shop_btn.get_rect().position.y - GAP - reel_h)
+	if max_top >= min_top:
+		var shift := min_top - reel.position.y
+		_reel_box.offset_top = _reel_base_top + shift
+		_reel_box.offset_bottom = _reel_base_bottom + shift
+		return
+	var nx := reel.position.x - GAP - gift.size.x
+	_gift_btn.position.x = clampf(nx, 16.0, maxf(16.0, size.x - gift.size.x - 16.0))
 
 
 func close_soon() -> bool:
