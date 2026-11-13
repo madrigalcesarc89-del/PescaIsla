@@ -5,7 +5,8 @@ const AlbumSave = preload("res://scripts/album_save.gd")
 
 const STARTER_ROD := "rod_bamboo"
 const STARTER_BAIT := "bait_pink_worm"
-const RARITIES := ["common", "uncommon", "rare", "legendary"]
+const RARITIES := ["common", "uncommon", "rare", "epic", "legendary", "secret"]
+const EFFECT_ORDER := ["common", "uncommon", "rare", "legendary", "epic", "secret"]
 const SHOP_KEYS := ["owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed", "decor_off"]
 
 static var _ready_cat := false
@@ -280,7 +281,7 @@ static func effect_line(item: Dictionary) -> String:
 	var best_d := 0.0
 	var best_m := 1.0
 	if typeof(wm) == TYPE_DICTIONARY:
-		for rarity in RARITIES:
+		for rarity in EFFECT_ORDER:
 			var m := float(wm.get(rarity, 1.0))
 			var d := absf(m - 1.0)
 			if d > best_d + 0.001:

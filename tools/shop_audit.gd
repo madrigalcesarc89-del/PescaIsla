@@ -110,7 +110,7 @@ func _logic() -> void:
 	var ids := {}
 	for entry in FishRoll.effective(fishes, {}, 0, 0, db, g):
 		ids[str(entry["fish"]["id"])] = true
-	_expect(ids.size() == 12, "el peso no saca peces")
+	_expect(ids.size() == 23, "el peso no saca peces")
 	var bait := ShopSave.fresh_state()
 	(bait["owned"] as Array).append("bait_peach_shrimp")
 	bait["equipped_bait"] = "bait_peach_shrimp"

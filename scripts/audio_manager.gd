@@ -124,6 +124,13 @@ func play_jingle(rarity: String) -> void:
 		return
 	var key := "catch_" + rarity
 	if not _sfx.has(key):
+		if rarity == "epic":
+			key = "catch_rare"
+		elif rarity == "secret":
+			key = "catch_legendary"
+		else:
+			key = "catch_common"
+	if not _sfx.has(key):
 		key = "catch_common"
 	_jingle_player.stream = _sfx[key]
 	_jingle_player.pitch_scale = 1.0

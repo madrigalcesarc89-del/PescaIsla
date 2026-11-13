@@ -16,7 +16,7 @@ const TutorialScript = preload("res://ui/tutorial.gd")
 const DailyGift = preload("res://scripts/daily_gift.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
-const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
+const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "epic": 3, "legendary": 4, "secret": 5}
 ## Velocidad base de la zona; se multiplica por `difficulty` del pez.
 const ZONE_BASE_SPEED := 0.9
 
@@ -94,6 +94,7 @@ var _claim_busy := false
 ## Rachas de mala suerte. Ausentes en guardados viejos: se leen como 0.
 var _dry_rare: int = 0
 var _dry_legend: int = 0
+var _force_secret: bool = false
 ## Claves ajenas del JSON de guardado, para no borrarlas al reescribir.
 var _save_rest: Dictionary = {}
 var _shop_state: Dictionary = {}
@@ -481,12 +482,27 @@ func _apply_pose() -> void:
 
 
 func _pick_fish() -> void:
+	if OS.is_debug_build() and _force_secret:
+		_force_secret = false
+		var hidden := _secret_fish()
+		if not hidden.is_empty():
+			current_fish = hidden
+			return
 	if _tutorial_guiding():
 		var forced := _first_common_fish()
 		if not forced.is_empty():
 			current_fish = forced
 			return
 	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear, _phase_now())
+
+
+func _secret_fish() -> Dictionary:
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		if str(fish.get("rarity", "")) == "secret":
+			return fish
+	return {}
 
 
 func _first_common_fish() -> Dictionary:
@@ -709,6 +725,8 @@ func _build_ui() -> void:
 	_album.shop_reset_requested.connect(_on_debug_shop_reset)
 	_album.tutorial_reset_requested.connect(_on_debug_tutorial_reset)
 	_album.gift_reset_requested.connect(_on_debug_gift_reset)
+	if _album.has_signal("force_secret_requested"):
+		_album.force_secret_requested.connect(_on_album_force_secret)
 	_album.seen_committed.connect(_on_album_seen)
 	_album.closed.connect(_on_album_closed)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
@@ -846,6 +864,12 @@ func _on_album_unlock() -> void:
 	_refresh_ui()
 	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
 	_album.open_album()
+
+
+func _on_album_force_secret() -> void:
+	if not OS.is_debug_build():
+		return
+	_force_secret = true
 
 
 func _on_go_back() -> void:

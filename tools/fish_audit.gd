@@ -10,16 +10,28 @@ const N := 100000
 const EXPECTED := {
 	"fish_pink_sardine": "common",
 	"fish_moon": "common",
+	"fish_silver_minnow": "common",
+	"fish_sunny_perch": "common",
+	"fish_cinnamon_gudgeon": "common",
 	"fish_cream_carp": "common",
+	"fish_clownfish": "common",
 	"fish_mint_puffer": "uncommon",
+	"fish_bubble_fish": "uncommon",
 	"fish_peach_angelfish": "uncommon",
 	"fish_jellyfish": "uncommon",
 	"fish_lanternfish": "rare",
+	"fish_pastel_ray": "rare",
 	"fish_golden_koi": "rare",
 	"fish_seahorse": "rare",
-	"fish_cloud": "legendary",
-	"fish_mini_whale": "legendary",
+	"fish_cotton_fish": "epic",
+	"fish_cloud": "epic",
+	"fish_comet_fish": "epic",
+	"fish_mini_whale": "epic",
+	"fish_ghost_fish": "epic",
+	"fish_electric_eel": "legendary",
+	"fish_rainbow_fish": "legendary",
 	"fish_sea_dragon": "legendary",
+	"fish_kitty_fish": "secret",
 }
 const OLD_IDS := ["payaso", "sardina", "pez_payaso", "fish_payaso"]
 
@@ -36,7 +48,8 @@ func _init() -> void:
 	_check_textures(fishes)
 	var before := _simulate(FishRoll, fishes, db, true)
 	var after := _simulate(FishRoll, fishes, db, false)
-	_print_table(fishes, before, after)
+	var secret := _simulate_secret(FishRoll, fishes, db)
+	_print_table(fishes, before, after, secret)
 	_check_rules(FishRoll, fishes, db)
 	if _fail == 0:
 		print("AUDIT_OK")
@@ -62,8 +75,8 @@ func _bad(msg: String) -> void:
 
 func _check_identity(fishes: Array) -> void:
 	var seen := {}
-	if fishes.size() != 12:
-		_bad("fish_db tiene %d peces, se esperaban 12" % fishes.size())
+	if fishes.size() != 24:
+		_bad("fish_db tiene %d peces, se esperaban 24" % fishes.size())
 	for f in fishes:
 		var id := str(f.get("id", ""))
 		seen[id] = true
@@ -118,7 +131,7 @@ func _check_filters() -> void:
 		if roll.find(word) >= 0:
 			_bad("fish_roll.gd menciona un filtro posible: " + word)
 	print("FILTERS bait/hour/rod = none")
-	print("POOL = 12 ids, lista vieja (payaso) ausente")
+	print("POOL = 23 ids en el sorteo normal; el secreto queda fuera")
 
 
 func _code_only(src: String) -> String:
@@ -160,7 +173,27 @@ func _simulate(FishRoll, fishes: Array, db: Dictionary, legacy: bool) -> Diction
 	return counts
 
 
-func _print_table(fishes: Array, before: Dictionary, after: Dictionary) -> void:
+func _simulate_secret(FishRoll, fishes: Array, db: Dictionary) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 23
+	var caught := {}
+	var n_known := 0
+	for f in fishes:
+		if str(f.get("rarity", "")) == "secret":
+			continue
+		if n_known >= 20:
+			break
+		caught[str(f.get("id", ""))] = 1
+		n_known += 1
+	var hits := 0
+	for _i in N:
+		var fish: Dictionary = FishRoll.pick(fishes, caught, 0, 0, db, rng.randf(), {}, "night")
+		if str(fish.get("id", "")) == "fish_kitty_fish":
+			hits += 1
+	return {"hits": hits, "known": n_known}
+
+
+func _print_table(fishes: Array, before: Dictionary, after: Dictionary, secret: Dictionary) -> void:
 	print("TABLE id | rarity | p_antes | capturas_antes | p_despues | capturas_despues | n_antes | n_despues")
 	for f in fishes:
 		var id := str(f.get("id", ""))
@@ -172,13 +205,23 @@ func _print_table(fishes: Array, before: Dictionary, after: Dictionary) -> void:
 		var ca := 1.0 / pa if pa > 0.0 else -1.0
 		print("ROW %s %s %.4f%% %.1f %.4f%% %.1f %d %d" % [
 			id, str(f.get("rarity", "")), pb * 100.0, cb, pa * 100.0, ca, nb, na])
+		if str(f.get("rarity", "")) == "secret":
+			if na != 0:
+				_bad("el secreto entró en el sorteo normal")
+			continue
 		if nb == 0 or na == 0:
 			_bad(id + " salió 0 veces en 100000")
+	var hits := int(secret.get("hits", 0))
+	var ps := float(hits) / float(N)
+	var cs := 1.0 / ps if ps > 0.0 else -1.0
+	print("SECRET_ROW fish_kitty_fish night+20 %.4f%% %.1f %d known=%d" % [ps * 100.0, cs, hits, int(secret.get("known", 0))])
+	if hits < 2200 or hits > 3800:
+		_bad("el secreto de noche no está cerca del 3 %% (%d)" % hits)
 
 
 func _check_rules(FishRoll, fishes: Array, db: Dictionary) -> void:
 	var rw: Dictionary = FishRoll.rarity_weights(db)
-	var want_w := {"common": 55.0, "uncommon": 28.0, "rare": 13.0, "legendary": 4.0}
+	var want_w := {"common": 50.0, "uncommon": 28.0, "rare": 16.0, "epic": 14.0, "legendary": 7.0}
 	for key in want_w.keys():
 		var want := float(want_w[key])
 		if not is_equal_approx(float(rw[key]), want):
@@ -189,7 +232,7 @@ func _check_rules(FishRoll, fishes: Array, db: Dictionary) -> void:
 		_bad("la protección de 25 capturas dejó la bolsa vacía")
 	for e in forced:
 		var rarity := str(e.fish.get("rarity", ""))
-		if rarity != "rare" and rarity != "legendary":
+		if rarity != "rare" and rarity != "epic" and rarity != "legendary":
 			_bad("pity de raro dejó entrar " + rarity)
 	# A las 80 sin legendario, el cubo legendario se triplica.
 	var plain := _bucket(FishRoll.effective(fishes, {}, 0, 0, db), "legendary")
@@ -202,10 +245,9 @@ func _check_rules(FishRoll, fishes: Array, db: Dictionary) -> void:
 	var partial: Array = FishRoll.effective(fishes, owned, 0, 0, db)
 	var ratio_fresh := _w(fresh, "fish_moon") / _w(fresh, "fish_pink_sardine")
 	var ratio_partial := _w(partial, "fish_moon") / _w(partial, "fish_pink_sardine")
-	# 20/25 sin descubrir; al tener la sardina, la luna pesa el doble relativo: (20*2)/(25*1) = 1.6
-	if not is_equal_approx(ratio_fresh, 20.0 / 25.0):
+	if not is_equal_approx(ratio_fresh, 1.0):
 		_bad("pesos relativos comunes alterados: %.3f" % ratio_fresh)
-	if not is_equal_approx(ratio_partial, (20.0 * 2.0) / 25.0):
+	if not is_equal_approx(ratio_partial, 2.0):
 		_bad("el bonus de descubrimiento no duplica dentro de la rareza: %.3f" % ratio_partial)
 	var common_sum := 0.0
 	for e in fresh:
@@ -217,8 +259,25 @@ func _check_rules(FishRoll, fishes: Array, db: Dictionary) -> void:
 			common_sum2 += float(e.w)
 	if not is_equal_approx(common_sum, common_sum2):
 		_bad("el bonus de descubrimiento cambió el total de la rareza")
-	print("PITY rare_after=25 forces rare+ ; legend_after=80 triples legendary bucket")
+	var night: Array = FishRoll.effective(fishes, {}, 0, 0, db, {}, "night")
+	var day: Array = FishRoll.effective(fishes, {}, 0, 0, db, {}, "day")
+	if not is_equal_approx(_w(night, "fish_moon") / _w(night, "fish_pink_sardine"), 2.0):
+		_bad("de noche la luna no pesa el doble")
+	if not is_equal_approx(_w(day, "fish_sunny_perch") / _w(day, "fish_pink_sardine"), 1.5):
+		_bad("de día la perca no pesa 1.5")
+	var ids := {}
+	for e in fresh:
+		ids[str(e.fish.get("id", ""))] = true
+		if str(e.fish.get("rarity", "")) == "secret":
+			_bad("el secreto está en el cubo normal")
+	if ids.size() != 23:
+		_bad("el sorteo normal no tiene 23 peces")
+	var early: Dictionary = FishRoll.pick(fishes, {}, 0, 0, db, 0.0, {}, "night")
+	if str(early.get("rarity", "")) == "secret":
+		_bad("el secreto salió sin conocer 20 especies")
+	print("PITY rare_after=25 forces rare+epic+legendary ; legend_after=80 triples legendary bucket")
 	print("DISCOVERY undiscovered x2 inside rarity, rarity total unchanged")
+	print("SECRET 3% only at night after 20 species")
 
 
 func _bucket(entries: Array, rarity: String) -> float:
