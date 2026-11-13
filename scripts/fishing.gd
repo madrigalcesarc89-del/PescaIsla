@@ -13,6 +13,7 @@ const FishRoll = preload("res://scripts/fish_roll.gd")
 const AlbumSave = preload("res://scripts/album_save.gd")
 const ShopSave = preload("res://scripts/shop_save.gd")
 const TutorialScript = preload("res://ui/tutorial.gd")
+const DailyGift = preload("res://scripts/daily_gift.gd")
 
 ## Índice de rareza para la zona de recogida (ancho).
 const RARITY_INDEX := {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}
@@ -43,8 +44,9 @@ const RESULT_HOLD := 1.8
 @export var reel_limit: float = 10.0
 @export var marker_up: float = 0.9
 @export var marker_down: float = 0.7
-## El export de escenas no sigue un preload. Esta referencia entra en la APK.
+## El export de escenas no sigue un preload. Estas referencias entran en la APK.
 @export var pack_tutorial: Script
+@export var pack_gift: Script
 ## Punto del agua donde cae el flotador (mundo).
 ## Reserva como fallback; en cada lanzamiento se recalcula con un rayo
 ## desde el punto de pantalla CAST_SCREEN contra el plano del agua (18c).
@@ -129,6 +131,7 @@ func _ready() -> void:
 	call_deferred("_apply_decor", "", false)
 	_enter(State.IDLE)
 	_boot_tutorial()
+	_refresh_gift()
 
 
 func _build_visuals() -> void:
@@ -243,6 +246,10 @@ func _splash_at() -> void:
 
 func _process(delta: float) -> void:
 	_t_state += delta
+	_gift_tick += delta
+	if _gift_tick >= 1.0:
+		_gift_tick = 0.0
+		_refresh_gift()
 	match state:
 		State.CAST:
 			if _t_state >= cast_time:
@@ -609,6 +616,8 @@ func _load_game() -> void:
 	_shop_state = ShopSave.normalize(_save_rest)
 	_cast_gear = ShopSave.gear(_shop_state)
 	_tutorial_done = bool(_save_rest.get("tutorial_done", false))
+	_daily_last = int(_save_rest.get("daily_last", 0))
+	_daily_streak = clampi(int(_save_rest.get("daily_streak", 0)), 0, 6)
 	_sync_shop_rest()
 
 
@@ -649,6 +658,9 @@ var _tutorial_done := false
 var _tutorial_step := 0
 var _tut_album := false
 var _tut_shop := false
+var _daily_last := 0
+var _daily_streak := 0
+var _gift_tick := 0.0
 var _placing := false
 var _place_id := ""
 var _place_x := 0.0
@@ -672,6 +684,8 @@ func _build_ui() -> void:
 	_hud.album_pressed.connect(_on_album)
 	_hud.shop_pressed.connect(_on_shop_open)
 	_hud.settings_pressed.connect(_on_settings_stub)
+	if _hud.has_signal("gift_pressed"):
+		_hud.gift_pressed.connect(_on_gift)
 	_fishcard = load("res://scenes/ui/fish_card.tscn").instantiate()
 	_ui_layer.add_child(_fishcard)
 	_fishcard.continued.connect(_on_continue)
@@ -685,6 +699,7 @@ func _build_ui() -> void:
 	_album.coins_set_requested.connect(_on_debug_set_coins)
 	_album.shop_reset_requested.connect(_on_debug_shop_reset)
 	_album.tutorial_reset_requested.connect(_on_debug_tutorial_reset)
+	_album.gift_reset_requested.connect(_on_debug_gift_reset)
 	_album.seen_committed.connect(_on_album_seen)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	_ui_layer.add_child(_settings)
@@ -1151,6 +1166,49 @@ func _on_debug_tutorial_reset() -> void:
 		_sync_tutorial()
 
 
+func _refresh_gift() -> void:
+	if _hud == null or not _hud.has_method("set_gift_ready"):
+		return
+	var now := int(Time.get_unix_time_from_system())
+	_hud.set_gift_ready(DailyGift.ready(now, _daily_last))
+	_hud.refresh_gift_label()
+
+
+func _on_gift() -> void:
+	var now := int(Time.get_unix_time_from_system())
+	var result: Dictionary = DailyGift.claim(now, _daily_last, _daily_streak)
+	if not bool(result.get("ok", false)):
+		var key := "gift_clock" if str(result.get("reason", "")) == "clock" else "gift_wait"
+		if _hud != null:
+			_hud.show_toast(SettingsData.t(key))
+		return
+	var amount := int(result.get("coins", 0))
+	var before := coins
+	coins += amount
+	_daily_last = int(result.get("last", now))
+	_daily_streak = int(result.get("streak", 0))
+	_save_rest["daily_last"] = _daily_last
+	_save_rest["daily_streak"] = _daily_streak
+	_save_game()
+	if _hud != null:
+		_hud.animate_coins(before, coins)
+		_hud.show_toast("+%d %s" % [amount, SettingsData.t("coins").to_lower()])
+	_refresh_gift()
+	if _shop != null and _shop.visible:
+		_shop.sync_state(coins, _shop_state)
+
+
+func _on_debug_gift_reset() -> void:
+	if not OS.is_debug_build():
+		return
+	_daily_last = 0
+	_daily_streak = 0
+	_save_rest["daily_last"] = 0
+	_save_rest["daily_streak"] = 0
+	_save_game()
+	_refresh_gift()
+
+
 func _start_day_night() -> void:
 	var existing := get_node_or_null("DayNight")
 	if existing != null:
@@ -1205,6 +1263,7 @@ func _on_lang_changed() -> void:
 	if _shop != null and _shop.visible and _shop.has_method("reload_locale"):
 		_shop.reload_locale()
 	_sync_tutorial()
+	_refresh_gift()
 
 
 func _apply_safe_area(c: Control) -> void:
@@ -1407,6 +1466,8 @@ func _tutorial_avoid() -> Array:
 	var out: Array = []
 	if _hud != null and _hud.has_method("hint_panel"):
 		out.append(_hud.hint_panel())
+	if _hud != null and _hud.has_method("gift_button"):
+		out.append(_hud.gift_button())
 	return out
 
 

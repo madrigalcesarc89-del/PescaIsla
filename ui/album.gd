@@ -14,6 +14,7 @@ signal grant_requested
 signal coins_set_requested(amount: int)
 signal shop_reset_requested
 signal tutorial_reset_requested
+signal gift_reset_requested
 signal seen_committed(seen: Dictionary)
 
 const CREAM := Color("FFF1D6")
@@ -691,6 +692,11 @@ func _build_debug() -> void:
 	tut_reset.custom_minimum_size = Vector2(416, 80)
 	tut_reset.pressed.connect(func() -> void: tutorial_reset_requested.emit())
 	_paint(tut_reset)
+	var gift_reset := Button.new()
+	gift_reset.text = SettingsData.t("debug_reset_gift")
+	gift_reset.custom_minimum_size = Vector2(416, 80)
+	gift_reset.pressed.connect(func() -> void: gift_reset_requested.emit())
+	_paint(gift_reset)
 	var title := Label.new()
 	title.text = SettingsData.t("shop_debug_title")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -742,6 +748,7 @@ func _build_debug() -> void:
 	col.add_child(grant)
 	col.add_child(shop_reset)
 	col.add_child(tut_reset)
+	col.add_child(gift_reset)
 	panel.add_child(col)
 	add_child(panel)
 	_debug = panel

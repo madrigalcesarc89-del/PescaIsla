@@ -8,6 +8,7 @@ signal hold_up
 signal album_pressed
 signal shop_pressed
 signal settings_pressed
+signal gift_pressed
 
 @onready var _coins_label: Label = $CoinsPill/HBox/CoinsLabel
 @onready var _coins_pill: PanelContainer = $CoinsPill
@@ -27,6 +28,8 @@ signal settings_pressed
 @onready var _toast_label: Label = $ToastPill/ToastLabel
 @onready var _soon: PanelContainer = $SoonPanel
 @onready var _soon_title: Label = $SoonPanel/VBox/SoonTitle
+var _gift_btn: Button
+var _gift_dot: Panel
 
 
 func _ready() -> void:
@@ -47,6 +50,7 @@ func _ready() -> void:
 	_shop_btn.pressed.connect(_on_shop)
 	_settings_btn.pressed.connect(func() -> void: settings_pressed.emit())
 	$SoonPanel/VBox/SoonClose.pressed.connect(_on_soon_close)
+	_build_gift()
 	_fit_pills()
 
 
@@ -82,8 +86,78 @@ func hint_panel() -> Control:
 	return _hint_pill
 
 
+func gift_button() -> Button:
+	return _gift_btn
+
+
 func bite_alert() -> CanvasItem:
 	return _bubble
+
+
+func _build_gift() -> void:
+	_gift_btn = Button.new()
+	_gift_btn.name = "GiftBtn"
+	_gift_btn.focus_mode = Control.FOCUS_NONE
+	_gift_btn.set_script(preload("res://ui/pressable.gd"))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("FFF1D6")
+	sb.border_color = Color("5A3D2B")
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(28)
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		_gift_btn.add_theme_stylebox_override(state_name, sb)
+	_gift_btn.add_theme_color_override("font_color", Color("5A3D2B"))
+	_gift_btn.pressed.connect(func() -> void: gift_pressed.emit())
+	_gift_dot = Panel.new()
+	_gift_dot.name = "GiftDot"
+	_gift_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dot := StyleBoxFlat.new()
+	dot.bg_color = Color("C4472D")
+	dot.set_corner_radius_all(11)
+	_gift_dot.add_theme_stylebox_override("panel", dot)
+	_gift_dot.size = Vector2(22, 22)
+	_gift_dot.visible = false
+	_gift_btn.add_child(_gift_dot)
+	add_child(_gift_btn)
+	refresh_gift_label()
+
+
+func refresh_gift_label() -> void:
+	if _gift_btn == null:
+		return
+	_gift_btn.text = SettingsData.t("gift")
+	UiFit.paint_light(_gift_btn, 28)
+	UiFit.fit_label(_gift_btn, 220.0, 1, 18, 28)
+	var ms := _gift_btn.get_combined_minimum_size()
+	_gift_btn.size = Vector2(maxf(200.0, ms.x + 36.0), maxf(80.0, ms.y + 16.0))
+	_place_gift()
+
+
+func set_gift_ready(on: bool) -> void:
+	if _gift_dot != null:
+		_gift_dot.visible = on
+
+
+func _place_gift() -> void:
+	if _gift_btn == null:
+		return
+	var rw := size
+	var w := _gift_btn.size.x
+	var x := rw.x - 24.0 - w
+	var y := 180.0
+	if _settings_btn != null:
+		var sr := _settings_btn.get_rect()
+		x = sr.end.x - w - 6.0
+		y = sr.end.y + 16.0
+	x = clampf(x, 16.0, maxf(16.0, rw.x - w - 20.0))
+	_gift_btn.position = Vector2(x, y)
+	if _gift_dot != null:
+		_gift_dot.position = Vector2(w - 14.0, -8.0)
+		_gift_dot.size = Vector2(22, 22)
 
 
 func close_soon() -> bool:
@@ -242,3 +316,4 @@ func _fit_one(panel: PanelContainer, lab: Label, pos: Vector2, wide: bool) -> vo
 	else:
 		panel.position = pos
 	panel.size = Vector2(w, h)
+	_place_gift()
