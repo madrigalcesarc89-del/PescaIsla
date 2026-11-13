@@ -222,6 +222,8 @@ func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text:
 		_badge_panel.add_theme_stylebox_override("panel", th.get_stylebox("panel", "Badge" + slice))
 	if slice == "Secret":
 		_badge_label.add_theme_color_override("font_color", Color("FFF1D6"))
+	elif slice == "Epic":
+		_badge_label.add_theme_color_override("font_color", Color(0.25, 0.14, 0.09))
 	else:
 		UiFit.paint_light(_badge_label, 34)
 	# Cubre el marco entero. El shader borra el crema del margen transparente.
