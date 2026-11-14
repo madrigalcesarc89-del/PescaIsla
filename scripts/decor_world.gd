@@ -39,6 +39,7 @@ var _ghost_sit := 0.0
 var _ghost_reason := "water"
 var _ghost_valid := false
 var _night_glow := 0.0
+var _lit_meshes: Dictionary = {}
 
 
 func set_night_glow(level: float) -> void:
@@ -874,7 +875,47 @@ func _make(id: String) -> Node3D:
 	if inst == null:
 		return null
 	_quiet(inst)
+	_ensure_normals(inst, path)
 	return inst
+
+
+## Los modelos no traen normales. Sin ellas, al mirar hacia atrás
+## el móvil las ilumina al revés y el objeto queda negro.
+func _ensure_normals(n: Node, key: String) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		var src := mi.mesh
+		if src != null:
+			var mesh_key := key + "#" + str(mi.name)
+			if not _lit_meshes.has(mesh_key):
+				_lit_meshes[mesh_key] = _with_normals(src)
+			mi.mesh = _lit_meshes[mesh_key]
+	var i := 0
+	for child in n.get_children():
+		_ensure_normals(child, key + "/" + str(i))
+		i += 1
+
+
+func _with_normals(src: Mesh) -> Mesh:
+	var out := ArrayMesh.new()
+	for s in src.get_surface_count():
+		var st := SurfaceTool.new()
+		st.create_from(src, s)
+		if _normals_missing(src, s):
+			st.generate_normals(true)
+		st.commit(out)
+	return out
+
+
+func _normals_missing(src: Mesh, surface: int) -> bool:
+	var arr: Array = src.surface_get_arrays(surface)
+	var packed = arr[Mesh.ARRAY_NORMAL]
+	if not (packed is PackedVector3Array):
+		return true
+	var norms := packed as PackedVector3Array
+	if norms.is_empty():
+		return true
+	return norms[0].length_squared() < 0.01
 
 
 func _glow(inst: Node3D, id: String, height: float, glows: int) -> int:
