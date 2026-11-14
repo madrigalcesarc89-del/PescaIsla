@@ -111,7 +111,6 @@ var _fight = null
 var _escape_reason := ""
 var _tense_tick := 0.0
 var _tele_heard := ""
-var _debug_info: Label
 
 const FightScript = preload("res://scripts/fight.gd")
 
@@ -144,8 +143,6 @@ func _ready() -> void:
 	_enter(State.IDLE)
 	_boot_tutorial()
 	_refresh_gift()
-	if OS.is_debug_build():
-		call_deferred("_build_debug")
 
 
 func _build_visuals() -> void:
@@ -843,7 +840,6 @@ func _build_ui() -> void:
 	_escape_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_escape_label.visible = false
 	_hud.add_child(_escape_label)
-	_build_phase_button()
 	var root := get_tree().root
 	if root.has_signal("go_back_requested"):
 		root.go_back_requested.connect(_on_go_back)
@@ -1397,27 +1393,6 @@ func _start_day_night() -> void:
 	_day_night = node
 
 
-func _build_phase_button() -> void:
-	if not OS.is_debug_build() or _hud == null:
-		return
-	var btn := Button.new()
-	btn.name = "DebugPhase"
-	btn.text = "Fase"
-	btn.position = Vector2(24, 168)
-	btn.custom_minimum_size = Vector2(168, 72)
-	btn.focus_mode = Control.FOCUS_NONE
-	btn.add_theme_font_size_override("font_size", 28)
-	btn.pressed.connect(_on_debug_phase)
-	_hud.add_child(btn)
-
-
-func _on_debug_phase() -> void:
-	if not OS.is_debug_build():
-		return
-	if _day_night != null and _day_night.has_method("skip_phase"):
-		_day_night.call("skip_phase")
-
-
 func _play_ui(key: String) -> void:
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null and am.has_method("play_sfx"):
@@ -1534,7 +1509,6 @@ func _process_ui(_delta: float) -> void:
 		if str(snap.get("warn", "")) == "rage":
 			label = SettingsData.t("fight_rage")
 		_hud.set_meter(zone_center, zone_half, marker, label, snap)
-	_debug_text()
 	if state == State.ESCAPE and _line.points.size() >= 1:
 		_escape_label.visible = true
 		_escape_label.position = _line.points[0] + Vector2(30, -160)
@@ -1561,60 +1535,6 @@ func debug_force(id: String) -> void:
 		_tele_heard = ""
 		_enter(State.REEL)
 		return
-
-
-func _build_debug() -> void:
-	if _ui_layer == null:
-		return
-	var root := PanelContainer.new()
-	root.name = "DebugFight"
-	root.position = Vector2(24, 420)
-	var cream := StyleBoxFlat.new()
-	cream.bg_color = Color("FFF1D6")
-	cream.set_corner_radius_all(18)
-	cream.content_margin_left = 12
-	cream.content_margin_right = 12
-	cream.content_margin_top = 10
-	cream.content_margin_bottom = 10
-	root.add_theme_stylebox_override("panel", cream)
-	root.custom_minimum_size = Vector2(360, 0)
-	var box := VBoxContainer.new()
-	root.add_child(box)
-	var pick := OptionButton.new()
-	pick.name = "Pick"
-	pick.custom_minimum_size = Vector2(340, 64)
-	for fish in fishes:
-		if typeof(fish) != TYPE_DICTIONARY:
-			continue
-		pick.add_item(str(fish.get("name_es", fish.get("id", ""))))
-		pick.set_item_metadata(pick.item_count - 1, str(fish.get("id", "")))
-	var go := Button.new()
-	go.text = SettingsData.t("debug_force")
-	go.custom_minimum_size = Vector2(340, 64)
-	go.pressed.connect(func() -> void:
-		debug_force(str(pick.get_item_metadata(pick.selected)))
-	)
-	var info := Label.new()
-	info.name = "Info"
-	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info.custom_minimum_size = Vector2(340, 72)
-	info.add_theme_color_override("font_color", Color("5A3D2B"))
-	box.add_child(pick)
-	box.add_child(go)
-	box.add_child(info)
-	_ui_layer.add_child(root)
-	_debug_info = info
-
-
-func _debug_text() -> void:
-	if _debug_info == null or _fight == null or state != State.REEL:
-		if _debug_info != null and state != State.REEL:
-			_debug_info.text = ""
-		return
-	var s: Dictionary = _fight.snapshot()
-	_debug_info.text = "%s  %.1fs  zona %.2f  vel %.2f  fuerza %.2f" % [
-		str(s.get("active", "")), float(s.get("fight_time", 0)),
-		float(s.get("zone_size", 0)), float(s.get("speed", 0)), float(s.get("pull", 0))]
 
 
 func _boot_tutorial() -> void:
@@ -1779,9 +1699,6 @@ func _tutorial_avoid() -> Array:
 			var node = _hud.call(method_name)
 			if node != null:
 				out.append(node)
-	var fase := _hud.get_node_or_null("DebugPhase")
-	if fase != null:
-		out.append(fase)
 	if _fishcard != null and _fishcard.visible and _fishcard.has_method("continue_button"):
 		out.append(_fishcard.continue_button())
 	if _album != null and _album.visible and _album.has_method("close_button"):

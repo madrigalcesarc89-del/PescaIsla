@@ -737,10 +737,6 @@
     "shop_fx_shield": {
       "es": "Un escudo por pelea",
       "en": "One shield per fight"
-    },
-    "debug_force": {
-      "es": "Forzar picada",
-      "en": "Force a bite"
     }
   },
   "fish": {
