@@ -396,9 +396,13 @@ func _start_trip(spec: Dictionary) -> void:
 
 
 func _drift(dt: float, rate: float) -> void:
+	# El recorte de _place_half deja el centro entre half y 1-half.
+	# Si el rebote usa 0.08/0.92, la zona nunca llega y se queda pegada.
+	var lo := maxf(half, 0.08)
+	var hi := minf(1.0 - half, 0.92)
+	if hi <= lo + 0.02:
+		return
 	center += _dir * rate * dt
-	var lo := 0.08
-	var hi := 0.92
 	if center <= lo:
 		center = lo
 		_dir = 1.0
