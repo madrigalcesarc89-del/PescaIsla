@@ -646,12 +646,19 @@ func _on_card(id: String) -> void:
 	var rarity := str(fish.get("rarity", "common"))
 	var tex: Texture2D = load(str(fish.get("texture", "")))
 	if not owned:
-		_inspect.show_fish("frame_" + rarity, tex, "", "", "", SettingsData.t("album_missing"), _night_line(fish))
+		var missing := SettingsData.t("album_missing")
+		var style_m := _style_line(fish)
+		if style_m != "":
+			missing += "\n" + style_m
+		_inspect.show_fish("frame_" + rarity, tex, "", "", "", missing, _night_line(fish))
 	else:
 		var extra := SettingsData.t("album_catches") % int(_caught.get(id, 0))
 		var since := str(_first.get(id, ""))
 		if since != "":
 			extra += "\n" + (SettingsData.t("album_since") % since)
+		var style := _style_line(fish)
+		if style != "":
+			extra += "\n" + style
 		var night := _night_line(fish)
 		if night != "":
 			extra += "\n" + night
@@ -667,6 +674,17 @@ func _on_card(id: String) -> void:
 	var icon := _inspect.find_child("FishIcon", true, false) as CanvasItem
 	if icon != null:
 		icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
+
+
+func _style_line(fish: Dictionary) -> String:
+	var kind := str(fish.get("fight", ""))
+	if kind == "":
+		return ""
+	var key := "fight_style_" + kind
+	var label := SettingsData.t(key)
+	if label == key:
+		return ""
+	return label
 
 
 func _night_line(fish: Dictionary) -> String:

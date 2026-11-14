@@ -9,6 +9,7 @@ static var sfx := 0.9
 static var vibration := true
 static var lang := "es"
 static var time_mode := "cycle"
+static var relaxed := false
 
 static var _strings: Dictionary = {}
 
@@ -29,6 +30,7 @@ static func load_all() -> void:
 	lang = l if l in ["es", "en"] else "es"
 	var mode := str(d.get("time_mode", "cycle"))
 	time_mode = mode if mode in ["cycle", "clock"] else "cycle"
+	relaxed = bool(d.get("relaxed", false))
 
 
 static func save_all() -> void:
@@ -41,6 +43,7 @@ static func save_all() -> void:
 		"vibration": vibration,
 		"lang": lang,
 		"time_mode": time_mode,
+		"relaxed": relaxed,
 	}))
 
 

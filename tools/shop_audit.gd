@@ -39,11 +39,19 @@ func _init() -> void:
 
 func _logic() -> void:
 	var coral := ShopSave.item_by_id("rod_coral")
-	_expect(ShopSave.effect_line(coral) == "Espera −15 %", "efecto coral " + ShopSave.effect_line(coral))
+	_expect(ShopSave.effect_line(coral) == "Más ágil", "efecto coral " + ShopSave.effect_line(coral))
 	SettingsData.lang = "en"
-	_expect(ShopSave.effect_line(coral) == "Wait −15 %", "efecto coral en")
+	_expect(ShopSave.effect_line(coral) == "Nimbler", "efecto coral en")
 	SettingsData.lang = "es"
 	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_bamboo")) == "Equipo inicial", "bambú inicial")
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_cherry")) == "Línea resistente", "efecto cerezo")
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_moon")) == "Anticipa los movimientos", "efecto luna")
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_rainbow")) == "Un escudo por pelea", "efecto arcoíris")
+	SettingsData.lang = "en"
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_cherry")) == "Tough line", "cerezo en")
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_moon")) == "Reads the next move", "luna en")
+	_expect(ShopSave.effect_line(ShopSave.item_by_id("rod_rainbow")) == "One shield per fight", "arcoíris en")
+	SettingsData.lang = "es"
 	var st := ShopSave.fresh_state()
 	_expect(str(st["equipped_rod"]) == "rod_bamboo" and str(st["equipped_bait"]) == "bait_pink_worm", "equipo inicial")
 	var owned0: Array = st["owned"]

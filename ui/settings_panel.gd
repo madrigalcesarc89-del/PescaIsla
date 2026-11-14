@@ -22,10 +22,14 @@ signal lang_changed
 var _time_label: Label
 var _btn_cycle: Button
 var _btn_clock: Button
+var _relax_label: Label
+var _btn_relax_on: Button
+var _btn_relax_off: Button
 
 
 func _ready() -> void:
 	_build_time_row()
+	_build_relax_row()
 	for sb in ["normal", "hover", "pressed", "focus", "disabled"]:
 		_switch.add_theme_stylebox_override(sb, StyleBoxEmpty.new())
 	var th := theme
@@ -63,12 +67,21 @@ func refresh_texts() -> void:
 		_btn_cycle.text = SettingsData.t("settings_time_cycle")
 	if _btn_clock != null:
 		_btn_clock.text = SettingsData.t("settings_time_clock")
+	if _relax_label != null:
+		_relax_label.text = SettingsData.t("settings_relaxed")
+	if _btn_relax_on != null:
+		_btn_relax_on.text = SettingsData.t("settings_relaxed_on")
+	if _btn_relax_off != null:
+		_btn_relax_off.text = SettingsData.t("settings_relaxed_off")
 	_paint_lang()
 	_paint_time()
+	_paint_relax()
 	for l in [_title, _music_label, _sfx_label, _vib_label, _lang_label, _credits_b]:
 		UiFit.paint_light(l, 40)
 	if _time_label != null:
 		UiFit.paint_light(_time_label, 40)
+	if _relax_label != null:
+		UiFit.paint_light(_relax_label, 40)
 	UiFit.fit_label(_title, 460.0, 1, 36, 56)
 	UiFit.fit_label(_music_label, 200.0, 1, 28, 40)
 	UiFit.fit_label(_sfx_label, 200.0, 1, 28, 40)
@@ -82,6 +95,10 @@ func refresh_texts() -> void:
 		UiFit.fit_label(_btn_cycle, 140.0, 1, 22, 32)
 	if _btn_clock != null:
 		UiFit.fit_label(_btn_clock, 140.0, 1, 22, 32)
+	if _btn_relax_on != null:
+		UiFit.fit_label(_btn_relax_on, 120.0, 1, 22, 32)
+	if _btn_relax_off != null:
+		UiFit.fit_label(_btn_relax_off, 120.0, 1, 22, 32)
 
 
 func _on_music(v: float) -> void:
@@ -166,6 +183,57 @@ func _build_time_row() -> void:
 	vbox.move_child(row, _credits_b.get_index())
 	_btn_cycle.pressed.connect(_on_time.bind("cycle"))
 	_btn_clock.pressed.connect(_on_time.bind("clock"))
+
+
+func _build_relax_row() -> void:
+	var vbox := _credits_b.get_parent()
+	var row := HBoxContainer.new()
+	row.name = "RelaxRow"
+	row.add_theme_constant_override("separation", 16)
+	_relax_label = Label.new()
+	_relax_label.custom_minimum_size = Vector2(220, 0)
+	_relax_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 16)
+	var press := load("res://ui/pressable.gd")
+	_btn_relax_off = Button.new()
+	_btn_relax_off.custom_minimum_size = Vector2(140, 96)
+	_btn_relax_off.focus_mode = Control.FOCUS_NONE
+	_btn_relax_off.set_script(press)
+	_btn_relax_on = Button.new()
+	_btn_relax_on.custom_minimum_size = Vector2(140, 96)
+	_btn_relax_on.focus_mode = Control.FOCUS_NONE
+	_btn_relax_on.set_script(press)
+	box.add_child(_btn_relax_off)
+	box.add_child(_btn_relax_on)
+	row.add_child(_relax_label)
+	row.add_child(box)
+	vbox.add_child(row)
+	vbox.move_child(row, _credits_b.get_index())
+	_btn_relax_off.pressed.connect(_on_relax.bind(false))
+	_btn_relax_on.pressed.connect(_on_relax.bind(true))
+
+
+func _on_relax(on: bool) -> void:
+	SettingsData.relaxed = on
+	SettingsData.save_all()
+	_paint_relax()
+
+
+func _paint_relax() -> void:
+	if _btn_relax_on == null or _btn_relax_off == null:
+		return
+	var th := theme
+	var gray: StyleBox = null
+	if th != null and th.has_stylebox("disabled", "Button"):
+		gray = th.get_stylebox("disabled", "Button")
+	for b in [_btn_relax_on, _btn_relax_off]:
+		(b as Button).disabled = false
+	var active := _btn_relax_on if SettingsData.relaxed else _btn_relax_off
+	var idle := _btn_relax_off if SettingsData.relaxed else _btn_relax_on
+	(active as Button).remove_theme_stylebox_override("normal")
+	if gray != null:
+		(idle as Button).add_theme_stylebox_override("normal", gray)
 
 
 func _on_time(mode: String) -> void:

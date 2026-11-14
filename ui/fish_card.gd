@@ -439,8 +439,13 @@ func _apply_metrics() -> void:
 	var start := clampi(int(safe_w * 0.11), min_px + 4, 52)
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
 	var name_px := _name_label.get_theme_font_size("font_size")
+	var name_font := _name_label.get_theme_font("font")
+	var name_lines := 1
+	if name_font != null and name_px > 0:
+		var name_size := name_font.get_multiline_string_size(_name_label.text, HORIZONTAL_ALIGNMENT_CENTER, safe_w, name_px)
+		name_lines = clampi(int(ceil(name_size.y / float(name_px))), 1, max_lines)
 	_name_label.clip_text = false
-	_name_label.custom_minimum_size = Vector2(safe_w, name_px + 6)
+	_name_label.custom_minimum_size = Vector2(safe_w, name_px * name_lines + 8)
 	_rule.custom_minimum_size = Vector2(maxf(72.0, safe_w * 0.34), 3.0)
 	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -483,7 +488,12 @@ func _refit_name(safe_w: float, max_lines: int, min_px: int, start: int) -> void
 	_name_label.clip_text = false
 	UiFit.fit_label(_name_label, safe_w, max_lines, min_px, start)
 	var name_px := _name_label.get_theme_font_size("font_size")
-	_name_label.custom_minimum_size = Vector2(safe_w, name_px + 6)
+	var name_font := _name_label.get_theme_font("font")
+	var name_lines := 1
+	if name_font != null and name_px > 0:
+		var name_size := name_font.get_multiline_string_size(_name_label.text, HORIZONTAL_ALIGNMENT_CENTER, safe_w, name_px)
+		name_lines = clampi(int(ceil(name_size.y / float(name_px))), 1, max_lines)
+	_name_label.custom_minimum_size = Vector2(safe_w, name_px * name_lines + 8)
 	_paint_text(_name_label)
 
 

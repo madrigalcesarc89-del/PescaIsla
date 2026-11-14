@@ -249,11 +249,20 @@ static func gear(state: Dictionary) -> Dictionary:
 	var wm := {}
 	for rarity in RARITIES:
 		wm[rarity] = clampf(float(rod["w"][rarity]) * float(bait["w"][rarity]), 0.2, 5.0)
+	var rod_item := item_by_id(str(cur["equipped_rod"]))
+	var rod_fx: Dictionary = {}
+	if typeof(rod_item.get("effects", {})) == TYPE_DICTIONARY:
+		rod_fx = rod_item["effects"]
 	return {
 		"wait_mult": clampf(float(rod["wait"]) * float(bait["wait"]), 0.45, 1.6),
 		"zone_mult": clampf(float(rod["zone"]) * float(bait["zone"]), 0.5, 1.8),
 		"value_mult": clampf(float(rod["value"]) * float(bait["value"]) * economy_mult(), 0.5, 4.0),
 		"weight_mult": wm,
+		"agility": float(rod_fx.get("agility", 0.0)),
+		"line_strength_mult": float(rod_fx.get("line_strength_mult", 1.0)),
+		"telegraph_mult": float(rod_fx.get("telegraph_mult", 1.0)),
+		"preview": bool(rod_fx.get("preview", false)),
+		"shield": bool(rod_fx.get("shield", false)),
 	}
 
 
@@ -269,6 +278,14 @@ static func effect_line(item: Dictionary) -> String:
 	var fx: Dictionary = {}
 	if typeof(item.get("effects", {})) == TYPE_DICTIONARY:
 		fx = item["effects"]
+	if bool(fx.get("shield", false)):
+		return SettingsData.t("shop_fx_shield")
+	if float(fx.get("agility", 0.0)) > 0.001:
+		return SettingsData.t("shop_fx_agility")
+	if float(fx.get("line_strength_mult", 1.0)) > 1.001:
+		return SettingsData.t("shop_fx_line")
+	if float(fx.get("telegraph_mult", 1.0)) > 1.001 or bool(fx.get("preview", false)):
+		return SettingsData.t("shop_fx_preview")
 	var wait := float(fx.get("wait_mult", 1.0))
 	var zone := float(fx.get("zone_mult", 1.0))
 	var value := float(fx.get("value_mult", 1.0))
