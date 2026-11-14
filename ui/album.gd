@@ -31,6 +31,7 @@ const CARD_W := 288.0
 const CARD_H := 372.0
 const GAP := 24.0
 const MARGIN := 48.0
+const TAP_SLOP := 18.0
 
 var _fishes: Array = []
 var _caught: Dictionary = {}
@@ -48,9 +49,11 @@ var _tap_at := 0
 var _debug: Control = null
 var _laying := false
 var _pointer_down := false
+var _press_y := 0.0
 var _last_drag_y := 0.0
 var _last_drag_ms := 0
 var _scroll_vel := 0.0
+var _dragged := false
 
 @onready var _panel: Panel = $Panel
 @onready var _vbox: VBoxContainer = $Panel/VBox
@@ -148,14 +151,24 @@ func _input(event: InputEvent) -> void:
 		_last_drag_y = pos.y
 		_last_drag_ms = Time.get_ticks_msec()
 		if went_down:
+			_press_y = pos.y
+			_dragged = false
 			_scroll_vel = 0.0
 		return
 	if moving:
+		var step := _last_drag_y - pos.y
+		_last_drag_y = pos.y
 		var now := Time.get_ticks_msec()
 		var dt := maxi(1, now - _last_drag_ms)
-		_scroll_vel = (_last_drag_y - pos.y) / float(dt) * 1000.0
-		_last_drag_y = pos.y
 		_last_drag_ms = now
+		if absf(pos.y - _press_y) >= TAP_SLOP:
+			var applied := step
+			if not _dragged:
+				_dragged = true
+				applied = _press_y - pos.y
+			_scroll.scroll_vertical = int(round(float(_scroll.scroll_vertical) + applied))
+			_scroll_vel = step / float(dt) * 1000.0
+			get_viewport().set_input_as_handled()
 
 
 func setup(fishes: Array, caught: Dictionary, first: Dictionary, claimed: Dictionary, db: Dictionary, seen: Dictionary = {}, seen_missing: bool = true) -> void:
@@ -626,6 +639,8 @@ func _make_card(fish: Dictionary) -> Button:
 
 
 func _on_card(id: String) -> void:
+	if _dragged:
+		return
 	var fish := _fish_by_id(id)
 	var owned := int(_caught.get(id, 0)) > 0
 	var rarity := str(fish.get("rarity", "common"))
@@ -661,6 +676,8 @@ func _night_line(fish: Dictionary) -> String:
 
 
 func _on_claim(rarity: String) -> void:
+	if _dragged:
+		return
 	claim_requested.emit(rarity)
 
 
