@@ -120,7 +120,7 @@ var _wait_time: float = 0.0
 var _zone_phase: float = 0.0
 
 var _bobber: MeshInstance3D
-var _splash: GPUParticles3D
+var _fx: Node
 var _line_layer: CanvasLayer
 var _line: Line2D
 ## Punto de caida del lanzamiento actual (mundo, calculado por rayo).
@@ -162,34 +162,10 @@ func _build_visuals() -> void:
 	_bobber.position = bobber_pos
 	_bobber.visible = false
 	add_child(_bobber)
-	_splash = GPUParticles3D.new()
-	_splash.amount = 12
-	_splash.lifetime = 0.6
-	_splash.one_shot = true
-	_splash.explosiveness = 0.9
-	_splash.emitting = false
-	var pmat := ParticleProcessMaterial.new()
-	pmat.direction = Vector3(0, 1, 0)
-	pmat.spread = 35.0
-	pmat.initial_velocity_min = 1.2
-	pmat.initial_velocity_max = 2.2
-	pmat.gravity = Vector3(0, -6, 0)
-	pmat.scale_min = 0.5
-	pmat.scale_max = 1.0
-	pmat.color = Color(1, 1, 1)
-	_splash.process_material = pmat
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.12, 0.12)
-	var qmat := StandardMaterial3D.new()
-	qmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	qmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	qmat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	qmat.albedo_color = Color(1, 1, 1, 0.9)
-	qmat.albedo_texture = load("res://assets/textures/glow_disc.png")
-	quad.material = qmat
-	_splash.draw_pass_1 = quad
-	_splash.position = bobber_pos
-	add_child(_splash)
+	_fx = Node.new()
+	_fx.name = "ParticleFx"
+	_fx.set_script(preload("res://scripts/particle_fx.gd"))
+	add_child(_fx)
 	_line_layer = CanvasLayer.new()
 	_line_layer.layer = 5
 	add_child(_line_layer)
@@ -249,13 +225,23 @@ func _apply_tackle_colors() -> void:
 
 
 func _splash_at() -> void:
-	if _splash == null or _bobber == null:
+	if _bobber == null:
 		return
-	_splash.global_position = _bobber.global_position
-	_splash.restart()
+	_fx_play("splash", _bobber.global_position)
 	var am := get_node_or_null("/root/AudioManager")
 	if am != null:
 		am.play_sfx("splash")
+
+
+func _fx_play(id: String, at: Vector3, tint: Color = Color(0, 0, 0, 0)) -> void:
+	if _fx == null or not _fx.has_method("play"):
+		return
+	_fx.call("play", id, at, tint)
+
+
+func _fx_stop(id: String) -> void:
+	if _fx != null and _fx.has_method("stop"):
+		_fx.call("stop", id)
 
 
 func _process(delta: float) -> void:
@@ -302,6 +288,8 @@ func _process(delta: float) -> void:
 		if _t_state >= RESULT_HOLD:
 			_enter(State.IDLE)
 	_update_visuals(delta)
+	if state == State.WAIT and _bobber != null and _fx != null and _fx.has_method("follow"):
+		_fx.call("follow", "bubbles", _bobber.global_position)
 	_process_ui(delta)
 
 
@@ -368,8 +356,18 @@ func _enter(s: int) -> void:
 			_bobber.position = _cast_target
 	if s == State.WAIT and prev == State.CAST:
 		_splash_at()
+		_fx_play("bubbles", _bobber.global_position)
+	elif s != State.WAIT:
+		_fx_stop("bubbles")
 	if s == State.BITE or s == State.CATCH:
 		_splash_at()
+	if s == State.CATCH:
+		var tint := Color("FFF1D6")
+		if _fight != null and _fight.has_method("rarity_color"):
+			tint = _fight.rarity_color()
+		_fx_play("sparkle", _bobber.global_position, tint)
+	if s == State.ESCAPE and _escape_reason == "break" and _bobber != null:
+		_fx_play("drip", _bobber.global_position)
 	_audio_state(s)
 	_refresh_ui()
 	state_changed.emit(state)
@@ -580,6 +578,8 @@ func _feel_line(delta: float) -> void:
 	if _tense_tick > 0.0:
 		return
 	_tense_tick = 0.5
+	if _bobber != null:
+		_fx_play("drip", _bobber.global_position)
 	if SettingsData.vibration:
 		Input.vibrate_handheld(30)
 	var am := get_node_or_null("/root/AudioManager")

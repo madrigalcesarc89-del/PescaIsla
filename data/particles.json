@@ -1,0 +1,73 @@
+{
+  "texture": "res://assets/textures/glow_disc.png",
+  "presets": {
+    "splash": {
+      "amount": 16,
+      "lifetime": 0.55,
+      "one_shot": true,
+      "explosiveness": 0.9,
+      "direction": [0, 1, 0],
+      "spread": 40,
+      "velocity_min": 0.8,
+      "velocity_max": 1.6,
+      "gravity": [0, -4.0, 0],
+      "scale_min": 0.28,
+      "scale_max": 0.72,
+      "damping_min": 0.5,
+      "damping_max": 1.2,
+      "color": "#F4FFFE",
+      "quad": 0.1
+    },
+    "bubbles": {
+      "amount": 8,
+      "lifetime": 1.5,
+      "one_shot": false,
+      "explosiveness": 0.05,
+      "direction": [0, 1, 0],
+      "spread": 16,
+      "velocity_min": 0.12,
+      "velocity_max": 0.32,
+      "gravity": [0, 0.12, 0],
+      "scale_min": 0.16,
+      "scale_max": 0.38,
+      "damping_min": 0.2,
+      "damping_max": 0.5,
+      "color": "#B7EDE8",
+      "quad": 0.06
+    },
+    "sparkle": {
+      "amount": 18,
+      "lifetime": 0.7,
+      "one_shot": true,
+      "explosiveness": 0.95,
+      "direction": [0, 1, 0],
+      "spread": 180,
+      "velocity_min": 0.35,
+      "velocity_max": 1.05,
+      "gravity": [0, -0.55, 0],
+      "scale_min": 0.18,
+      "scale_max": 0.5,
+      "damping_min": 0.7,
+      "damping_max": 1.5,
+      "color": "#FFF1D6",
+      "quad": 0.07
+    },
+    "drip": {
+      "amount": 7,
+      "lifetime": 0.42,
+      "one_shot": true,
+      "explosiveness": 0.75,
+      "direction": [0, 0.35, 0],
+      "spread": 64,
+      "velocity_min": 0.25,
+      "velocity_max": 0.65,
+      "gravity": [0, -2.8, 0],
+      "scale_min": 0.12,
+      "scale_max": 0.28,
+      "damping_min": 0.3,
+      "damping_max": 0.7,
+      "color": "#F7B7A3",
+      "quad": 0.05
+    }
+  }
+}
