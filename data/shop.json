@@ -42,7 +42,8 @@
           "legendary": 1.0,
           "secret": 1.0
         },
-        "value_mult": 1.0
+        "value_mult": 1.0,
+        "agility": 0.15
       }
     },
     {
@@ -64,7 +65,8 @@
           "legendary": 1.0,
           "secret": 1.0
         },
-        "value_mult": 1.0
+        "value_mult": 1.0,
+        "line_strength_mult": 1.25
       }
     },
     {
@@ -86,7 +88,9 @@
           "legendary": 1.6,
           "secret": 1.6
         },
-        "value_mult": 1.0
+        "value_mult": 1.0,
+        "telegraph_mult": 1.6,
+        "preview": true
       }
     },
     {
@@ -108,7 +112,9 @@
           "legendary": 1.0,
           "secret": 1.0
         },
-        "value_mult": 1.35
+        "value_mult": 1.35,
+        "shield": true,
+        "agility": 0.08
       }
     },
     {

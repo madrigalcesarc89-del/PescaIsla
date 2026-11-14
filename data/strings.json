@@ -661,6 +661,86 @@
     "shop_fx_secret": {
       "es": "Secretos %s",
       "en": "Secrets %s"
+    },
+    "settings_relaxed": {
+      "es": "Modo relajado",
+      "en": "Relaxed mode"
+    },
+    "settings_relaxed_on": {
+      "es": "Sí",
+      "en": "On"
+    },
+    "settings_relaxed_off": {
+      "es": "No",
+      "en": "Off"
+    },
+    "catch_title": {
+      "es": "¡Mango atrapó un %s!",
+      "en": "Mango caught a %s!"
+    },
+    "fight_style_drift": {
+      "es": "Nada tranquilo",
+      "en": "Swims easy"
+    },
+    "fight_style_bounce": {
+      "es": "Salta y rebota",
+      "en": "Hops and bounces"
+    },
+    "fight_style_zigzag": {
+      "es": "Zigzaguea",
+      "en": "Zigs and zags"
+    },
+    "fight_style_dash": {
+      "es": "Se mueve en ráfagas",
+      "en": "Moves in bursts"
+    },
+    "fight_style_puff": {
+      "es": "Se infla de golpe",
+      "en": "Puffs up at once"
+    },
+    "fight_style_ghost": {
+      "es": "Aparece y desaparece",
+      "en": "Fades in and out"
+    },
+    "fight_style_heavy": {
+      "es": "Pesado y tozudo",
+      "en": "Heavy and stubborn"
+    },
+    "fight_style_phases": {
+      "es": "Cambia de estilo",
+      "en": "Changes style"
+    },
+    "fight_rage": {
+      "es": "¡Se enfurece!",
+      "en": "It gets mad!"
+    },
+    "escape_break": {
+      "es": "¡Se rompió la línea!",
+      "en": "The line snapped!"
+    },
+    "escape_tired": {
+      "es": "Se cansó de jugar",
+      "en": "It got bored of playing"
+    },
+    "shop_fx_agility": {
+      "es": "Más ágil",
+      "en": "Nimbler"
+    },
+    "shop_fx_line": {
+      "es": "Línea resistente",
+      "en": "Tough line"
+    },
+    "shop_fx_preview": {
+      "es": "Anticipa los movimientos",
+      "en": "Reads the next move"
+    },
+    "shop_fx_shield": {
+      "es": "Un escudo por pelea",
+      "en": "One shield per fight"
+    },
+    "debug_force": {
+      "es": "Forzar picada",
+      "en": "Force a bite"
     }
   },
   "fish": {

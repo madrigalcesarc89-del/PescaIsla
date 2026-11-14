@@ -1,0 +1,41 @@
+{
+  "difficulty_mult": 1.0,
+  "marker_up": 0.9,
+  "marker_down": 0.7,
+  "progress_down": 0.12,
+  "progress_down_far": 0.2,
+  "far_below": 0.2,
+  "line_drain": 0.25,
+  "line_over": 0.05,
+  "line_recover": 0.15,
+  "time_cap": 4.0,
+  "shield_restore": 0.4,
+  "line_shake_at": 0.3,
+  "relaxed": { "zone_mult": 1.3, "speed_mult": 0.8, "drain_mult": 0.7 },
+  "by_rarity": {
+    "common": { "fight_time": 3.0, "zone_size": 0.3, "speed": 1.0, "pull": 0.8 },
+    "uncommon": { "fight_time": 4.0, "zone_size": 0.27, "speed": 1.1, "pull": 1.0 },
+    "rare": { "fight_time": 6.0, "zone_size": 0.24, "speed": 1.2, "pull": 1.15 },
+    "epic": { "fight_time": 9.0, "zone_size": 0.22, "speed": 1.3, "pull": 1.3 },
+    "legendary": { "fight_time": 13.0, "zone_size": 0.2, "speed": 1.4, "pull": 1.5 },
+    "secret": { "fight_time": 12.0, "zone_size": 0.21, "speed": 1.3, "pull": 1.3 }
+  },
+  "colors": {
+    "common": "#7DCAA5",
+    "uncommon": "#3E9E96",
+    "rare": "#3D7EBE",
+    "epic": "#C45B86",
+    "legendary": "#C48A2A",
+    "secret": "#D7D3F0"
+  },
+  "patterns": {
+    "drift": { "speed": 0.18, "turn_min": 2.5, "turn_max": 4.0 },
+    "bounce": { "amp": 0.18, "period_min": 1.6, "period_max": 2.2, "drift_speed": 0.12 },
+    "zigzag": { "trip_min": 0.2, "trip_max": 0.45, "speed": 0.35, "pause_min": 0.25, "pause_max": 0.5 },
+    "dash": { "drift_speed": 0.12, "every_min": 1.8, "every_max": 3.0, "jump_min": 0.3, "jump_time": 0.28, "lead": 0.45 },
+    "puff": { "drift_speed": 0.18, "every_min": 3.5, "every_max": 5.0, "scale": 0.55, "hold": 1.3, "lead": 0.5 },
+    "ghost": { "drift_speed": 0.18, "every_min": 4.5, "every_max": 6.0, "hold": 2.0, "alpha": 0.12, "lead": 0.5 },
+    "heavy": { "drift_speed": 0.18, "zone_mult": 1.25, "speed_mult": 0.55, "time_mult": 1.4, "drain_mult": 1.3 },
+    "phases": { "at": [0.33, 0.66], "pause": 1.0, "lead": 0.45 }
+  }
+}
