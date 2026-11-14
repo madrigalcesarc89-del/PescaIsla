@@ -294,8 +294,11 @@ func show_reel(v: bool) -> void:
 	_fit_pills()
 
 
-func set_meter(zc: float, zh: float, m: float, t: String) -> void:
-	_meter_fill.set_meter(zc, zh, m)
+func set_meter(zc: float, zh: float, m: float, t: String, extra: Dictionary = {}) -> void:
+	if extra.is_empty():
+		_meter_fill.set_meter(zc, zh, m)
+	else:
+		_meter_fill.set_fight(zc, zh, m, extra)
 	_reel_label.text = t
 	_fit_pills()
 

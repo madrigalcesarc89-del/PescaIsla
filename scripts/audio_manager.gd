@@ -26,6 +26,7 @@ const FILES := {
 	"catch_common": A + "sfx/sfx_catch.wav",
 	"catch_rare": A + "sfx/sfx_catch_rare.wav",
 	"catch_legendary": A + "sfx/sfx_catch_legend.wav",
+	"reel_tense": A + "sfx/sfx_reel_tense.wav",
 }
 
 var _sfx: Dictionary = {}
@@ -104,6 +105,19 @@ func play_sfx(sfx_name: String) -> void:
 	_pool_i = (_pool_i + 1) % _pool.size()
 	p.stream = _sfx[sfx_name]
 	p.pitch_scale = randf_range(0.95, 1.05)
+	p.volume_db = 0.0
+	p.play()
+
+
+## Tic corto y más bajo, para el aviso de un movimiento.
+func play_tick() -> void:
+	if _pool.is_empty() or not _sfx.has("tap"):
+		return
+	var p := _pool[_pool_i]
+	_pool_i = (_pool_i + 1) % _pool.size()
+	p.stream = _sfx["tap"]
+	p.pitch_scale = 1.35
+	p.volume_db = -8.0
 	p.play()
 
 
@@ -218,6 +232,8 @@ func set_bed(music_path: String, amb_path: String) -> void:
 
 
 func _fade(a: AudioStreamPlayer, b: AudioStreamPlayer, idx: int, tw: Tween, path: String) -> int:
+	if a == null or b == null:
+		return idx
 	if not ResourceLoader.exists(path):
 		return idx
 	var cur := a if idx == 0 else b

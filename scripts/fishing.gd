@@ -107,6 +107,13 @@ var zone_center: float = 0.5
 var zone_half: float = 0.15
 var zone_speed: float = 0.6
 var reel_progress: float = 0.0
+var _fight = null
+var _escape_reason := ""
+var _tense_tick := 0.0
+var _tele_heard := ""
+var _debug_info: Label
+
+const FightScript = preload("res://scripts/fight.gd")
 
 var _t_state: float = 0.0
 var _wait_time: float = 0.0
@@ -137,6 +144,8 @@ func _ready() -> void:
 	_enter(State.IDLE)
 	_boot_tutorial()
 	_refresh_gift()
+	if OS.is_debug_build():
+		call_deferred("_build_debug")
 
 
 func _build_visuals() -> void:
@@ -274,16 +283,21 @@ func _process(delta: float) -> void:
 			if _t_state >= bite_window:
 				_enter(State.ESCAPE)
 		State.REEL:
-			_zone_phase += delta * zone_speed
-			zone_center = 0.5 + 0.32 * sin(_zone_phase)
-			marker = clampf(marker + (marker_up if holding else -marker_down) * delta, 0.0, 1.0)
-			if absf(marker - zone_center) <= zone_half:
-				reel_progress += delta
-				if reel_progress >= reel_need:
+			if _fight != null:
+				_fight.step(delta, holding)
+				zone_center = _fight.center
+				zone_half = _fight.half
+				marker = _fight.marker
+				reel_progress = _fight.progress * _fight.fight_time
+				reel_need = _fight.fight_time
+				_feel_line(delta)
+				_hear_telegraph()
+				if _fight.outcome == "catch":
 					_register_catch()
 					_enter(State.CATCH)
-			if _t_state >= reel_limit:
-				_enter(State.ESCAPE)
+				elif _fight.outcome == "break" or _fight.outcome == "tired":
+					_escape_reason = _fight.outcome
+					_enter(State.ESCAPE)
 	if state == State.ESCAPE:
 		if _t_state >= RESULT_HOLD:
 			_enter(State.IDLE)
@@ -306,6 +320,13 @@ func strike() -> bool:
 	marker = 0.0
 	reel_progress = 0.0
 	_zone_phase = 0.0
+	_tense_tick = 0.0
+	_tele_heard = ""
+	if _fight != null and _fight.has_method("begin"):
+		_fight.begin()
+		zone_center = _fight.center
+		zone_half = _fight.half
+		marker = _fight.marker
 	_enter(State.REEL)
 	return true
 
@@ -405,6 +426,7 @@ func _update_visuals(delta: float) -> void:
 		var k := clampf(_t_state / maxf(cast_time, 0.01), 0.0, 1.0)
 		var target := _cam.unproject_position(_cast_target)
 		_line.points = PackedVector2Array([tip, tip.lerp(target, k)])
+		_line.width = 2.0
 	elif show_line and _bobber != null:
 		var bp := _cast_target
 		if state == State.WAIT:
@@ -417,9 +439,17 @@ func _update_visuals(delta: float) -> void:
 			bp.y += sin(_t_state * 9.0) * 0.015
 		_bobber.position = _bobber.position.lerp(bp, minf(delta * 10.0, 1.0))
 		var bend := _cam.unproject_position(_bobber.position)
-		if state == State.ESCAPE:
+		if state == State.ESCAPE and _escape_reason == "break":
+			var k := clampf(_t_state / 0.22, 0.0, 1.0)
+			var end := bend.lerp(tip, k)
+			var whip := Vector2(sin(_t_state * 48.0) * (1.0 - k) * 26.0, 0.0)
+			var midb := tip.lerp(end, 0.5) + whip
+			_line.points = PackedVector2Array([tip, midb, end])
+			_line.width = lerpf(2.0, 0.35, k)
+		elif state == State.ESCAPE:
 			var mid := (tip + bend) * 0.5 + Vector2(sin(_t_state * 3.0) * 18.0, 60.0)
 			_line.points = PackedVector2Array([tip, mid, bend])
+			_line.width = 2.0
 		else:
 			# Ligera curva: comba perpendicular del 2.5 % + vaiven suave.
 			var d := bend - tip
@@ -427,8 +457,15 @@ func _update_visuals(delta: float) -> void:
 			if n.length() > 0.01:
 				n = n.normalized()
 			var mid2 := (tip + bend) * 0.5 + n * (d.length() * 0.025 + sin(_t_state * 2.0) * 3.0)
+			if state == State.REEL and _fight != null and _fight.line < 0.3:
+				mid2 += n * sin(_t_state * 46.0) * 16.0
 			_line.points = PackedVector2Array([tip, mid2, bend])
-	_line.visible = show_line and not _cam.is_position_behind(anchor)
+			if state == State.REEL and _fight != null and _fight.line < 0.3:
+				_line.width = lerpf(0.7, 2.0, _fight.line / 0.3)
+			else:
+				_line.width = 2.0
+	if _line != null:
+		_line.visible = show_line and not _cam.is_position_behind(anchor)
 
 
 func _pose_name() -> String:
@@ -520,14 +557,54 @@ func _phase_now() -> String:
 	return ""
 
 
+func _hear_telegraph() -> void:
+	if _fight == null:
+		return
+	var tele := str(_fight.telegraph)
+	if tele == "" or tele == _tele_heard:
+		_tele_heard = tele
+		return
+	_tele_heard = tele
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("play_tick"):
+		am.play_tick()
+
+
+func _feel_line(delta: float) -> void:
+	if _fight == null or _line == null:
+		return
+	if _fight.line >= 0.3:
+		_tense_tick = 0.0
+		return
+	_tense_tick -= delta
+	if _tense_tick > 0.0:
+		return
+	_tense_tick = 0.5
+	if SettingsData.vibration:
+		Input.vibrate_handheld(30)
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("reel_tense")
+
+
+func _fight_view() -> Dictionary:
+	if _fight == null:
+		return {}
+	var snap: Dictionary = _fight.snapshot()
+	snap["color"] = _fight.rarity_color()
+	return snap
+
+
 func _setup_zone() -> void:
-	var rarity := str(current_fish.get("rarity", "common"))
-	var idx := int(RARITY_INDEX.get(rarity, 0))
-	zone_half = (0.16 - float(idx) * 0.02) * float(_cast_gear.get("zone_mult", 1.0))
-	zone_half = clampf(zone_half, 0.04, 0.42)
-	zone_speed = ZONE_BASE_SPEED * float(current_fish.get("difficulty", 1.0))
-	zone_center = 0.5
-	_zone_phase = 0.0
+	var gear := _cast_gear if not _cast_gear.is_empty() else ShopSave.gear(_shop_state)
+	_fight = FightScript.new()
+	_fight.configure(current_fish, gear, SettingsData.relaxed, randi())
+	zone_center = _fight.center
+	zone_half = _fight.half
+	zone_speed = float(current_fish.get("speed", 1.0))
+	reel_need = _fight.fight_time
+	reel_progress = 0.0
+	_escape_reason = ""
 
 
 ## Texto de la tabla de traducción con respaldo en fish_db (idioma activo).
@@ -1426,14 +1503,18 @@ func _refresh_ui() -> void:
 		var extra := ""
 		if FishRoll.more_at_night(current_fish):
 			extra = SettingsData.t("fish_more_night")
+		var title := SettingsData.t("catch_title") % fish_text(current_fish, "name")
 		_fishcard.show_fish("frame_" + rarity, _fish_texture(current_fish),
-			fish_text(current_fish, "name"), rarity_name(rarity),
+			title, rarity_name(rarity),
 			"+%d %s" % [_gained, SettingsData.t("coins").to_lower()],
 			fish_text(current_fish, "description"),
 			extra)
 		_spawn_float_gain(_gained)
 	elif state == State.ESCAPE:
-		_hud.show_toast(SettingsData.t("almost"))
+		var why := "escape_tired" if _escape_reason == "tired" else "escape_break"
+		if _escape_reason == "":
+			why = "almost"
+		_hud.show_toast(SettingsData.t(why))
 	else:
 		_fishcard.hide_card()
 
@@ -1448,7 +1529,12 @@ func _process_ui(_delta: float) -> void:
 	else:
 		_hud.set_bubble(Vector2(-9999.0, 0.0))
 	if state == State.REEL:
-		_hud.set_meter(zone_center, zone_half, marker, "%.1f / %d s" % [reel_progress, int(reel_need)])
+		var snap := _fight_view()
+		var label := "%.0f%%" % (float(snap.get("progress", 0.0)) * 100.0)
+		if str(snap.get("warn", "")) == "rage":
+			label = SettingsData.t("fight_rage")
+		_hud.set_meter(zone_center, zone_half, marker, label, snap)
+	_debug_text()
 	if state == State.ESCAPE and _line.points.size() >= 1:
 		_escape_label.visible = true
 		_escape_label.position = _line.points[0] + Vector2(30, -160)
@@ -1456,6 +1542,79 @@ func _process_ui(_delta: float) -> void:
 		_escape_label.visible = false
 	if _tutorial != null and not _tutorial_done and _tutorial_step > 0:
 		_tutorial.set_cat_anchor(_cat_screen())
+
+
+func debug_force(id: String) -> void:
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		if str(fish.get("id", "")) != id:
+			continue
+		current_fish = fish
+		_cast_gear = ShopSave.gear(_shop_state)
+		_setup_zone()
+		if _fight != null:
+			_fight.begin()
+			zone_center = _fight.center
+			zone_half = _fight.half
+			marker = _fight.marker
+		_tele_heard = ""
+		_enter(State.REEL)
+		return
+
+
+func _build_debug() -> void:
+	if _ui_layer == null:
+		return
+	var root := PanelContainer.new()
+	root.name = "DebugFight"
+	root.position = Vector2(24, 420)
+	var cream := StyleBoxFlat.new()
+	cream.bg_color = Color("FFF1D6")
+	cream.set_corner_radius_all(18)
+	cream.content_margin_left = 12
+	cream.content_margin_right = 12
+	cream.content_margin_top = 10
+	cream.content_margin_bottom = 10
+	root.add_theme_stylebox_override("panel", cream)
+	root.custom_minimum_size = Vector2(360, 0)
+	var box := VBoxContainer.new()
+	root.add_child(box)
+	var pick := OptionButton.new()
+	pick.name = "Pick"
+	pick.custom_minimum_size = Vector2(340, 64)
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		pick.add_item(str(fish.get("name_es", fish.get("id", ""))))
+		pick.set_item_metadata(pick.item_count - 1, str(fish.get("id", "")))
+	var go := Button.new()
+	go.text = SettingsData.t("debug_force")
+	go.custom_minimum_size = Vector2(340, 64)
+	go.pressed.connect(func() -> void:
+		debug_force(str(pick.get_item_metadata(pick.selected)))
+	)
+	var info := Label.new()
+	info.name = "Info"
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.custom_minimum_size = Vector2(340, 72)
+	info.add_theme_color_override("font_color", Color("5A3D2B"))
+	box.add_child(pick)
+	box.add_child(go)
+	box.add_child(info)
+	_ui_layer.add_child(root)
+	_debug_info = info
+
+
+func _debug_text() -> void:
+	if _debug_info == null or _fight == null or state != State.REEL:
+		if _debug_info != null and state != State.REEL:
+			_debug_info.text = ""
+		return
+	var s: Dictionary = _fight.snapshot()
+	_debug_info.text = "%s  %.1fs  zona %.2f  vel %.2f  fuerza %.2f" % [
+		str(s.get("active", "")), float(s.get("fight_time", 0)),
+		float(s.get("zone_size", 0)), float(s.get("speed", 0)), float(s.get("pull", 0))]
 
 
 func _boot_tutorial() -> void:
