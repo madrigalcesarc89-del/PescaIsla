@@ -3,6 +3,7 @@ extends SceneTree
 ## Godot --headless --path . --script res://tools/economy_sim.gd
 
 const FishRoll = preload("res://scripts/fish_roll.gd")
+const FishVariants = preload("res://scripts/variants.gd")
 const ShopSave = preload("res://scripts/shop_save.gd")
 
 const CATCHES := 2000
@@ -123,14 +124,22 @@ func _run_cached(gear: Dictionary) -> float:
 func _simulate(gear: Dictionary) -> float:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED
+	var vrng := RandomNumberGenerator.new()
+	vrng.seed = SEED + 17
 	var caught := {}
+	var seen := {}
 	var dry_r := 0
 	var dry_l := 0
 	var total := 0
 	for _i in CATCHES:
 		var fish: Dictionary = FishRoll.pick(_fishes, caught, dry_r, dry_l, _db, rng.randf(), gear)
-		total += ShopSave.payout(int(fish.get("value", 0)), gear)
 		var id := str(fish.get("id", ""))
+		var known: Array = seen.get(id, [])
+		var roll := FishVariants.roll(known, vrng)
+		var found: Dictionary = FishVariants.discover(known, str(roll.get("size", "normal")), str(roll.get("color", "normal")))
+		seen[id] = found.get("seen", known)
+		var priced := FishVariants.coin_value(int(fish.get("value", 0)), str(roll.get("size", "normal")), str(roll.get("color", "normal")))
+		total += ShopSave.payout(priced, gear)
 		caught[id] = int(caught.get(id, 0)) + 1
 		var nxt: Dictionary = FishRoll.note_catch(str(fish.get("rarity", "common")), dry_r, dry_l)
 		dry_r = int(nxt.get("dry_rare", 0))

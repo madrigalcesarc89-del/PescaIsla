@@ -10,6 +10,7 @@ const SAVE_PATH := "user://save.json"
 const DB_PATH := "res://data/fish_db.json"
 const STRINGS_PATH := "res://data/strings.json"
 const FishRoll = preload("res://scripts/fish_roll.gd")
+const FishVariants = preload("res://scripts/variants.gd")
 const AlbumSave = preload("res://scripts/album_save.gd")
 const ShopSave = preload("res://scripts/shop_save.gd")
 const TutorialScript = preload("res://ui/tutorial.gd")
@@ -95,6 +96,9 @@ var _claim_busy := false
 var _dry_rare: int = 0
 var _dry_legend: int = 0
 var _force_secret: bool = false
+var _force_size := ""
+var _force_color := ""
+var _catch_roll: Dictionary = {}
 ## Claves ajenas del JSON de guardado, para no borrarlas al reescribir.
 var _save_rest: Dictionary = {}
 var _shop_state: Dictionary = {}
@@ -362,10 +366,23 @@ func _enter(s: int) -> void:
 		var tint := Color("FFF1D6")
 		if _fight != null and _fight.has_method("rarity_color"):
 			tint = _fight.rarity_color()
+		var color_id := str(_catch_roll.get("color", "normal"))
+		if color_id == "golden":
+			tint = Color("E8C14A")
+		elif color_id == "albino":
+			tint = Color("F4D5E6")
+		elif str(_catch_roll.get("size", "")) == "giant":
+			tint = Color("FFF6D8")
 		_fx_play("sparkle", _bobber.global_position, tint)
 	if s == State.ESCAPE and _escape_reason == "break" and _bobber != null:
 		_fx_play("drip", _bobber.global_position)
 	_audio_state(s)
+	if s == State.ESCAPE:
+		var recs := _records()
+		if int(recs.get("streak", 0)) > 0:
+			recs["streak"] = 0
+			_save_rest["records"] = recs
+			_save_game()
 	_refresh_ui()
 	state_changed.emit(state)
 	_note_tutorial(prev, s)
@@ -377,14 +394,37 @@ func _vibrate_state(s: int) -> void:
 	if not SettingsData.vibration:
 		return
 	if s == State.CATCH:
-		Input.vibrate_handheld(60)
-		_catch_buzz()
+		if _catch_special():
+			Input.vibrate_handheld(80)
+			_catch_buzz_long()
+		else:
+			Input.vibrate_handheld(60)
+			_catch_buzz()
 
 
 func _catch_buzz() -> void:
 	await get_tree().create_timer(0.1).timeout
 	if SettingsData.vibration:
 		Input.vibrate_handheld(60)
+
+
+func _catch_buzz_long() -> void:
+	await get_tree().create_timer(0.13).timeout
+	if SettingsData.vibration:
+		Input.vibrate_handheld(80)
+
+
+func _catch_special() -> bool:
+	var size_id := str(_catch_roll.get("size", ""))
+	var color_id := str(_catch_roll.get("color", ""))
+	return size_id == "giant" or color_id == "golden" or color_id == "albino"
+
+
+func _jingle_rarity() -> String:
+	var rarity := str(current_fish.get("rarity", "common"))
+	if _catch_special() and (rarity == "common" or rarity == "uncommon"):
+		return "rare"
+	return rarity
 
 
 ## Sonido del estado (19e); sin AudioManager no falla.
@@ -401,7 +441,7 @@ func _audio_state(s: int) -> void:
 	elif s == State.CATCH and not current_fish.is_empty():
 		am.play_sfx("out_of_water")
 		am.play_sfx("coin")
-		am.play_jingle(str(current_fish.get("rarity", "common")))
+		am.play_jingle(_jingle_rarity())
 	_vibrate_state(s)
 	if s == State.REEL:
 		am.reel_start()
@@ -519,13 +559,67 @@ func _pick_fish() -> void:
 		var hidden := _secret_fish()
 		if not hidden.is_empty():
 			current_fish = hidden
+			_roll_catch()
 			return
 	if _tutorial_guiding():
 		var forced := _first_common_fish()
 		if not forced.is_empty():
 			current_fish = forced
+			_roll_catch()
 			return
 	current_fish = FishRoll.pick(fishes, caught, _dry_rare, _dry_legend, _db, randf(), _cast_gear, _phase_now())
+	_roll_catch()
+
+
+func _roll_catch() -> void:
+	if current_fish.is_empty():
+		_catch_roll = {}
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var fid := str(current_fish.get("id", ""))
+	var seen: Array = _meta_row(fid).get("variants_seen", [])
+	var roll := FishVariants.roll(seen, rng)
+	if OS.is_debug_build() and _force_size != "":
+		roll["size"] = _force_size
+		roll["color"] = _force_color if _force_color != "" else "normal"
+		_force_size = ""
+		_force_color = ""
+	roll["kg"] = FishVariants.sample_weight(current_fish, str(roll.get("size", "normal")), rng)
+	roll["scale"] = FishVariants.scale_of(str(roll.get("size", "normal")))
+	_catch_roll = roll
+
+
+func _meta_row(id: String) -> Dictionary:
+	var meta := _fish_meta()
+	var row = meta.get(id, {})
+	if typeof(row) != TYPE_DICTIONARY:
+		return FishVariants.empty_meta(false)
+	return row
+
+
+func _fish_meta() -> Dictionary:
+	var meta = _save_rest.get("fish_meta", {})
+	if typeof(meta) != TYPE_DICTIONARY:
+		meta = {}
+		_save_rest["fish_meta"] = meta
+	return meta
+
+
+func _records() -> Dictionary:
+	var recs = _save_rest.get("records", {})
+	if typeof(recs) != TYPE_DICTIONARY:
+		recs = FishVariants.empty_records()
+		_save_rest["records"] = recs
+	return recs
+
+
+func _earn(amount: int) -> void:
+	if amount <= 0:
+		return
+	var recs := _records()
+	recs["coins_earned"] = int(recs.get("coins_earned", 0)) + amount
+	_save_rest["records"] = recs
 
 
 func _secret_fish() -> Dictionary:
@@ -594,8 +688,11 @@ func _fight_view() -> Dictionary:
 
 func _setup_zone() -> void:
 	var gear := _cast_gear if not _cast_gear.is_empty() else ShopSave.gear(_shop_state)
+	var fish := current_fish.duplicate(true)
+	if not _catch_roll.is_empty():
+		FishVariants.apply_fight(fish, str(_catch_roll.get("size", "normal")))
 	_fight = FightScript.new()
-	_fight.configure(current_fish, gear, SettingsData.relaxed, randi())
+	_fight.configure(fish, gear, SettingsData.relaxed, randi())
 	zone_center = _fight.center
 	zone_half = _fight.half
 	zone_speed = float(current_fish.get("speed", 1.0))
@@ -631,9 +728,38 @@ func _register_catch() -> void:
 	var before := int(caught.get(fid, 0))
 	AlbumSave.stamp_first(_first_caught, fid, before)
 	caught[fid] = before + 1
-	var base_value := int(current_fish.get("value", 0))
+	var size_id := str(_catch_roll.get("size", "normal"))
+	var color_id := str(_catch_roll.get("color", "normal"))
+	var kg := float(_catch_roll.get("kg", 0.0))
+	var base_value := FishVariants.coin_value(int(current_fish.get("value", 0)), size_id, color_id)
 	_gained = ShopSave.payout(base_value, _cast_gear)
 	coins += _gained
+	var meta := _fish_meta()
+	var row := FishVariants.normalize_meta(meta.get(fid, null), false)
+	var found: Dictionary = FishVariants.discover(row.get("variants_seen", []), size_id, color_id)
+	row["variants_seen"] = found.get("seen", [])
+	var best := float(row.get("best_weight", 0.0))
+	var is_record := best <= 0.0 or kg > best + 0.0001
+	if is_record:
+		row["best_weight"] = kg
+	meta[fid] = row
+	_save_rest["fish_meta"] = meta
+	var recs := _records()
+	if kg > float(recs.get("heaviest_kg", 0.0)):
+		recs["heaviest_kg"] = kg
+		recs["heaviest_id"] = fid
+	if _gained > int(recs.get("valuable_coins", 0)):
+		recs["valuable_coins"] = _gained
+		recs["valuable_id"] = fid
+	var streak := int(recs.get("streak", 0)) + 1
+	recs["streak"] = streak
+	recs["best_streak"] = maxi(streak, int(recs.get("best_streak", 0)))
+	if _fight != null and FishVariants.is_perfect(float(_fight.line_min), float(_fight.regress)):
+		recs["perfect"] = int(recs.get("perfect", 0)) + 1
+	recs["coins_earned"] = int(recs.get("coins_earned", 0)) + _gained
+	_save_rest["records"] = recs
+	_catch_roll["record"] = is_record
+	_catch_roll["fresh"] = bool(found.get("fresh", false))
 	var nxt: Dictionary = FishRoll.note_catch(str(current_fish.get("rarity", "common")), _dry_rare, _dry_legend)
 	_dry_rare = int(nxt.get("dry_rare", 0))
 	_dry_legend = int(nxt.get("dry_legend", 0))
@@ -695,6 +821,7 @@ func _load_game() -> void:
 		print("RUN_RESET peces 0")
 	if data.is_empty():
 		_sync_shop_rest()
+		_ensure_collection()
 		return
 	var parsed := AlbumSave.read(data)
 	coins = int(parsed.get("coins", 0))
@@ -712,7 +839,15 @@ func _load_game() -> void:
 	_tutorial_done = bool(_save_rest.get("tutorial_done", false))
 	_daily_last = int(_save_rest.get("daily_last", 0))
 	_daily_streak = clampi(int(_save_rest.get("daily_streak", 0)), 0, 6)
+	_ensure_collection()
 	_sync_shop_rest()
+
+
+func _ensure_collection() -> void:
+	if typeof(_save_rest.get("fish_meta", null)) != TYPE_DICTIONARY:
+		_save_rest["fish_meta"] = {}
+	if typeof(_save_rest.get("records", null)) != TYPE_DICTIONARY:
+		_save_rest["records"] = FishVariants.empty_records()
 
 
 func _sync_shop_rest() -> void:
@@ -801,6 +936,12 @@ func _build_ui() -> void:
 	_album.gift_reset_requested.connect(_on_debug_gift_reset)
 	if _album.has_signal("force_secret_requested"):
 		_album.force_secret_requested.connect(_on_album_force_secret)
+	if _album.has_signal("force_variant_requested"):
+		_album.force_variant_requested.connect(_on_force_variant)
+	if _album.has_signal("unlock_variants_requested"):
+		_album.unlock_variants_requested.connect(_on_unlock_variants)
+	if _album.has_signal("mastery_requested"):
+		_album.mastery_requested.connect(_on_mastery)
 	_album.seen_committed.connect(_on_album_seen)
 	_album.closed.connect(_on_album_closed)
 	_settings = load("res://scenes/ui/settings_panel.tscn").instantiate()
@@ -847,7 +988,7 @@ func _build_ui() -> void:
 
 
 func _bind_album() -> void:
-	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing, _fish_meta(), _records())
 
 
 func _on_album_seen(seen: Dictionary) -> void:
@@ -882,6 +1023,8 @@ func _on_album_claim(rarity: String) -> void:
 		return
 	coins = int(result["coins"])
 	_claimed = result["claimed"]
+	if result.has("rest") and typeof(result["rest"]) == TYPE_DICTIONARY:
+		_save_rest = result["rest"]
 	_refresh_ui()
 	_bind_album()
 	_album.refresh_deferred()
@@ -917,9 +1060,11 @@ func _on_album_reset() -> void:
 	_seen_missing = false
 	_dry_rare = 0
 	_dry_legend = 0
+	_save_rest["fish_meta"] = {}
+	_save_rest["records"] = FishVariants.empty_records()
 	_save_game()
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing, _fish_meta(), _records())
 	_album.open_album()
 
 
@@ -935,8 +1080,55 @@ func _on_album_unlock() -> void:
 			caught[id] = 1
 	_save_game()
 	_refresh_ui()
-	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing)
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing, _fish_meta(), _records())
 	_album.open_album()
+
+
+func _on_unlock_variants() -> void:
+	if not OS.is_debug_build():
+		return
+	var meta := _fish_meta()
+	for fish in fishes:
+		var id := str(fish.get("id", ""))
+		if id == "":
+			continue
+		if int(caught.get(id, 0)) <= 0:
+			AlbumSave.stamp_first(_first_caught, id, 0)
+			caught[id] = 1
+		var row := FishVariants.normalize_meta(meta.get(id, null), false)
+		row["variants_seen"] = FishVariants.ORDER.duplicate()
+		meta[id] = row
+	_save_rest["fish_meta"] = meta
+	_save_game()
+	_refresh_ui()
+	_album.setup(fishes, caught, _first_caught, _claimed, _db, _album_seen, _seen_missing, _fish_meta(), _records())
+	_album.open_album()
+
+
+func _on_force_variant(size_id: String, color_id: String) -> void:
+	if not OS.is_debug_build():
+		return
+	_force_size = size_id
+	_force_color = color_id
+
+
+func _on_mastery(id: String) -> void:
+	if _claim_busy:
+		return
+	_claim_busy = true
+	var pity := {"dry_rare": _dry_rare, "dry_legend": _dry_legend}
+	var result: Dictionary = AlbumSave.commit_mastery(SAVE_PATH, coins, caught, _first_caught, _claimed, pity, _save_rest, _album_seen, fishes, id)
+	_claim_busy = false
+	if not bool(result.get("ok", false)):
+		return
+	coins = int(result["coins"])
+	_save_rest = result["rest"]
+	_refresh_ui()
+	_bind_album()
+	_album.refresh_deferred()
+	_album.play_reward(int(result["added"]))
+	if _album.has_method("refresh_detail"):
+		_album.refresh_detail(id)
 
 
 func _on_album_force_secret() -> void:
@@ -1355,6 +1547,7 @@ func _on_gift_claim() -> void:
 	var amount := int(result.get("coins", 0))
 	var before := coins
 	coins += amount
+	_earn(amount)
 	_daily_last = int(result.get("last", now))
 	_daily_streak = int(result.get("streak", 0))
 	_save_rest["daily_last"] = _daily_last
@@ -1484,6 +1677,8 @@ func _refresh_ui() -> void:
 			"+%d %s" % [_gained, SettingsData.t("coins").to_lower()],
 			fish_text(current_fish, "description"),
 			extra)
+		if _fishcard.has_method("show_catch_extras"):
+			_fishcard.show_catch_extras(_catch_extra())
 		_spawn_float_gain(_gained)
 	elif state == State.ESCAPE:
 		var why := "escape_tired" if _escape_reason == "tired" else "escape_break"
@@ -1518,6 +1713,24 @@ func _process_ui(_delta: float) -> void:
 		_tutorial.set_cat_anchor(_cat_screen())
 
 
+func _catch_extra() -> Dictionary:
+	var size_id := str(_catch_roll.get("size", "normal"))
+	var color_id := str(_catch_roll.get("color", "normal"))
+	var tags: Array = []
+	if size_id != "" and size_id != "normal":
+		tags.append(SettingsData.t("variant_" + size_id))
+	if color_id != "" and color_id != "normal":
+		tags.append(SettingsData.t("variant_" + color_id))
+	return {
+		"tags": " · ".join(tags),
+		"weight": FishVariants.format_weight(float(_catch_roll.get("kg", 0.0))),
+		"record": bool(_catch_roll.get("record", false)),
+		"fresh": bool(_catch_roll.get("fresh", false)),
+		"color": color_id,
+		"scale": float(_catch_roll.get("scale", 1.0)),
+	}
+
+
 func debug_force(id: String) -> void:
 	for fish in fishes:
 		if typeof(fish) != TYPE_DICTIONARY:
@@ -1525,6 +1738,7 @@ func debug_force(id: String) -> void:
 		if str(fish.get("id", "")) != id:
 			continue
 		current_fish = fish
+		_roll_catch()
 		_cast_gear = ShopSave.gear(_shop_state)
 		_setup_zone()
 		if _fight != null:
@@ -1574,6 +1788,7 @@ func _finish_tutorial(reward: bool) -> void:
 		amount = TUTORIAL_BONUS
 		var before := coins
 		coins += amount
+		_earn(amount)
 		_save_rest["tutorial_rewarded"] = true
 		if _hud != null:
 			_hud.animate_coins(before, coins)

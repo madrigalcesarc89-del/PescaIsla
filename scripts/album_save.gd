@@ -2,6 +2,8 @@ extends RefCounted
 ## Guardado del álbum. Los JSON viejos solo traen caught como enteros:
 ## se rellenan first_caught y claimed sin perder monedas ni otras claves.
 
+const FishVariants = preload("res://scripts/variants.gd")
+
 const RARITIES := ["common", "uncommon", "rare", "epic", "legendary", "secret"]
 const REWARD_RARITIES := ["common", "uncommon", "rare", "epic", "legendary"]
 const LEGACY_KEYS := ["common", "uncommon", "rare", "legendary"]
@@ -63,13 +65,25 @@ static func read(data: Dictionary) -> Dictionary:
 		pity["dry_rare"] = maxi(0, int(pity_in.get("dry_rare", 0)))
 		pity["dry_legend"] = maxi(0, int(pity_in.get("dry_legend", 0)))
 	var rest := data.duplicate(true)
-	for key in ["coins", "caught", "album", "claimed", "pity", "album_seen"]:
+	for key in ["coins", "caught", "album", "claimed", "pity", "album_seen", "fish_meta", "records"]:
 		rest.erase(key)
 	var seen := {}
 	var seen_src = data.get("album_seen", {})
 	if typeof(seen_src) == TYPE_DICTIONARY:
 		for k in seen_src.keys():
 			seen[str(k)] = maxi(0, int(seen_src[k]))
+	var meta := {}
+	var meta_src = data.get("fish_meta", {})
+	if typeof(meta_src) == TYPE_DICTIONARY:
+		for k in meta_src.keys():
+			meta[str(k)] = FishVariants.normalize_meta(meta_src[k], false)
+	for id in caught.keys():
+		if int(caught[id]) <= 0 or meta.has(str(id)):
+			continue
+		meta[str(id)] = FishVariants.normalize_meta(null, true)
+	rest["fish_meta"] = meta
+	var had_records := data.has("records") and typeof(data.get("records")) == TYPE_DICTIONARY
+	rest["records"] = FishVariants.normalize_records(data.get("records") if had_records else null, int(data.get("coins", 0)))
 	return {
 		"coins": int(data.get("coins", 0)),
 		"caught": caught,
@@ -142,7 +156,7 @@ static func apply_fresh_run(data: Dictionary) -> Dictionary:
 		return data
 	var parsed: Dictionary = read(data)
 	var rest: Dictionary = parsed.get("rest", {})
-	for key in ["run_epoch", "tutorial_done", "tutorial_rewarded", "daily_last", "daily_streak", "owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed", "decor_off"]:
+	for key in ["run_epoch", "tutorial_done", "tutorial_rewarded", "daily_last", "daily_streak", "owned", "equipped_rod", "equipped_bait", "bait_qty", "decor_placed", "decor_off", "fish_meta", "records"]:
 		rest.erase(key)
 	var body := payload(0, {}, {}, empty_claimed(), {"dry_rare": 0, "dry_legend": 0}, rest, {})
 	body["run_epoch"] = RUN_EPOCH
@@ -204,11 +218,12 @@ static func commit_claim(path: String, coins: int, caught: Dictionary, first: Di
 	var new_coins := int(coins) + amount
 	var new_claimed: Dictionary = claimed.duplicate(true)
 	new_claimed[claim_key(rarity)] = true
-	var body := payload(new_coins, caught, first, new_claimed, pity, rest, seen)
+	var new_rest := _add_earned(rest, amount)
+	var body := payload(new_coins, caught, first, new_claimed, pity, new_rest, seen)
 	var err := atomic_write(path, JSON.stringify(body))
 	if err != OK:
 		return same
-	return {"ok": true, "coins": new_coins, "claimed": new_claimed, "added": amount}
+	return {"ok": true, "coins": new_coins, "claimed": new_claimed, "added": amount, "rest": new_rest}
 
 
 static func extra_claim_coins(fishes: Array, caught: Dictionary, claimed: Dictionary, db: Dictionary) -> int:
@@ -235,6 +250,52 @@ static func commit_repair(path: String, coins: int, caught: Dictionary, first: D
 	if err != OK:
 		return {"ok": false, "coins": coins, "claimed": claimed, "extra": 0}
 	return {"ok": true, "coins": new_coins, "claimed": new_claimed, "extra": extra}
+
+
+static func commit_mastery(path: String, coins: int, caught: Dictionary, first: Dictionary, claimed: Dictionary, pity: Dictionary, rest: Dictionary, seen: Dictionary, fishes: Array, fish_id: String) -> Dictionary:
+	var same := {"ok": false, "coins": coins, "rest": rest, "added": 0}
+	var meta = rest.get("fish_meta", {})
+	if typeof(meta) != TYPE_DICTIONARY or not (meta as Dictionary).has(fish_id):
+		return same
+	var row = (meta as Dictionary).get(fish_id, {})
+	if typeof(row) != TYPE_DICTIONARY:
+		return same
+	var variants = (row as Dictionary).get("variants_seen", [])
+	if typeof(variants) != TYPE_ARRAY or not FishVariants.mastery_ready(variants):
+		return same
+	if bool((row as Dictionary).get("mastery_claimed", false)):
+		return same
+	var rarity := ""
+	for fish in fishes:
+		if typeof(fish) != TYPE_DICTIONARY:
+			continue
+		if str(fish.get("id", "")) == fish_id:
+			rarity = str(fish.get("rarity", ""))
+			break
+	if rarity == "":
+		return same
+	var amount := FishVariants.mastery_reward(rarity)
+	var new_rest: Dictionary = rest.duplicate(true)
+	var new_meta: Dictionary = new_rest.get("fish_meta", {})
+	var new_row: Dictionary = (new_meta.get(fish_id, {}) as Dictionary).duplicate(true)
+	new_row["mastery_claimed"] = true
+	new_meta[fish_id] = new_row
+	new_rest["fish_meta"] = new_meta
+	new_rest = _add_earned(new_rest, amount)
+	var new_coins := int(coins) + amount
+	var body := payload(new_coins, caught, first, claimed, pity, new_rest, seen)
+	var err := atomic_write(path, JSON.stringify(body))
+	if err != OK:
+		return same
+	return {"ok": true, "coins": new_coins, "rest": new_rest, "added": amount}
+
+
+static func _add_earned(rest: Dictionary, amount: int) -> Dictionary:
+	var out := rest.duplicate(true)
+	var rec := FishVariants.normalize_records(out.get("records", {}), 0)
+	rec["coins_earned"] = int(rec.get("coins_earned", 0)) + maxi(0, amount)
+	out["records"] = rec
+	return out
 
 
 static func atomic_write(path: String, text: String) -> int:

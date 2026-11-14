@@ -58,6 +58,8 @@ var _up := 0.9
 var _down := 0.7
 var _started := false
 var _ghost_alpha := 0.12
+var line_min := 1.0
+var regress := 0.0
 
 
 func configure(fish: Dictionary, gear: Dictionary, relaxed: bool, seed_v: int) -> void:
@@ -92,6 +94,8 @@ func begin() -> void:
 	progress = 0.0
 	marker = 0.0
 	line = 1.0
+	line_min = 1.0
+	regress = 0.0
 	elapsed = 0.0
 	alpha = 1.0
 	blink = 0.0
@@ -158,6 +162,7 @@ func _tick(dt: float, holding: bool) -> void:
 		marker = maxf(0.0, marker - down * dt)
 	var top := center + half
 	var bot := center - half
+	var before := progress
 	if marker >= bot and marker <= top:
 		progress += dt / maxf(fight_time, 0.1)
 	elif marker < bot:
@@ -168,6 +173,8 @@ func _tick(dt: float, holding: bool) -> void:
 		else:
 			progress -= float(_cfg.get("progress_down", 0.12)) * dt
 	progress = clampf(progress, 0.0, 1.0)
+	if progress < before:
+		regress += before - progress
 	var over := float(_cfg.get("line_over", 0.05))
 	if marker > top + over:
 		var drain := float(_cfg.get("line_drain", 0.25)) * pull * _drain_mult
@@ -176,6 +183,7 @@ func _tick(dt: float, holding: bool) -> void:
 	else:
 		line += float(_cfg.get("line_recover", 0.15)) * dt
 	line = clampf(line, 0.0, 1.0)
+	line_min = minf(line_min, line)
 	if line <= 0.0:
 		if _shield > 0:
 			_shield -= 1

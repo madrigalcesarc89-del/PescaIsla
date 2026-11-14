@@ -3,6 +3,7 @@ extends SceneTree
 ## Godot --headless --path . --script res://tools/save_migrate_test.gd
 
 const AlbumSave = preload("res://scripts/album_save.gd")
+const FishVariants = preload("res://scripts/variants.gd")
 
 
 func _init() -> void:
@@ -21,6 +22,13 @@ func _init() -> void:
 	_expect(parsed["claimed"]["common"] == false, "premio sin reclamar")
 	_expect(int(parsed["pity"]["dry_rare"]) == 4, "pity raro")
 	_expect(str(parsed["rest"].get("rod", "")) == "bamboo", "clave ajena")
+	var meta: Dictionary = parsed["rest"]["fish_meta"]
+	_expect((meta["fish_pink_sardine"]["variants_seen"] as Array).has("normal"), "sardina vieja ve normal")
+	_expect(is_equal_approx(float(meta["fish_pink_sardine"]["best_weight"]), 0.0), "sardina sin récord")
+	_expect((meta["fish_moon"]["variants_seen"] as Array).has("normal"), "luna vieja ve normal")
+	_expect(not meta.has("fish_lanternfish"), "no inventa especies sin capturar")
+	_expect(int(parsed["rest"]["records"]["coins_earned"]) == 42, "monedas ganadas heredan el saldo")
+	_expect(str(parsed["rest"]["records"]["heaviest_id"]) == "", "sin récord global")
 	_expect(bool(parsed["seen_missing"]), "guardado viejo sin album_seen")
 	_expect(parsed["album_seen"].is_empty(), "visto vacío en guardado viejo")
 	var hidden: Dictionary = AlbumSave.news_and_next({}, parsed["caught"], true)
@@ -103,6 +111,7 @@ func _init() -> void:
 	_expect(int(wiped["coins"]) == 0 and wiped["caught"].is_empty(), "la partida vieja se vacía")
 	_expect(not wiped.has("tutorial_done") and not wiped.has("owned") and not wiped.has("decor_placed"), "tutorial y tienda vuelven al inicio")
 	_expect(not wiped.has("daily_last"), "el regalo diario vuelve a cero")
+	_expect(not wiped.has("fish_meta") and not wiped.has("records"), "la partida nueva no hereda variantes")
 	fresh["caught"] = {"fish_moon": 1}
 	fresh["coins"] = 9
 	var kept: Dictionary = AlbumSave.apply_fresh_run(fresh)
@@ -116,6 +125,42 @@ func _init() -> void:
 	_expect(is_equal_approx(float(db["secret_chance"]), 0.03), "secreto al 3%")
 	var pity: Dictionary = db["pity"]
 	_expect(int(pity["discovery_mult"]) == 2 and int(pity["rare_after"]) == 25 and int(pity["legend_after"]) == 80, "bonus y mala suerte")
+	var rich: Dictionary = body.duplicate(true)
+	rich["fish_meta"] = {
+		"fish_pink_sardine": {"best_weight": 1.25, "variants_seen": ["small", "golden"], "mastery_claimed": false},
+		"fish_moon": {"best_weight": 0.2, "variants_seen": ["normal"], "mastery_claimed": true},
+	}
+	rich["records"] = {
+		"heaviest_id": "fish_pink_sardine", "heaviest_kg": 1.25,
+		"valuable_id": "fish_moon", "valuable_coins": 9,
+		"streak": 3, "best_streak": 4, "perfect": 2, "coins_earned": 100,
+	}
+	var kept_meta: Dictionary = AlbumSave.read(rich)
+	_expect(is_equal_approx(float(kept_meta["rest"]["fish_meta"]["fish_pink_sardine"]["best_weight"]), 1.25), "conserva el peso")
+	_expect((kept_meta["rest"]["fish_meta"]["fish_pink_sardine"]["variants_seen"] as Array).has("golden"), "conserva dorado")
+	_expect(bool(kept_meta["rest"]["fish_meta"]["fish_moon"]["mastery_claimed"]), "conserva la maestría")
+	_expect(int(kept_meta["rest"]["records"]["perfect"]) == 2, "conserva perfectas")
+	_expect(int(kept_meta["rest"]["records"]["coins_earned"]) == 100, "no pisa monedas ganadas")
+	var written: Dictionary = AlbumSave.payload(kept_meta["coins"], kept_meta["caught"], kept_meta["first_caught"], kept_meta["claimed"], kept_meta["pity"], kept_meta["rest"], kept_meta["album_seen"])
+	var again_meta: Dictionary = AlbumSave.read(written)
+	_expect(is_equal_approx(float(again_meta["rest"]["fish_meta"]["fish_pink_sardine"]["best_weight"]), 1.25), "el peso sobrevive al guardar")
+	var order: Array = FishVariants.ORDER.duplicate()
+	var rest := {
+		"fish_meta": {"fish_moon": {"best_weight": 0.4, "variants_seen": order, "mastery_claimed": false}},
+		"records": FishVariants.empty_records(),
+	}
+	var path := "user://variant_migrate_test.json"
+	var claimed: Dictionary = AlbumSave.empty_claimed()
+	var pity0 := {"dry_rare": 0, "dry_legend": 0}
+	var first_pay: Dictionary = AlbumSave.commit_mastery(path, 10, {"fish_moon": 2}, {"fish_moon": "2026-01-02"}, claimed, pity0, rest, {}, fishes, "fish_moon")
+	var reward := FishVariants.mastery_reward("common")
+	_expect(bool(first_pay.get("ok", false)), "reclama la maestría")
+	_expect(int(first_pay.get("coins", 0)) == 10 + reward, "suma el premio una vez")
+	_expect(bool(first_pay["rest"]["fish_meta"]["fish_moon"]["mastery_claimed"]), "marca cobrada")
+	var second: Dictionary = AlbumSave.commit_mastery(path, int(first_pay["coins"]), {"fish_moon": 2}, {"fish_moon": "2026-01-02"}, claimed, pity0, first_pay["rest"], {}, fishes, "fish_moon")
+	_expect(not bool(second.get("ok", false)), "no cobra dos veces")
+	_expect(int(second.get("coins", 0)) == int(first_pay["coins"]), "el segundo intento no suma")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	if _fail == 0:
 		print("SAVE_MIGRATE_OK")
 		quit(0)

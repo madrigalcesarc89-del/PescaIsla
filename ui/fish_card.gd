@@ -5,6 +5,9 @@ extends Control
 ## cabe el botón con 24 px de aire).
 
 signal continued
+signal mastery_requested(id: String)
+
+const FishVariants = preload("res://scripts/variants.gd")
 
 const HALO_MOD := {
 	"frame_common": Color(1.0, 0.82, 0.62, 0.38),
@@ -32,6 +35,19 @@ const ARM_SEC := 0.85
 var _continue_ready := false
 var _arm_token := 0
 var _forcing := false
+var _size_scale := 1.0
+var _animate_variant := false
+var _shine := 0.35
+var _variant_mat: ShaderMaterial
+var _tags: Label
+var _weight: Label
+var _ribbon: PanelContainer
+var _ribbon_label: Label
+var _new_var: Label
+var _sheet: VBoxContainer
+var _sheet_on := false
+var _sheet_spec: Dictionary = {}
+var _chips: Dictionary = {}
 
 @onready var _dim: ColorRect = $Dim
 @onready var _center: Control = $Center
@@ -108,11 +124,15 @@ func _ready() -> void:
 	_blurb.get_parent().add_child(_extra)
 	_blurb.get_parent().move_child(_extra, _blurb.get_index() + 1)
 	_value_center = _value_label.get_parent().get_parent().get_parent()
+	_build_variant_ui()
 	_apply_metrics()
 	call_deferred("_apply_metrics")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _animate_variant and _variant_mat != null and _fish != null and _fish.material == _variant_mat:
+		_shine = fposmod(_shine + delta * 0.28, 1.0)
+		_variant_mat.set_shader_parameter("shine", _shine)
 	if _forcing or not visible or _box == null:
 		return
 	var vp := _viewport_canvas_size()
@@ -178,6 +198,7 @@ func _paint_text(lab: Label) -> void:
 
 
 func show_fish(frame_key: String, tex: Texture2D, name_text: String, badge_text: String, value_text: String, blurb: String = "", extra: String = "") -> void:
+	_clear_variant_ui()
 	_frame_key = frame_key
 	var frames: Dictionary = _layout.get("frames", {})
 	var fr: Dictionary = frames.get(frame_key, {})
@@ -414,7 +435,12 @@ func _apply_metrics() -> void:
 	var aspect := maxf(_art_aspect, 0.45)
 	var fw := win_w * 0.84
 	var fh := fw / aspect
-	var max_h := win_h * 0.40
+	var art_frac := 0.40
+	if _sheet_on:
+		art_frac = 0.2
+	elif (_tags != null and _tags.visible) or (_ribbon != null and _ribbon.visible):
+		art_frac = 0.28
+	var max_h := win_h * art_frac
 	if fh > max_h:
 		fh = max_h
 		fw = fh * aspect
@@ -456,6 +482,15 @@ func _apply_metrics() -> void:
 		_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiFit.fit_label(_extra, safe_w, 3, 18, 28)
 		_paint_text(_extra)
+	_fit_line(_tags, safe_w, 2, 16, 26)
+	_fit_line(_weight, safe_w, 1, 18, 28)
+	_fit_line(_new_var, safe_w, 1, 16, 26)
+	if _ribbon != null and _ribbon.visible and _ribbon_label != null:
+		UiFit.fit_label(_ribbon_label, maxf(40.0, safe_w - 28.0), 1, 14, 24)
+		_paint_text(_ribbon_label)
+		var rpx := _ribbon_label.get_theme_font_size("font_size")
+		_ribbon.custom_minimum_size = Vector2(safe_w, rpx + 18)
+	_fit_sheet(safe_w)
 	var value_room := maxf(80.0, safe_w - coin - 36.0)
 	_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_value_label.clip_text = false
@@ -538,10 +573,17 @@ func _fit_fish_art() -> void:
 		return
 	var content := Vector2(used.size) / Vector2(tex_size)
 	var origin := Vector2(used.position) / Vector2(tex_size)
-	var fill := 0.9
-	var zoom := minf(fill / content.x, fill / content.y)
 	var center := origin + content * 0.5
-	var pos := Vector2(0.5, 0.5) - center * zoom
+	var fill := 0.88 * maxf(_size_scale, 0.5)
+	var zoom := 1.0
+	var pos := Vector2.ZERO
+	for _step in 6:
+		zoom = minf(fill / content.x, fill / content.y)
+		pos = Vector2(0.5, 0.5) - center * zoom
+		var inside := pos.x >= -0.001 and pos.y >= -0.001 and pos.x + zoom <= 1.001 and pos.y + zoom <= 1.001
+		if inside:
+			break
+		fill *= 0.9
 	_fish.anchor_left = pos.x
 	_fish.anchor_top = pos.y
 	_fish.anchor_right = pos.x + zoom
@@ -645,4 +687,282 @@ func measure() -> Dictionary:
 		"name_used_w": name_used,
 		"card_width_frac": frame_r.size.x / maxf(get_viewport_rect().size.x, 1.0),
 		"fish_of_window": fish_r.size.x / maxf(win.size.x, 1.0),
+		"tags": _rect_of(_tags),
+		"weight": _rect_of(_weight),
+		"ribbon": _rect_of(_ribbon),
+		"new_variant": _rect_of(_new_var),
+		"sheet": _rect_of(_sheet),
 	}
+
+
+
+func _rect_of(node: Control) -> Rect2:
+	if node == null or not node.visible:
+		return Rect2()
+	return node.get_global_rect()
+
+
+func _build_variant_ui() -> void:
+	var box := _blurb.get_parent()
+	_tags = _make_line("VariantTags")
+	box.add_child(_tags)
+	box.move_child(_tags, _name_label.get_index() + 1)
+	_weight = _make_line("WeightLine")
+	box.add_child(_weight)
+	box.move_child(_weight, _tags.get_index() + 1)
+	_ribbon = PanelContainer.new()
+	_ribbon.name = "RecordRibbon"
+	_ribbon.visible = false
+	_ribbon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ribbon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("E8C14A")
+	style.set_corner_radius_all(16)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	_ribbon.add_theme_stylebox_override("panel", style)
+	_ribbon_label = _make_line("RecordText")
+	_ribbon_label.visible = true
+	_ribbon.add_child(_ribbon_label)
+	box.add_child(_ribbon)
+	box.move_child(_ribbon, _value_center.get_index() + 1)
+	_new_var = _make_line("NewVariant")
+	box.add_child(_new_var)
+	box.move_child(_new_var, _ribbon.get_index() + 1)
+	_sheet = VBoxContainer.new()
+	_sheet.name = "VariantSheet"
+	_sheet.visible = false
+	_sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sheet.alignment = BoxContainer.ALIGNMENT_CENTER
+	_sheet.add_theme_constant_override("separation", 8)
+	_sheet.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(_sheet)
+
+
+func _make_line(node_name: String) -> Label:
+	var lab := Label.new()
+	lab.name = node_name
+	lab.visible = false
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return lab
+
+
+func _fit_line(lab: Label, width: float, lines: int, min_px: int, start: int) -> void:
+	if lab == null or not lab.visible:
+		return
+	lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if lines > 1 else TextServer.AUTOWRAP_OFF
+	UiFit.fit_label(lab, width, lines, min_px, start)
+	_paint_text(lab)
+	var px := lab.get_theme_font_size("font_size")
+	var font := lab.get_theme_font("font")
+	var used := 1
+	if font != null and px > 0:
+		var sz := font.get_multiline_string_size(lab.text, HORIZONTAL_ALIGNMENT_CENTER, width, px)
+		used = clampi(int(ceil(sz.y / float(maxf(px, 1)))), 1, lines)
+	lab.custom_minimum_size = Vector2(width, px * used + 6)
+
+
+func _clear_variant_ui() -> void:
+	_sheet_on = false
+	_sheet_spec = {}
+	_size_scale = 1.0
+	_animate_variant = false
+	_chips = {}
+	_set_shader("normal", false)
+	for lab in [_tags, _weight, _new_var]:
+		if lab != null:
+			lab.visible = false
+			lab.text = ""
+	if _ribbon != null:
+		_ribbon.visible = false
+	if _sheet != null:
+		_sheet.visible = false
+		for child in _sheet.get_children():
+			_sheet.remove_child(child)
+			child.free()
+
+
+func show_catch_extras(spec: Dictionary) -> void:
+	_size_scale = float(spec.get("scale", 1.0))
+	_set_shader(str(spec.get("color", "normal")), true)
+	if _tags != null:
+		_tags.text = str(spec.get("tags", ""))
+		_tags.visible = _tags.text != ""
+	if _weight != null:
+		_weight.text = str(spec.get("weight", ""))
+		_weight.visible = _weight.text != ""
+	if _ribbon != null:
+		_ribbon.visible = bool(spec.get("record", false))
+		if _ribbon_label != null:
+			_ribbon_label.text = SettingsData.t("record_new")
+			_ribbon_label.visible = true
+	if _new_var != null:
+		_new_var.visible = bool(spec.get("fresh", false))
+		_new_var.text = SettingsData.t("variant_new")
+	_apply_metrics()
+
+
+func show_sheet(spec: Dictionary) -> void:
+	_sheet_spec = spec.duplicate(true)
+	_sheet_on = true
+	_size_scale = float(spec.get("scale", 1.0))
+	_set_shader(str(spec.get("color", "normal")), true)
+	if _blurb != null:
+		_blurb.visible = false
+	if _extra != null:
+		_extra.visible = false
+	if _rule != null:
+		_rule.visible = false
+	if _value_center != null:
+		_value_center.visible = false
+	for lab in [_tags, _weight, _new_var]:
+		if lab != null:
+			lab.visible = false
+	if _ribbon != null:
+		_ribbon.visible = false
+	_rebuild_sheet()
+	_apply_metrics()
+
+
+func _rebuild_sheet() -> void:
+	if _sheet == null:
+		return
+	for child in _sheet.get_children():
+		_sheet.remove_child(child)
+		child.free()
+	_chips = {}
+	_sheet.visible = true
+	var grid := GridContainer.new()
+	grid.name = "VariantGrid"
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var seen: Array = _sheet_spec.get("seen", [])
+	for id in FishVariants.ORDER:
+		var btn := Button.new()
+		btn.name = "Var_" + str(id)
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.clip_text = true
+		var have := seen.has(id)
+		btn.text = ("✓ " + SettingsData.t("variant_" + str(id))) if have else "?"
+		btn.set_meta("have", have)
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP if have else Control.MOUSE_FILTER_IGNORE
+		if have:
+			btn.pressed.connect(_on_variant_chip.bind(str(id)))
+		grid.add_child(btn)
+		_chips[str(id)] = btn
+	_sheet.add_child(grid)
+	var lines = _sheet_spec.get("lines", [])
+	if typeof(lines) == TYPE_ARRAY:
+		var n := 0
+		for line in lines:
+			var lab := _make_line("SheetLine%d" % n)
+			lab.visible = true
+			lab.text = str(line)
+			_sheet.add_child(lab)
+			n += 1
+	var claim := str(_sheet_spec.get("claim", ""))
+	if claim != "":
+		var btn := Button.new()
+		btn.name = "MasteryClaim"
+		btn.text = claim
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.custom_minimum_size = Vector2(220, 64)
+		btn.pressed.connect(func() -> void:
+			mastery_requested.emit(str(_sheet_spec.get("id", "")))
+		)
+		_sheet.add_child(btn)
+	_paint_chips()
+
+
+func _fit_sheet(width: float) -> void:
+	if _sheet == null or not _sheet.visible:
+		return
+	var grid := _sheet.get_node_or_null("VariantGrid") as GridContainer
+	var bw := maxf(64.0, floorf((width - 20.0) / 3.0))
+	if grid != null:
+		for btn in grid.get_children():
+			if btn is Button:
+				(btn as Button).custom_minimum_size = Vector2(bw, 52)
+				UiFit.fit_label(btn, bw - 10.0, 2, 11, 16)
+				_paint_chip_text(btn)
+	for child in _sheet.get_children():
+		if child is Label:
+			_fit_line(child, width, 2, 14, 22)
+	var claim := _sheet.get_node_or_null("MasteryClaim") as Button
+	if claim != null:
+		claim.custom_minimum_size = Vector2(minf(width, 280.0), 64)
+		UiFit.fit_label(claim, minf(width, 260.0) - 12.0, 2, 14, 22)
+		UiFit.paint_light(claim, 22)
+
+
+func _paint_chips() -> void:
+	var selected := str(_sheet_spec.get("selected", ""))
+	for id in _chips.keys():
+		var btn := _chips[id] as Button
+		if btn == null:
+			continue
+		var have := bool(btn.get_meta("have", false))
+		var style := StyleBoxFlat.new()
+		style.set_corner_radius_all(14)
+		style.set_border_width_all(3)
+		if not have:
+			style.bg_color = Color("4A3428")
+			style.border_color = Color("3A281E")
+		elif str(id) == selected:
+			style.bg_color = Color("FFF1D6")
+			style.border_color = Color("E8C14A")
+		else:
+			style.bg_color = Color("FFF6E8")
+			style.border_color = Color("E3B792")
+		for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+			btn.add_theme_stylebox_override(state_name, style)
+		_paint_chip_text(btn)
+
+
+func _paint_chip_text(btn: Button) -> void:
+	var have := bool(btn.get_meta("have", false))
+	var col := Color("FFF1D6") if not have else Color(0.353, 0.239, 0.169)
+	btn.add_theme_color_override("font_color", col)
+	btn.add_theme_color_override("font_hover_color", col)
+	btn.add_theme_color_override("font_pressed_color", col)
+	btn.add_theme_color_override("font_disabled_color", col)
+	btn.add_theme_constant_override("outline_size", 0)
+
+
+func _on_variant_chip(id: String) -> void:
+	_sheet_spec["selected"] = id
+	if FishVariants.SIZE_IDS.has(id):
+		_size_scale = FishVariants.scale_of(id)
+		_set_shader("normal", true)
+	else:
+		_size_scale = FishVariants.scale_of("normal")
+		_set_shader(id, true)
+	_fit_fish_art()
+	_paint_chips()
+
+
+func _set_shader(color_id: String, animate: bool) -> void:
+	if _fish == null:
+		return
+	var which := FishVariants.shader_variant(color_id)
+	var audit := OS.get_environment("CARD_AUDIT") == "1"
+	_animate_variant = animate and which != 0 and not audit
+	if which == 0:
+		_fish.material = null
+		return
+	if _variant_mat == null:
+		_variant_mat = ShaderMaterial.new()
+		_variant_mat.shader = load("res://shaders/fish_variant.gdshader")
+	_fish.material = _variant_mat
+	_variant_mat.set_shader_parameter("variant", which)
+	if not _animate_variant:
+		_shine = 0.35
+	_variant_mat.set_shader_parameter("shine", _shine)

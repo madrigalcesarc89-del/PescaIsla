@@ -737,6 +737,98 @@
     "shop_fx_shield": {
       "es": "Un escudo por pelea",
       "en": "One shield per fight"
+    },
+    "variant_small": {
+      "es": "Pequeño",
+      "en": "Small"
+    },
+    "variant_normal": {
+      "es": "Normal",
+      "en": "Normal"
+    },
+    "variant_large": {
+      "es": "Grande",
+      "en": "Large"
+    },
+    "variant_giant": {
+      "es": "Gigante",
+      "en": "Giant"
+    },
+    "variant_golden": {
+      "es": "Dorado",
+      "en": "Golden"
+    },
+    "variant_albino": {
+      "es": "Albino",
+      "en": "Albino"
+    },
+    "variant_new": {
+      "es": "¡Nueva variante!",
+      "en": "New variant!"
+    },
+    "record_new": {
+      "es": "¡Nuevo récord!",
+      "en": "New record!"
+    },
+    "album_best": {
+      "es": "Mejor peso: %s",
+      "en": "Best weight: %s"
+    },
+    "album_times": {
+      "es": "Capturado %d veces",
+      "en": "Caught %d times"
+    },
+    "album_first": {
+      "es": "Primera captura: %s",
+      "en": "First catch: %s"
+    },
+    "album_mastery": {
+      "es": "Reclamar +%d",
+      "en": "Claim +%d"
+    },
+    "records_title": {
+      "es": "Récords",
+      "en": "Records"
+    },
+    "record_heavy": {
+      "es": "Más pesado",
+      "en": "Heaviest"
+    },
+    "record_rich": {
+      "es": "Más valioso",
+      "en": "Most valuable"
+    },
+    "record_streak": {
+      "es": "Racha actual",
+      "en": "Current streak"
+    },
+    "record_streak_best": {
+      "es": "Mejor racha",
+      "en": "Best streak"
+    },
+    "record_perfect": {
+      "es": "Capturas perfectas",
+      "en": "Perfect catches"
+    },
+    "record_coins": {
+      "es": "Monedas ganadas",
+      "en": "Coins earned"
+    },
+    "record_variants": {
+      "es": "Variantes %d/%d",
+      "en": "Variants %d/%d"
+    },
+    "record_none": {
+      "es": "—",
+      "en": "—"
+    },
+    "debug_force_variant": {
+      "es": "Forzar tamaño y color",
+      "en": "Force size and color"
+    },
+    "debug_unlock_variants": {
+      "es": "Desbloquear todas las variantes",
+      "en": "Unlock all variants"
     }
   },
   "fish": {

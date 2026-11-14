@@ -1,0 +1,81 @@
+{
+  "sizes": {
+    "small": {
+      "chance": 0.22,
+      "weight": 0.65,
+      "value": 0.85,
+      "scale": 0.84,
+      "fight_time": 0.9,
+      "pull": 0.9
+    },
+    "normal": {
+      "chance": 0.58,
+      "weight": 1.0,
+      "value": 1.0,
+      "scale": 1.0,
+      "fight_time": 1.0,
+      "pull": 1.0
+    },
+    "large": {
+      "chance": 0.15,
+      "weight": 1.5,
+      "value": 1.18,
+      "scale": 1.1,
+      "fight_time": 1.0,
+      "pull": 1.0
+    },
+    "giant": {
+      "chance": 0.05,
+      "weight": 2.2,
+      "value": 1.55,
+      "scale": 1.18,
+      "fight_time": 1.15,
+      "pull": 1.1
+    }
+  },
+  "colors": {
+    "normal": {
+      "chance": 0.9,
+      "value": 1.0
+    },
+    "golden": {
+      "chance": 0.07,
+      "value": 1.45
+    },
+    "albino": {
+      "chance": 0.03,
+      "value": 1.85
+    }
+  },
+  "mastery_bonus": 2.0,
+  "mastery_rewards": {
+    "common": 40,
+    "uncommon": 80,
+    "rare": 150,
+    "epic": 300,
+    "legendary": 600,
+    "secret": 1000
+  },
+  "weight_classes": {
+    "tiny": {
+      "min": 0.05,
+      "max": 0.28
+    },
+    "small": {
+      "min": 0.22,
+      "max": 1.1
+    },
+    "medium": {
+      "min": 0.7,
+      "max": 4.2
+    },
+    "large": {
+      "min": 2.8,
+      "max": 16.0
+    }
+  },
+  "perfect": {
+    "line_min": 0.7,
+    "regress_max": 0.05
+  }
+}

@@ -4,6 +4,8 @@ extends Control
 
 const AlbumSave = preload("res://scripts/album_save.gd")
 const FishRoll = preload("res://scripts/fish_roll.gd")
+const FishVariants = preload("res://scripts/variants.gd")
+const StarMark = preload("res://ui/star_mark.gd")
 
 signal closed
 signal claim_requested(rarity: String)
@@ -16,6 +18,9 @@ signal shop_reset_requested
 signal tutorial_reset_requested
 signal gift_reset_requested
 signal force_secret_requested
+signal force_variant_requested(size_id: String, color_id: String)
+signal unlock_variants_requested
+signal mastery_requested(id: String)
 signal seen_committed(seen: Dictionary)
 
 const CREAM := Color("FFF1D6")
@@ -41,6 +46,8 @@ var _db: Dictionary = {}
 var _seen: Dictionary = {}
 var _seen_missing: bool = true
 var _news: Dictionary = {}
+var _meta: Dictionary = {}
+var _records: Dictionary = {}
 var _strings: Dictionary = {}
 var _card_w := CARD_W
 var _card_h := CARD_H
@@ -54,6 +61,9 @@ var _last_drag_y := 0.0
 var _last_drag_ms := 0
 var _scroll_vel := 0.0
 var _dragged := false
+var _records_layer: Control = null
+var _records_box: VBoxContainer = null
+var force_cell_color := ""
 
 @onready var _panel: Panel = $Panel
 @onready var _vbox: VBoxContainer = $Panel/VBox
@@ -103,6 +113,9 @@ func _ready() -> void:
 	_apply_margin()
 	if OS.is_debug_build():
 		_build_debug()
+	_build_records_button()
+	if _inspect.has_signal("mastery_requested"):
+		_inspect.mastery_requested.connect(func(id: String) -> void: mastery_requested.emit(id))
 	visible = false
 
 
@@ -171,7 +184,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func setup(fishes: Array, caught: Dictionary, first: Dictionary, claimed: Dictionary, db: Dictionary, seen: Dictionary = {}, seen_missing: bool = true) -> void:
+func setup(fishes: Array, caught: Dictionary, first: Dictionary, claimed: Dictionary, db: Dictionary, seen: Dictionary = {}, seen_missing: bool = true, fish_meta: Dictionary = {}, records: Dictionary = {}) -> void:
 	_fishes = fishes
 	_caught = caught
 	_first = first
@@ -179,12 +192,16 @@ func setup(fishes: Array, caught: Dictionary, first: Dictionary, claimed: Dictio
 	_db = db
 	_seen = seen
 	_seen_missing = seen_missing
+	_meta = fish_meta
+	_records = records
 	_load_strings()
 
 
 func reload_visible() -> void:
 	if is_node_ready() and visible:
 		_rebuild()
+		if _records_layer != null and _records_layer.visible:
+			_fill_records()
 
 
 func refresh_deferred() -> void:
@@ -222,6 +239,9 @@ func is_detail_open() -> bool:
 func consumes_back() -> bool:
 	if not visible:
 		return false
+	if _records_layer != null and _records_layer.visible:
+		_records_layer.visible = false
+		return true
 	if _inspect.visible:
 		_hide_detail()
 		return true
@@ -386,7 +406,7 @@ func _rebuild() -> void:
 	_count.text = "%d/%d" % [owned, _fishes.size()]
 	_paint(_title)
 	_paint(_count)
-	var title_room := maxf(80.0, _content_width() - 132.0 - 180.0)
+	var title_room := maxf(80.0, _content_width() - 132.0 - 180.0 - 104.0)
 	UiFit.fit_label(_title, title_room, 1, 32, 64)
 	UiFit.fit_label(_count, 120.0, 1, 22, 32)
 	_measure_cards()
@@ -561,6 +581,8 @@ func _make_card(fish: Dictionary) -> Button:
 	icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
 	_place(icon, 0.08, 0.06, 0.92, 0.06 + 170.0 / CARD_H)
 	btn.add_child(icon)
+	if owned:
+		_mark_variants(btn, icon, id)
 	if owned and bool(_news.get(id, false)):
 		icon.modulate = Color(0, 0, 0, 1)
 		var tw := icon.create_tween()
@@ -646,11 +668,16 @@ func _on_card(id: String) -> void:
 	var rarity := str(fish.get("rarity", "common"))
 	var tex: Texture2D = load(str(fish.get("texture", "")))
 	if not owned:
-		var missing := SettingsData.t("album_missing")
+		var extra_m := ""
 		var style_m := _style_line(fish)
 		if style_m != "":
-			missing += "\n" + style_m
-		_inspect.show_fish("frame_" + rarity, tex, "", "", "", missing, _night_line(fish))
+			extra_m = style_m
+		var night_m := _night_line(fish)
+		if night_m != "":
+			extra_m = night_m if extra_m == "" else extra_m + "\n" + night_m
+		_inspect.show_fish("frame_" + rarity, tex, "", "", "", SettingsData.t("album_missing"), extra_m)
+		if _inspect.has_method("show_sheet"):
+			_inspect.show_sheet(_sheet_spec(id, fish, false))
 	else:
 		var extra := SettingsData.t("album_catches") % int(_caught.get(id, 0))
 		var since := str(_first.get(id, ""))
@@ -671,6 +698,8 @@ func _on_card(id: String) -> void:
 			_fish_field(id, "description"),
 			extra
 		)
+		if _inspect.has_method("show_sheet"):
+			_inspect.show_sheet(_sheet_spec(id, fish, true))
 	var icon := _inspect.find_child("FishIcon", true, false) as CanvasItem
 	if icon != null:
 		icon.modulate = Color.WHITE if owned else Color(0, 0, 0, 1)
@@ -722,7 +751,7 @@ func _build_debug() -> void:
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -248.0
 	panel.offset_right = 248.0
-	panel.offset_top = -1120.0
+	panel.offset_top = -1560.0
 	panel.offset_bottom = -36.0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -824,6 +853,40 @@ func _build_debug() -> void:
 	col.add_child(tut_reset)
 	col.add_child(gift_reset)
 	col.add_child(force_secret)
+	var size_pick := OptionButton.new()
+	size_pick.name = "ForceSize"
+	size_pick.custom_minimum_size = Vector2(416, 72)
+	for size_id in FishVariants.SIZE_IDS:
+		size_pick.add_item(SettingsData.t("variant_" + str(size_id)))
+		size_pick.set_item_metadata(size_pick.item_count - 1, str(size_id))
+	var color_pick := OptionButton.new()
+	color_pick.name = "ForceColor"
+	color_pick.custom_minimum_size = Vector2(416, 72)
+	for color_id in FishVariants.COLOR_IDS:
+		color_pick.add_item(SettingsData.t("variant_" + str(color_id)))
+		color_pick.set_item_metadata(color_pick.item_count - 1, str(color_id))
+	var force_variant := Button.new()
+	force_variant.name = "ForceVariant"
+	force_variant.text = SettingsData.t("debug_force_variant")
+	force_variant.custom_minimum_size = Vector2(416, 80)
+	force_variant.pressed.connect(func() -> void:
+		var size_id := str(size_pick.get_item_metadata(size_pick.selected))
+		var color_id := str(color_pick.get_item_metadata(color_pick.selected))
+		force_variant_requested.emit(size_id, color_id)
+	)
+	_paint(force_variant)
+	UiFit.fit_label(force_variant, 390.0, 2, 16, 22)
+	var unlock_variants := Button.new()
+	unlock_variants.name = "UnlockVariants"
+	unlock_variants.text = SettingsData.t("debug_unlock_variants")
+	unlock_variants.custom_minimum_size = Vector2(416, 80)
+	unlock_variants.pressed.connect(func() -> void: unlock_variants_requested.emit())
+	_paint(unlock_variants)
+	UiFit.fit_label(unlock_variants, 390.0, 2, 16, 22)
+	col.add_child(size_pick)
+	col.add_child(color_pick)
+	col.add_child(force_variant)
+	col.add_child(unlock_variants)
 	panel.add_child(col)
 	add_child(panel)
 	_debug = panel
@@ -888,3 +951,275 @@ func _load_strings() -> void:
 
 func _paint(node: Control) -> void:
 	UiFit.paint_light(node, 32)
+
+
+
+func refresh_detail(id: String) -> void:
+	_dragged = false
+	_on_card(id)
+
+
+func _meta_row(id: String) -> Dictionary:
+	var row = _meta.get(id, {})
+	if typeof(row) != TYPE_DICTIONARY:
+		return FishVariants.empty_meta(false)
+	return row
+
+
+func _mark_variants(btn: Button, icon: TextureRect, id: String) -> void:
+	_apply_cell_shader(icon, id)
+	var list = _meta_row(id).get("variants_seen", [])
+	var n := 0
+	if typeof(list) == TYPE_ARRAY:
+		n = mini(6, (list as Array).size())
+	var count_lab := Label.new()
+	count_lab.name = "VariantCount"
+	count_lab.text = "%d/6" % n
+	count_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	count_lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	count_lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_place(count_lab, 0.04, 0.015, 0.4, 0.12)
+	_paint(count_lab)
+	UiFit.fit_label(count_lab, _card_w * 0.34, 1, 12, 16)
+	btn.add_child(count_lab)
+	if n >= 6:
+		var star := Control.new()
+		star.name = "MasteryStar"
+		star.set_script(StarMark)
+		star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_place(star, 0.38, 0.02, 0.52, 0.13)
+		btn.add_child(star)
+
+
+func _apply_cell_shader(icon: TextureRect, id: String) -> void:
+	var color_id := _cell_color(id)
+	if color_id == "normal":
+		icon.material = null
+		return
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/fish_variant.gdshader")
+	mat.set_shader_parameter("variant", FishVariants.shader_variant(color_id))
+	mat.set_shader_parameter("shine", 0.35)
+	icon.material = mat
+
+
+func _cell_color(id: String) -> String:
+	if force_cell_color != "":
+		return force_cell_color
+	var list = _meta_row(id).get("variants_seen", [])
+	if typeof(list) != TYPE_ARRAY:
+		return "normal"
+	if (list as Array).has("albino"):
+		return "albino"
+	if (list as Array).has("golden"):
+		return "golden"
+	return "normal"
+
+
+func _sheet_spec(id: String, fish: Dictionary, owned: bool) -> Dictionary:
+	var row := _meta_row(id)
+	var seen: Array = []
+	var list = row.get("variants_seen", [])
+	if typeof(list) == TYPE_ARRAY:
+		seen = list
+	var kg := float(row.get("best_weight", 0.0))
+	var best := SettingsData.t("record_none")
+	if kg > 0.0:
+		best = FishVariants.format_weight(kg)
+	var since := str(_first.get(id, ""))
+	if since == "":
+		since = SettingsData.t("record_none")
+	var lines: Array = [
+		SettingsData.t("album_best") % best,
+		SettingsData.t("album_times") % int(_caught.get(id, 0)),
+		SettingsData.t("album_first") % since,
+	]
+	if not owned:
+		lines.push_front(SettingsData.t("album_missing"))
+		var style := _style_line(fish)
+		if style != "":
+			lines.append(style)
+		var night := _night_line(fish)
+		if night != "":
+			lines.append(night)
+	var claim := ""
+	if owned and FishVariants.mastery_ready(seen) and not bool(row.get("mastery_claimed", false)):
+		claim = SettingsData.t("album_mastery") % FishVariants.mastery_reward(str(fish.get("rarity", "")))
+	var color_id := "normal"
+	var scale := 1.0
+	var selected := ""
+	if seen.has("albino"):
+		color_id = "albino"
+		selected = "albino"
+	elif seen.has("golden"):
+		color_id = "golden"
+		selected = "golden"
+	for size_id in ["giant", "large", "normal", "small"]:
+		if seen.has(size_id):
+			scale = FishVariants.scale_of(size_id)
+			if selected == "":
+				selected = size_id
+			break
+	return {
+		"id": id,
+		"seen": seen,
+		"lines": lines,
+		"claim": claim,
+		"color": color_id,
+		"scale": scale,
+		"selected": selected,
+	}
+
+
+func _variant_progress() -> Vector2i:
+	var have := 0
+	for fish in _fishes:
+		var id := str(fish.get("id", ""))
+		var list = _meta_row(id).get("variants_seen", [])
+		if typeof(list) == TYPE_ARRAY:
+			have += mini(6, (list as Array).size())
+	return Vector2i(have, _fishes.size() * 6)
+
+
+func _build_records_button() -> void:
+	var header := _title.get_parent()
+	var btn := Button.new()
+	btn.name = "RecordsBtn"
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(88, 88)
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("FFF6E8")
+	style.set_corner_radius_all(28)
+	style.set_border_width_all(3)
+	style.border_color = Color("E3B792")
+	for state_name in ["normal", "hover", "pressed", "focus"]:
+		btn.add_theme_stylebox_override(state_name, style)
+	var star := Control.new()
+	star.set_script(StarMark)
+	star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	star.set_anchors_preset(Control.PRESET_CENTER)
+	star.offset_left = -22.0
+	star.offset_top = -22.0
+	star.offset_right = 22.0
+	star.offset_bottom = 22.0
+	btn.add_child(star)
+	header.add_child(btn)
+	header.move_child(btn, _close.get_index())
+	btn.pressed.connect(_open_records)
+
+
+func _open_records() -> void:
+	_ensure_records_layer()
+	_fill_records()
+	_records_layer.visible = true
+
+
+func _ensure_records_layer() -> void:
+	if _records_layer != null:
+		return
+	_records_layer = Control.new()
+	_records_layer.name = "RecordsLayer"
+	_records_layer.visible = false
+	_fill_rect(_records_layer)
+	_records_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	var dim := ColorRect.new()
+	dim.color = Color(0.16, 0.1, 0.08, 0.4)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.anchor_right = 1.0
+	dim.anchor_bottom = 1.0
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_records_layer.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.name = "RecordsCard"
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = CREAM
+	bg.set_corner_radius_all(28)
+	bg.set_border_width_all(4)
+	bg.border_color = Color("E3B792")
+	bg.content_margin_left = 28
+	bg.content_margin_right = 28
+	bg.content_margin_top = 24
+	bg.content_margin_bottom = 24
+	panel.add_theme_stylebox_override("panel", bg)
+	_records_box = VBoxContainer.new()
+	_records_box.add_theme_constant_override("separation", 10)
+	_records_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel.add_child(_records_box)
+	_records_layer.add_child(panel)
+	add_child(_records_layer)
+
+
+func _fill_records() -> void:
+	_ensure_records_layer()
+	var view := _view_size()
+	var w := minf(640.0, maxf(280.0, view.x - 96.0))
+	var h := minf(1040.0, maxf(480.0, view.y - 160.0))
+	var panel := _records_layer.get_node("RecordsCard") as Control
+	panel.offset_left = -w * 0.5
+	panel.offset_right = w * 0.5
+	panel.offset_top = -h * 0.5
+	panel.offset_bottom = h * 0.5
+	for child in _records_box.get_children():
+		_records_box.remove_child(child)
+		child.free()
+	var title := Label.new()
+	title.name = "RecordsTitle"
+	title.text = SettingsData.t("records_title")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_paint(title)
+	_records_box.add_child(title)
+	UiFit.fit_label(title, w - 80.0, 1, 28, 48)
+	var heavy := _record_fish(str(_records.get("heaviest_id", "")))
+	var heavy_w := SettingsData.t("record_none")
+	if float(_records.get("heaviest_kg", 0.0)) > 0.0:
+		heavy_w = FishVariants.format_weight(float(_records.get("heaviest_kg", 0.0)))
+	var rich := _record_fish(str(_records.get("valuable_id", "")))
+	var rich_n := SettingsData.t("record_none")
+	if int(_records.get("valuable_coins", 0)) > 0:
+		rich_n = "+%d" % int(_records.get("valuable_coins", 0))
+	var prog := _variant_progress()
+	var rows: Array = [
+		SettingsData.t("record_heavy"),
+		"%s · %s" % [heavy, heavy_w],
+		SettingsData.t("record_rich"),
+		"%s · %s" % [rich, rich_n],
+		"%s: %d" % [SettingsData.t("record_streak"), int(_records.get("streak", 0))],
+		"%s: %d" % [SettingsData.t("record_streak_best"), int(_records.get("best_streak", 0))],
+		"%s: %d" % [SettingsData.t("record_perfect"), int(_records.get("perfect", 0))],
+		"%s: %d" % [SettingsData.t("record_coins"), int(_records.get("coins_earned", 0))],
+		SettingsData.t("record_variants") % [int(prog.x), int(prog.y)],
+	]
+	var i := 0
+	for text in rows:
+		var lab := Label.new()
+		lab.name = "RecordRow%d" % i
+		lab.text = str(text)
+		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_paint(lab)
+		_records_box.add_child(lab)
+		UiFit.fit_label(lab, w - 80.0, 2, 16, 28)
+		i += 1
+	var close := Button.new()
+	close.name = "RecordsClose"
+	close.text = SettingsData.t("album_back")
+	close.custom_minimum_size = Vector2(minf(280.0, w - 80.0), 72)
+	close.focus_mode = Control.FOCUS_NONE
+	_paint(close)
+	UiFit.fit_label(close, minf(260.0, w - 100.0), 1, 18, 28)
+	close.pressed.connect(func() -> void:
+		_records_layer.visible = false
+	)
+	_records_box.add_child(close)
+
+
+func _record_fish(id: String) -> String:
+	if id == "":
+		return SettingsData.t("record_none")
+	var name := _fish_field(id, "name")
+	if name == "":
+		return SettingsData.t("record_none")
+	return name
