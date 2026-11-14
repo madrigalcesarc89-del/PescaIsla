@@ -39,7 +39,14 @@ var _ghost_sit := 0.0
 var _ghost_reason := "water"
 var _ghost_valid := false
 var _night_glow := 0.0
-var _lit_meshes: Dictionary = {}
+var _shade := 0.92
+var _soft_mats: Dictionary = {}
+
+
+func set_shade(level: float) -> void:
+	_shade = clampf(level, 0.34, 1.15)
+	for mat in _soft_mats.values():
+		(mat as ShaderMaterial).set_shader_parameter("fill", _shade)
 
 
 func set_night_glow(level: float) -> void:
@@ -875,47 +882,34 @@ func _make(id: String) -> Node3D:
 	if inst == null:
 		return null
 	_quiet(inst)
-	_ensure_normals(inst, path)
+	_soften(inst)
 	return inst
 
 
-## Los modelos no traen normales. Sin ellas, al mirar hacia atrás
-## el móvil las ilumina al revés y el objeto queda negro.
-func _ensure_normals(n: Node, key: String) -> void:
+## El dibujo ya trae su color. La luz del modelo, sin normales,
+## deja manchas negras al girarlo.
+func _soften(n: Node) -> void:
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
-		var src := mi.mesh
-		if src != null:
-			var mesh_key := key + "#" + str(mi.name)
-			if not _lit_meshes.has(mesh_key):
-				_lit_meshes[mesh_key] = _with_normals(src)
-			mi.mesh = _lit_meshes[mesh_key]
-	var i := 0
+		var mat := mi.get_active_material(0)
+		if mat is BaseMaterial3D:
+			var tex := (mat as BaseMaterial3D).albedo_texture
+			if tex != null:
+				mi.set_surface_override_material(0, _soft_mat(tex))
 	for child in n.get_children():
-		_ensure_normals(child, key + "/" + str(i))
-		i += 1
+		_soften(child)
 
 
-func _with_normals(src: Mesh) -> Mesh:
-	var out := ArrayMesh.new()
-	for s in src.get_surface_count():
-		var st := SurfaceTool.new()
-		st.create_from(src, s)
-		if _normals_missing(src, s):
-			st.generate_normals(true)
-		st.commit(out)
-	return out
-
-
-func _normals_missing(src: Mesh, surface: int) -> bool:
-	var arr: Array = src.surface_get_arrays(surface)
-	var packed = arr[Mesh.ARRAY_NORMAL]
-	if not (packed is PackedVector3Array):
-		return true
-	var norms := packed as PackedVector3Array
-	if norms.is_empty():
-		return true
-	return norms[0].length_squared() < 0.01
+func _soft_mat(tex: Texture2D) -> ShaderMaterial:
+	var key := tex.get_instance_id()
+	if _soft_mats.has(key):
+		return _soft_mats[key]
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://shaders/deco_soft.gdshader")
+	sm.set_shader_parameter("albedo_tex", tex)
+	sm.set_shader_parameter("fill", _shade)
+	_soft_mats[key] = sm
+	return sm
 
 
 func _glow(inst: Node3D, id: String, height: float, glows: int) -> int:

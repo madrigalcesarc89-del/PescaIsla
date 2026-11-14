@@ -302,6 +302,9 @@ func _paint(v: Dictionary, a: Dictionary, b: Dictionary, t: float) -> void:
 	var decor := _decor_node()
 	if decor != null and decor.has_method("set_night_glow"):
 		decor.call("set_night_glow", float(v["decor_lights"]))
+	if decor != null and decor.has_method("set_shade"):
+		var fill := float(v["ambient_energy"]) * 0.45 + float(v["light_energy"]) * 0.55
+		decor.call("set_shade", fill)
 
 
 func _decor_node() -> Node:
